@@ -14,8 +14,8 @@
  * @requires controllers/alerts.controller
  *
  * @author Wanasart
- * @created 15-08-2025
- * @lastModified 15-08-2025
+ * @created 2025-08-15
+ * @lastModified 2025-08-15
  */
 import { Router } from "express";
 import * as ctrl from "../controllers/alerts.controller";
