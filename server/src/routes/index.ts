@@ -41,7 +41,7 @@ router.use('/cameras', cameras);
 // Alerts routes
 router.use('/alerts', alerts);
 
-// Events
+// Events routes
 router.use('/events', events);
 
 export default router;
