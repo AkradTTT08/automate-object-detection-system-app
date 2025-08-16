@@ -32,6 +32,17 @@ export async function getMaintenanceHistoryByCamId(cam_id: number): Promise<any[
         ORDER BY mnt_date DESC
     `;
     
-    const { rows } = await pool.query(query, [cam_id]);
-    return rows;
+
+
+    const result = await pool.query(query);
+
+    return result.rows;
+}
+
+export async function changeStatus(id: number, status: boolean) {
+    const result = await pool.query(
+        "UPDATE cameras SET cam_status = $1 WHERE cam_id = $2 RETURNING *",
+        [status, id]
+    );
+    return result.rows[0]; // คืนค่ากล้องที่ถูกอัพเดต
 }
