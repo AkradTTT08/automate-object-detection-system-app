@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as maintenanceService from '../services/maintenance.service';
 
-
 /**
  * Controller: ดึงรายการประวัติการซ่อมบำรุงทั้งหมด
  *
