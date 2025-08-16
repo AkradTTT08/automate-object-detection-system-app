@@ -9,6 +9,7 @@ export async function list(req: Request, res: Response, next: NextFunction){
         next(err);
     }
 };
+
 /**
  * Controller: นับรายการ Cameras ทั้งหมดที่ถูกใช้งาน
  *
@@ -25,6 +26,27 @@ export async function total(req: Request, res: Response, next: NextFunction){
         const total = await CameraService.totalCameras();
         res.json(total);
     } catch(err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: ดึงรายการประวัติการซ่อมบำรุงทั้งหมด
+ *
+ * @route GET /api/maintenance/history
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับรายการประวัติการซ่อมบำรุงเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของรายการประวัติการซ่อมบำรุง
+ *
+ * @author Jirayu
+ * 
+ */
+export async function maintenance(req: Request, res: Response, next: NextFunction) {
+    try {
+        const history = await CameraService.getAllMaintenanceHistory();
+        return res.json(history);
+    } catch (err) {
         next(err);
     }
 }
