@@ -1,5 +1,12 @@
 import { pool } from '../config/db';
 
+/**
+ * ดึงรายการกล้องทั้งหมดจากฐานข้อมูล
+ *
+ * @returns {Promise<any[]>} รายการกล้องทั้งหมด
+ * 
+ * @author Wanasart
+ */
 export async function listCameras() {
     const result = await pool.query(
         "SELECT * FROM cameras"

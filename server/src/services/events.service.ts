@@ -1,5 +1,16 @@
 import { pool } from '../config/db';
 
+/**
+ * สร้าง Event ใหม่ในฐานข้อมูล
+ *
+ * @param {string} evt_icon - ไอคอนของ event
+ * @param {string} evt_name - ชื่อของ event
+ * @param {string} evt_des - คำอธิบายของ event
+ * @throws {Error} หาก insert event ไม่สำเร็จ
+ * @returns {Promise<any>} แถวข้อมูล event ที่ถูกสร้างใหม่จากฐานข้อมูล
+ *
+ * @author Fasai
+ */
 export async function createEvent(evt_icon: string, evt_name: string, evt_des: string) {
     const { rows } = await pool.query(`
         INSERT INTO events(evt_icon, evt_name, evt_description) 
