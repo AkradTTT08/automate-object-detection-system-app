@@ -10,3 +10,27 @@ export async function create(req: Request, res: Response, next: NextFunction){
          next(err);
     }
 }
+
+/**
+ * อัปเดต Event ตามข้อมูลใน req.body
+ * ส่ง Event ที่อัปเดตแล้วกลับเป็น JSON
+ *
+ * @param req - Request ของ Express (body: id, icon, name, description)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ Event ที่อัปเดตแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัปเดต
+ *
+ * @author Fasai
+ */
+
+export async function update(req: Request, res: Response, next: NextFunction){
+    try{
+        const { id, icon, name, description } = req.body;
+        const updateEvent = await eventService.updateEvent(id, icon, name, description);
+        return res.json(updateEvent);
+    }catch(err){
+        next(err);
+    }
+}
