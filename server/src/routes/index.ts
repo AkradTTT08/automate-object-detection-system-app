@@ -20,6 +20,6 @@ router.use('/cameras', cameras);
 router.use('/alerts', alerts);
 
 // Maintenance
-router.use('/maintenanceHistory', maintenance);
+router.use('/maintenance', maintenance);
 
 export default router;
