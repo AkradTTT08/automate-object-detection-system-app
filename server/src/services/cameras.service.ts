@@ -58,15 +58,17 @@ export async function getAllMaintenanceHistory() {
 /**
  * เปลี่ยนสถานะของกล้อง
  *
+ * @param {string} cam_id - ไอดีของ cam ที่จะเปลี่ยนสถานะ
+ * @param {string} cam_status - สถานะที่จะเปลี่ยน
  * @returns {Promise<any[]>} กล้องที่ถูกอัปเดต
  * 
  * @author Audomsak
  * 
  */
-export async function changeStatus(id: number, status: boolean) {
+export async function changeStatus(cam_id: number, cam_status: boolean) {
     const result = await pool.query(
         "UPDATE cameras SET cam_status = $1 WHERE cam_id = $2 RETURNING *",
-        [status, id]
+        [cam_status, cam_id]
     );
     return result.rows[0]; // คืนค่ากล้องที่ถูกอัพเดต
 }
