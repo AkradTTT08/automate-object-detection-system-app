@@ -1,5 +1,5 @@
 import { pool } from '../config/db';
-import { Alert } from '../models/alerts.model';
+import { Alert, mapToAlert } from '../models/alerts.model';
 
 /**
  * ดึงรายการ Alert ที่ถูกใช้งานอยู่ทั้งหมดจากฐานข้อมูล
@@ -11,10 +11,13 @@ import { Alert } from '../models/alerts.model';
 export async function getAlertList() {
     const result = await pool.query<Alert>(`
         SELECT * FROM alerts
+        JOIN cameras ON cam_id = alr_camera_id
+        JOIN footages ON fgt_id = alr_footage_id
+        JOIN events ON evt_id = alr_event_id
         WHERE alr_is_use = true
     `);
 
-    return result.rows;
+    return result.rows.map(mapToAlert);
 }
 
 /**
