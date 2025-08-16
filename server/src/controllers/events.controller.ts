@@ -49,3 +49,27 @@ export async function update(req: Request, res: Response, next: NextFunction){
         next(err);
     }
 }
+
+/**
+ * ลบ Event ตามข้อมูลใน req.body
+ * ส่ง Event ที่ลบแล้วกลับเป็น JSON
+ *
+ * @param req - Request ของ Express (body: id, status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ Event ที่ลบแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการลบ
+ *
+ * @author Fasai
+ */
+
+export async function softDelete(req: Request, res: Response, next: NextFunction) {
+    try{
+        const {id, status} = req.body
+        const deleteEvent = await eventService.deleteEvent(id, status);
+        return res.json(deleteEvent);
+    }catch(err){
+        next(err);
+    }
+}

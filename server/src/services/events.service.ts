@@ -66,3 +66,35 @@ export async function updateEvent(evt_id: number, evt_icon: string, evt_name: st
 
     return events;
 }
+
+/**
+ * ลบข้อมูลของ Event ที่ระบุด้วย evt_id
+ *
+ * ฟังก์ชันนี้จะลบโดยอัปเดตสถานะของ Event ในฐานข้อมูลแทนการลบจริง ๆ
+ * หากพบ Event ตาม evt_id จะคืนค่าเป็น object ของ Event หลังการลบ
+ * หากไม่พบ Event หรือลบไม่สำเร็จ จะโยน Error
+ *
+ * @param {number} evt_id - รหัสของ Event ที่ต้องการลบ
+ * @param {boolean} evt_is_use - สถานะใหม่ของ Event
+ * @returns {Promise<object>} Event object หลังลบ
+ * @throws {Error} เมื่อไม่พบ Event หรือลบไม่สำเร็จ
+ *
+ * @author Fasai
+ */
+
+export async function deleteEvent(evt_id: number, evt_is_use: boolean) {
+    const { rows } = await pool.query(`
+        UPDATE events
+        set evt_is_use = $1
+        WHERE evt_id = $2
+        RETURNING *;
+        `, [evt_is_use, evt_id]);
+
+    const events = rows[0];
+
+    if (!events) {
+        throw new Error('Failed to delete event or event not found');
+    }
+
+    return events
+}
