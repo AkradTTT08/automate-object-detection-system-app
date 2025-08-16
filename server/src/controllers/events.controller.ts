@@ -10,3 +10,24 @@ export async function create(req: Request, res: Response, next: NextFunction){
          next(err);
     }
 }
+
+
+/**
+ * Controller: ดึงรายการ Events ทั้งหมดออกมาแสดง
+ *
+ * @route GET /api/events
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับรายการ events เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของรายการ events
+ *
+ * @author Jirayu
+ */
+export async function list(req: Request, res: Response, next: NextFunction) {
+    try {
+        const events = await eventService.getAllEvents();
+        return res.json(events);
+    } catch (err) {
+        next(err);
+    }
+}
