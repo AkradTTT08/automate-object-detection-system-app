@@ -59,8 +59,9 @@ export async function list(req: Request, res: Response, next: NextFunction) {
  */
 export async function update(req: Request, res: Response, next: NextFunction){
     try{
-        const { id, icon, name, description } = req.body;
-        const updateEvent = await eventService.updateEvent(id, icon, name, description);
+        const evt_id = Number(req.params.evt_id);
+        const { icon, name, description } = req.body;
+        const updateEvent = await eventService.updateEvent(evt_id, icon, name, description);
         return res.json(updateEvent);
     }catch(err){
         next(err);
