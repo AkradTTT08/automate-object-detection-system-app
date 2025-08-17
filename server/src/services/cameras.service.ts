@@ -112,7 +112,40 @@ export async function changeStatus(cam_id: number, cam_status: boolean) {
  */
 export async function eventDetection() {
     const result = await pool.query(
-        "SELECT evt_icon, evt_name, cds_sensitivity, cds_priority, cds_status FROM events INNER JOIN camera_detection_settings ON evt_id = cds_event_id"
+        "SELECT evt_id, evt_icon, evt_name, cds_sensitivity, cds_priority, cds_status FROM events INNER JOIN camera_detection_settings ON evt_id = cds_event_id"
     );
     return result.rows;
 }
+
+
+/**
+ * อัปเดตข้อมูล Event Detection 
+ * 
+ * @param {number} cds_id - รหัสของ camera_detection_settings
+ * @param {string} cds_sensitivity - ค่า sensitivity ใหม่ (High, Medium, Low)
+ * @param {string} cds_priority - ค่า priority ใหม่ (High, Medium, Low)
+ * @param {boolean} cds_status - สถานะใหม่ (true/false)
+ * @returns {Promise<object>} Event Detection หลังอัปเดต
+ * 
+ * @author Wongsakon
+ */
+export async function updateEventDetection(cds_id: number, cds_sensitivity: string, cds_priority: string, cds_status: boolean) {
+    const { rows } = await pool.query(
+      `
+      UPDATE camera_detection_settings
+      SET cds_sensitivity = $1,
+          cds_priority = $2,
+          cds_status = $3
+      WHERE cds_id = $4 
+      RETURNING *;
+      `,
+      [cds_sensitivity, cds_priority, cds_status, cds_id]);
+  
+    const detection = rows[0];
+  
+    if (!detection) {
+      throw new Error("Failed to update detection or not found");
+    }
+  
+    return detection;
+  }

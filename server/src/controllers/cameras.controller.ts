@@ -135,4 +135,29 @@ export async function listEventDetection(req: Request, res: Response, next: Next
     } catch(err) {
         next(err);
     }
-};
+}
+
+
+/**
+ * อัปเดต Event Detection
+ *
+ * @route PUT /api/events/:cds_id/update/event-detection
+ * @param req - Request ของ Express (params: cds_id, body: cds_sensitivity, cds_priority, cds_status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error ไปยัง error handler
+ * @returns {Promise<Response>} JSON response ของ Event Detection ที่อัปเดตแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัปเดต
+ * 
+ * @author Wongsakon
+ */
+export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
+    try {
+      const cds_id = Number(req.params.cds_id);
+      const { cds_sensitivity, cds_priority, cds_status } = req.body;
+      const updated = await CameraService.updateEventDetection(cds_id, cds_sensitivity, cds_priority, cds_status);
+      return res.json(updated);
+    } catch (err) {
+      next(err);
+    }
+  }
