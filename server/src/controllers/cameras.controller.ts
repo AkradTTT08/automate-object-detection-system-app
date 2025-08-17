@@ -161,3 +161,14 @@ export async function updateEventDetection(req: Request, res: Response, next: Ne
       next(err);
     }
   }
+
+export async function getAccessControlById(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cam_id = Number(req.params.cam_id); 
+        console.log(cam_id)
+        const cameraAccess = await CameraService.showCameraAccessControlById(cam_id);
+        return res.json(cameraAccess);
+    } catch (error) {
+        next(error);
+    }
+}

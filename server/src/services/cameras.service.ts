@@ -1,3 +1,4 @@
+import { promises } from 'dns';
 import { pool } from '../config/db';
 
 /**
@@ -76,7 +77,7 @@ export async function getMaintenanceHistoryByCamId(cam_id: number): Promise<any[
 
 
 
-    const result = await pool.query(query,[cam_id]);
+    const result = await pool.query(query, [cam_id]);
 
     return result.rows;
 }
@@ -131,7 +132,7 @@ export async function eventDetection() {
  */
 export async function updateEventDetection(cds_id: number, cds_sensitivity: string, cds_priority: string, cds_status: boolean) {
     const { rows } = await pool.query(
-      `
+        `
       UPDATE camera_detection_settings
       SET cds_sensitivity = $1,
           cds_priority = $2,
@@ -139,13 +140,25 @@ export async function updateEventDetection(cds_id: number, cds_sensitivity: stri
       WHERE cds_id = $4 
       RETURNING *;
       `,
-      [cds_sensitivity, cds_priority, cds_status, cds_id]);
-  
+        [cds_sensitivity, cds_priority, cds_status, cds_id]);
+
     const detection = rows[0];
-  
+
     if (!detection) {
-      throw new Error("Failed to update detection or not found");
+        throw new Error("Failed to update detection or not found");
     }
-  
+
     return detection;
-  }
+}
+
+export async function showCameraAccessControlById(caa_camera_id: number) {
+    const query = `SELECT 
+                    caa_require_auth,
+                    caa_restrict,
+                    caa_log 
+                    FROM cameras_access
+                    WHERE caa_camera_id = $1`;
+    const result = await pool.query(query, [caa_camera_id]);
+    return result.rows;
+
+}

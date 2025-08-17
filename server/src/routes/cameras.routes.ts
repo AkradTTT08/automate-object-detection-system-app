@@ -23,14 +23,16 @@ const router = Router();
 // Cameras
 router.get('/', ctrl.list);
 router.get('/total', ctrl.total);
-// Maintenance
+
 router.get('/:cam_id/maintenance',ctrl.listMaintenanceByCamId);
 router.get('/maintenance',ctrl.listMaintenance);
+router.get('/:cam_id/access-control',ctrl.getAccessControlById);
 
 router.get('/event-detection', ctrl.listEventDetection);
 
 router.put("/event-detection/:cds_id/update", ctrl.updateEventDetection);
 
 router.patch('/:cam_id/change', ctrl.change);
+
 
 export default router;
