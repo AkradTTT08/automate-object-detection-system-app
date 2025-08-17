@@ -97,6 +97,8 @@ export async function softDelete(req: Request, res: Response, next: NextFunction
 /**
  * สร้าง Event Detect 
  *
+ *  
+ * @route POST /api/events/createDetect
  * @param req - Request ของ Express (body: cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status)
  * @param res - Response ของ Express
  * @param next - ส่งต่อ error
