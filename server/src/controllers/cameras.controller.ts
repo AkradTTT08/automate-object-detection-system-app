@@ -19,7 +19,7 @@ export async function list(req: Request, res: Response, next: NextFunction){
     } catch(err) {
         next(err);
     }
-}
+};
 
 /**
  * Controller: นับรายการ Cameras ทั้งหมดที่ถูกใช้งาน
@@ -42,9 +42,9 @@ export async function total(req: Request, res: Response, next: NextFunction){
 }
 
 /**
- * Controller: ดึงรายการประวัติการซ่อมบำรุงทั้งหมด
+ * Controller: ดึงรายการประวัติการซ่อมบำรุงกล้องทั้งหมด
  *
- * @route GET /api/maintenance/history
+ * @route GET /api/cameras/maintenance
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object (ส่งกลับรายการประวัติการซ่อมบำรุงเป็น JSON)
  * @param {NextFunction} next - Express next middleware function
@@ -52,10 +52,35 @@ export async function total(req: Request, res: Response, next: NextFunction){
  *
  * @author Jirayu
  * 
+ *
  */
-export async function maintenance(req: Request, res: Response, next: NextFunction) {
+export async function listMaintenance(req: Request, res: Response, next: NextFunction) {
     try {
         const history = await CameraService.getAllMaintenanceHistory();
+        return res.json(history);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: ดึงรายการประวัติการซ่อมบำรุงตามรหัสกล้อง
+ *
+ * @route GET /api/cameras/:cam_id/maintenance
+ * @param {Request} req - Express request object (ต้องมี params.cam_id)
+ * @param {Response} res - Express response object (ส่งกลับรายการประวัติการซ่อมบำรุงเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของรายการประวัติการซ่อมบำรุง
+ *
+ * @author Jirayu
+ */
+export async function listMaintenanceByCamId(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cam_id = Number(req.params.cam_id);
+        if (isNaN(cam_id)) {
+            return res.status(400).json({ error: "Invalid camera ID" });
+        }
+        const history = await CameraService.getMaintenanceHistoryByCamId(cam_id);
         return res.json(history);
     } catch (err) {
         next(err);
@@ -75,16 +100,64 @@ export async function maintenance(req: Request, res: Response, next: NextFunctio
  */
 export async function change(req: Request, res: Response, next: NextFunction){
     try {
-        const { id, status } = req.body; // รับ id และ status ใหม่
-        console.log(id , status)
+        const {cam_id} = req.params;
+        const {status} = req.body;
+
+        const id = Number(cam_id);
 
         if (isNaN(id) || isNaN(status)) {
             return res.status(400).json({ message: "id and status are required" });
         }
 
         const updatedCamera = await CameraService.changeStatus(id, status);
+
         res.json(updatedCamera);
     } catch(err) {
         next(err);
     }
 };
+
+/**
+ * Controller: ดึงรายการ Event Detection 
+ *
+ * @route GET /api/:cam_id/event-detection
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับ event detections เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ event detections
+ *
+ * @author Wongsakon
+ */
+export async function listEventDetection(req: Request, res: Response, next: NextFunction){
+    try {
+        const eventDetection = await CameraService.eventDetection();
+        res.json(eventDetection);
+    } catch(err) {
+        next(err);
+    }
+}
+
+
+/**
+ * อัปเดต Event Detection
+ *
+ * @route PUT /api/events/:cds_id/update/event-detection
+ * @param req - Request ของ Express (params: cds_id, body: cds_sensitivity, cds_priority, cds_status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error ไปยัง error handler
+ * @returns {Promise<Response>} JSON response ของ Event Detection ที่อัปเดตแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัปเดต
+ * 
+ * @author Wongsakon
+ */
+export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
+    try {
+      const cds_id = Number(req.params.cds_id);
+      const { cds_sensitivity, cds_priority, cds_status } = req.body;
+      const updated = await CameraService.updateEventDetection(cds_id, cds_sensitivity, cds_priority, cds_status);
+      return res.json(updated);
+    } catch (err) {
+      next(err);
+    }
+  }

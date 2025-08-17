@@ -18,7 +18,7 @@
  *
  * @author Wanasart
  * @created 2025-08-16
- * @lastModified 2025-08-16
+ * @lastModified 2025-08-17
  */
 import { Router } from 'express';
 import cameras from './cameras.routes'
