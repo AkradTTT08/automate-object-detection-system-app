@@ -32,4 +32,6 @@ router.get("/distribution", ctrl.distribution);
 
 router.post("/", ctrl.create);
 
+router.patch("/:alr_id/update", ctrl.update);
+
 export default router;
