@@ -59,8 +59,9 @@ export async function list(req: Request, res: Response, next: NextFunction) {
  */
 export async function update(req: Request, res: Response, next: NextFunction){
     try{
-        const { id, icon, name, description } = req.body;
-        const updateEvent = await eventService.updateEvent(id, icon, name, description);
+        const evt_id = Number(req.params.evt_id);
+        const { icon, name, description } = req.body;
+        const updateEvent = await eventService.updateEvent(evt_id, icon, name, description);
         return res.json(updateEvent);
     }catch(err){
         next(err);
@@ -80,11 +81,11 @@ export async function update(req: Request, res: Response, next: NextFunction){
  *
  * @author Fasai
  */
-
 export async function softDelete(req: Request, res: Response, next: NextFunction) {
     try{
-        const {id, status} = req.body
-        const deleteEvent = await eventService.deleteEvent(id, status);
+        const evt_id = Number(req.params.evt_id);
+        const { status } = req.body
+        const deleteEvent = await eventService.deleteEvent(evt_id, status);
         return res.json(deleteEvent);
     }catch(err){
         next(err);
