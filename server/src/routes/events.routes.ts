@@ -17,6 +17,7 @@
  */
 import { Router } from "express";
 import * as ctrl from '../controllers/events.controller';
+import { updateEvent } from "../services/events.service";
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router.post('/', ctrl.create);
 router.put('/:evt_id/update', ctrl.update);
 
 router.patch('/:evt_id/delete', ctrl.softDelete);
+
+router.put("/:cds_id/update/event-detection", ctrl.updateEventDetection);
 
 export default router;
