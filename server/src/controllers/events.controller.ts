@@ -91,26 +91,3 @@ export async function softDelete(req: Request, res: Response, next: NextFunction
         next(err);
     }
 }
-
-
-/**
- * สร้าง Event Detect 
- *
- *  
- * @route POST /api/events/createDetect
- * @param req - Request ของ Express (body: cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status)
- * @param res - Response ของ Express
- * @param next - ส่งต่อ error
- * @returns {Promise<Response>} JSON response ของ EventDetect ที่สร้างขึ้นใหม่
- *
- * @author Audomsak
- */
-export async function createEventDetection(req: Request, res: Response, next: NextFunction){
-    try{
-        const { cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status } = req.body;        
-        const createEventDetection = await eventService.createEventDetection( cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status);
-        return res.json(createEventDetection);
-    }catch (err){
-         next(err);
-    }
-}

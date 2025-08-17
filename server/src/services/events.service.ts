@@ -117,36 +117,3 @@ export async function deleteEvent(evt_id: number, evt_is_use: boolean) {
 
     return events
 }
-
-/**
- * เพิ่มข้อมูลของ EventDetection
- *
- * @param {number} cds_event_id - รหัสของ Event 
- * @param {number} cds_camera_id - รหัสของ Camera
- * @param {string} cds_sensitivity - ความไวในการตรวจจับ
- * @param {string} cds_priority - ความสำคัญของ Eventdetection
- * @param {string} cds_status - สถานะของ Eventdetection
- * @returns {Promise<object>} EventDetection object หลังสร้างเสร็จ
- *
- * @author Audomsak
- */
-export async function createEventDetection( cds_event_id: number,
-    cds_camera_id: number,
-    cds_sensitivity: string = "Medium",
-    cds_priority: string = "Medium",
-    cds_status: boolean = true
-) {
-    const { rows } = await pool.query(`
-        INSERT INTO camera_detection_settings (cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
-    `, [cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status]);
-
-    const eventDetection = rows[0];
-
-    if (!eventDetection) {
-        throw new Error('Failed to insert Event Detection');
-    }
-
-    return eventDetection;
-}
