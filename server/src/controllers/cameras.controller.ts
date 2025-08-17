@@ -160,4 +160,51 @@ export async function updateEventDetection(req: Request, res: Response, next: Ne
     } catch (err) {
       next(err);
     }
-  }
+}
+
+/**
+ * สร้าง Event Detect 
+ *
+ *  
+ * @route POST /api/events/createDetect
+ * @param req - Request ของ Express (body: cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ EventDetect ที่สร้างขึ้นใหม่
+ *
+ * @author Audomsak
+ */
+export async function createEventDetection(req: Request, res: Response, next: NextFunction){
+    try{
+        const { cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status } = req.body;        
+        const createEventDetection = await CameraService.createEventDetection( cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status);
+        return res.json(createEventDetection);
+    }catch (err){
+         next(err);
+    }
+}
+
+/**
+ * ลบ EventDetect ตามข้อมูลใน req.body
+ * ส่ง EventDetect ที่ลบแล้วกลับเป็น JSON
+ *
+ * @param req - Request ของ Express (body: id, status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ EventDetect ที่ลบแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการลบ
+ *
+ * @author Audomsak
+ */
+export async function softDeleteEventDetect(req: Request, res: Response, next: NextFunction) {
+    try{
+        const id = Number(req.params.cds_id);
+
+        const { status } = req.body
+        const deleteEventDetection = await CameraService.deleteEventDetection( id, status);
+        return res.json(deleteEventDetection);
+    }catch(err){
+        next(err);
+    }
+}
