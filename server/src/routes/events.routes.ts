@@ -6,6 +6,8 @@
  *  - POST /api/events   → เพิ่ม Event ใหม่
  *  - PUT /api/events/:evt_id/update → แก้ไข Event ที่ทำการเลือก
  *  - PATCH /api/events/:evt_id/delete → ลบ Event ที่ทำการเลือกโดยการเปลี่ยนสถานะแทนการลบจริง
+ *  - PATCH /api/events/:cds_id/deleteDetect → ลบ EventDetection ที่เลือกโดยการเปลี่ยนสถานะแทนการลบจริง
+ * 
  * 
  * @module routes/events
  * @requires express
@@ -27,5 +29,7 @@ router.post('/', ctrl.create);
 router.put('/:evt_id/update', ctrl.update);
 
 router.patch('/:evt_id/delete', ctrl.softDelete);
+
+router.patch('/:cds_id/deleteDetect', ctrl.softDeleteEventDetect);
 
 export default router;

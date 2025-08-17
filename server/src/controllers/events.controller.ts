@@ -92,3 +92,28 @@ export async function softDelete(req: Request, res: Response, next: NextFunction
         next(err);
     }
 }
+
+/**
+ * ลบ EventDetect ตามข้อมูลใน req.body
+ * ส่ง EventDetect ที่ลบแล้วกลับเป็น JSON
+ *
+ * @param req - Request ของ Express (body: id, status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ EventDetect ที่ลบแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการลบ
+ *
+ * @author Audomsak
+ */
+export async function softDeleteEventDetect(req: Request, res: Response, next: NextFunction) {
+    try{
+        const id = Number(req.params.cds_id);
+
+        const { status } = req.body
+        const deleteEventDetection = await eventService.deleteEventDetection( id, status);
+        return res.json(deleteEventDetection);
+    }catch(err){
+        next(err);
+    }
+}

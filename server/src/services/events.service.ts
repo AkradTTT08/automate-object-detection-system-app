@@ -118,3 +118,20 @@ export async function deleteEvent(evt_id: number, evt_is_use: boolean) {
 
     return events
 }
+
+export async function deleteEventDetection(cds_id: number, cds_is_use: boolean) {
+    const { rows } = await pool.query(`
+        UPDATE camera_detection_settings
+        set cds_is_use = $1
+        WHERE cds_id = $2
+        RETURNING *;
+        `, [cds_is_use, cds_id]);
+
+    const events = rows[0];
+
+    if (!events) {
+        throw new Error('Failed to delete EventDetection or EventDetection not found');
+    }
+
+    return events
+}
