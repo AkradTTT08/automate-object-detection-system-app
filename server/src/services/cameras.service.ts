@@ -7,9 +7,20 @@ export async function listCameras() {
     return result.rows;
 }
 
-export async function cameraCards() {
+/**
+ * ดึงรายการ Event Detection จากฐานข้อมูล
+ *
+ * @returns {Promise<any[]>} รายการ Event Detection
+ * (icon, name, sensitivity, priority, status)
+ * @description
+ * ฟังก์ชันนี้จะ query join ข้อมูลระหว่าง events กับ camera_detection_settings
+ * โดยใช้ evt_id = cds_event_id เพื่อดึงรายละเอียดที่จำเป็นสำหรับการแสดงผล
+ * 
+ * @author Wongsakon
+ */
+export async function eventDetection() {
     const result = await pool.query(
-        "SELECT cam_id, cam_status, cam_name, cam_type, cam_health, loc_name FROM cameras INNER JOIN locations ON cam_location_id = loc_id"
+        "SELECT evt_icon, evt_name, cds_sensitivity, cds_priority, cds_status FROM events INNER JOIN camera_detection_settings ON evt_id = cds_event_id"
     );
     return result.rows;
 }

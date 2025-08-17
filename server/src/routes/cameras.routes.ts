@@ -4,7 +4,7 @@ import * as ctrl from '../controllers/cameras.controller'
 const router = Router();
 
 router.get('/', ctrl.list);
+router.get('/:cam_id/event-detection', ctrl.listEventDetection);
 
-router.get('/cards', ctrl.cards);
 
 export default router;
