@@ -1,4 +1,5 @@
 import { pool } from '../config/db';
+import type { CamerasRow, CreateCameraInput } from '../models/cameras.model';
 
 /**
  * ดึงรายการกล้องทั้งหมดจากฐานข้อมูล
@@ -34,7 +35,6 @@ export async function totalCameras() {
  * @returns cam_id คืนเลข id ของกล้องที่เจอ
  * @author Chokchai
  */
-
 export async function findCameras({id,name,location} : {id?:number; name?: string; location?:string}) {
   const conds:string[] = []; // เก็บเงื่อนไข WHERE
   const params:any[] = []; // เก็บค่าพารามิเตอร์สำหรับ
@@ -67,8 +67,44 @@ export async function findCameras({id,name,location} : {id?:number; name?: strin
   const r = await pool.query(sql, params);
   return r.rows.map((row: any) => row.cam_id);;
 }
+}
 
+/**
+ * สร้างกล้องใหม่โดยการเพิ่มข้อมูลตาม CreateCameraInput
+ * @param {input: CreateCameraInput} สร้างกล้องตามฟิลด์ข้อมูลของ CreateCameraInput 
+ * @returns {CamerasRow} รายการของ Camera ที่สร้าง
+ * @author Chokchai
+ */
+export async function createCameras(input: CreateCameraInput): Promise<CamerasRow>{ //สร้างกล้องตัวใหม่
 
+    const values = [
+    input.cam_name ?? null,
+    input.cam_address ?? null,
+    input.cam_type ?? null,
+    input.cam_resolution ?? null,
+    input.cam_description ?? null,
+    input.cam_installation_date ?? null,
+    input.cam_health ?? null,
+    input.cam_video_quality ?? null,
+    input.cam_network_latency ?? null,
+    input.cam_location_id ?? null,
+  ];
+
+  const sql = `
+    INSERT INTO public.cameras
+      (cam_name, cam_address, cam_type, cam_resolution, cam_description,
+       cam_installation_date, cam_health, cam_video_quality, cam_network_latency,
+        cam_location_id)
+    VALUES
+      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+    RETURNING
+      cam_id, cam_name, cam_address, cam_type, cam_resolution, cam_description,
+      cam_installation_date, cam_health, cam_video_quality, cam_network_latency,
+      cam_is_use, cam_location_id
+  `;
+    const r = await pool.query(sql, values);
+    return r.rows[0] as CamerasRow;
+}
 
 /**
  * ดึงรายการประวัติการซ่อมบำรุงกล้องทั้งหมด
