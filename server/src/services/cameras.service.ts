@@ -90,7 +90,6 @@ export async function findCameras({id,name,location} : {id?:number; name?: strin
   const r = await pool.query(sql, params);
   return r.rows.map((row: any) => row.cam_id);;
 }
-}
 
 /**
  * สร้างกล้องใหม่โดยการเพิ่มข้อมูลตาม CreateCameraInput

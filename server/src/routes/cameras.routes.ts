@@ -12,7 +12,7 @@
  *  - GET /api/cameras/event-detection                  → ดึงรายการ EventDetection ทั้งหมด
  *  - POST /api/events/createDetect                     → สร้าง EventDetect 
  *  - PUT /api/cameras/event-detection/:cds_id/update   → แก้ไข EventDetection ที่เลือก
- *  - PATCH /api/camers/:cam_id                         → update status กล้องตาม cam_id
+ *  - PATCH /api/cameras/:cam_id                         → update status กล้องตาม cam_id
  *  - PATCH /api/events/:cds_id/deleteDetect            → ลบ EventDetection ที่เลือกโดยการเปลี่ยนสถานะแทนการลบจริง
  *
  * @module routes/cameras
