@@ -44,6 +44,7 @@ router.use('/alerts', alerts);
 
 // Events routes
 router.use('/events', events);
+
 // Maintenance History routes
 router.use('/maintenance_history', maintenance_history)
 

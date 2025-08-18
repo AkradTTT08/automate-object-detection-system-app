@@ -22,3 +22,24 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         next(err);
     }
 }
+
+/**
+ * Controller: ลบ Maintenance History
+ *
+ * @route POST /api/maintenance_history/:cam_id/delete
+ * @param {Request} req - Express request object (body: { mnt_id, isUse })
+ * @param {Response} res - Express response object (ส่งกลับ Maintenance History ที่ลบเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ Maintenance History  ที่ลบ
+ *
+ * @author Napat
+ */
+export async function softDelete(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { mnt_id, isUse } = req.body;
+        const softDeleteHistory = await MaintenanceHistoryService.softDeleteMaintenanceHistory(mnt_id, isUse);
+        res.json(softDeleteHistory);
+    } catch (err) {
+        next(err);
+    }
+}

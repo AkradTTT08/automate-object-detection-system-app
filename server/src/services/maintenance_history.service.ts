@@ -33,3 +33,34 @@ export async function createMaintenanceHistory(camId: number, date: Date, type: 
 
     return maintenanceHistory;
 }
+
+/**
+ * ลบข้อมูลของ Maintenance History
+ *
+ * ฟังก์ชันนี้จะลบ maintenance history ตาม ID ในฐานข้อมูล
+ * หากลบไม่สำเร็จ จะโยน Error
+ *
+ * @param {number} mnt_id - ID ของประวัติการซ่อมบำรุง
+ * @param {boolean} isUse - สถานะของประวัติการซ่อมบำรุง
+ * @returns {Promise<object>} Maintenance History object หลังลบสำเร็จ
+ * @throws {Error} เมื่อลบ Maintenance History ไม่สำเร็จ
+ *
+ * 
+ * @author Napat
+ */
+export async function softDeleteMaintenanceHistory(mnt_id: number, isUse: boolean) {
+    const { rows } = await pool.query(`
+        UPDATE maintenance_history
+        set mnt_is_use = $1
+        WHERE mnt_id = $2
+        RETURNING *;
+        `, [isUse, mnt_id]);
+
+    const maintenanceHistory = rows[0];
+
+    if (!maintenanceHistory) {
+        throw new Error('Failed to delete maintenance history or maintenance history not found');
+    }
+
+    return maintenanceHistory
+}

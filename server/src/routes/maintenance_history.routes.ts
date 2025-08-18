@@ -3,6 +3,7 @@
  *
  * กำหนดเส้นทาง (routes) สำหรับการจัดการ Maintenance History:
  *  - POST /api/maintenance_history/:cam_id/create → สร้าง Maintenance History ใหม่
+ *  - POST /api/maintenance_history/:cam_id/delete → ลบ Maintenance History
  *
  * @module routes/maintenance_history
  * @requires express
@@ -19,5 +20,6 @@ import * as ctrl from '../controllers/maintenance_history.controller';
 const router = Router();
 
 router.post('/:cam_id/create', ctrl.create);
+router.post('/:cam_id/delete', ctrl.softDelete);
 
 export default router;
