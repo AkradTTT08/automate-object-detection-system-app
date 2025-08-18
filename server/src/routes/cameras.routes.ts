@@ -33,10 +33,10 @@ router.get('/total', ctrl.total);
 router.get('/find/:term', ctrl.find);
 
 
-
 // Maintenance
 router.get('/:cam_id/maintenance',ctrl.listMaintenanceByCamId);
 router.get('/maintenance',ctrl.listMaintenance);
+
 
 router.get('/event-detection', ctrl.listEventDetection);
 router.post('/createDetect',ctrl.createEventDetection);
