@@ -4,7 +4,7 @@
  * กำหนดเส้นทาง (routes) สำหรับการจัดการกล้อง (Cameras):
  *  - GET /api/cameras                                  → ดึงรายการกล้องทั้งหมด
  *  - GET /api/cameras/total                            → ดึงจำนวนกล้องทั้งหมด
- *  - GET /api/cameras/create                           → เพิ่มกล้องใหม่
+ *  - POST /api/cameras/create                          → เพิ่มกล้องใหม่
  *  - GET /api/cameras/:cam_id/maintenance              → ดึงข้อมูลการบำรุงรักษาของกล้องตาม cam_id
  *  - GET /api/cameras/maintenance                      → ดึงรายการประวัติการซ่อมบำรุงกล้องทั้งหมด
  *  - GET /api/cameras/event-detection                  → ดึงรายการ EventDetection ทั้งหมด
