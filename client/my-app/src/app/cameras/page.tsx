@@ -1,7 +1,7 @@
 "use client";
 
 import LogoutButton from '../components/LogoutButton';
-import CameraCard from '../components/CameraCard';
+import CameraCard from '../components/cameraCard';
 
 export default function CamerasPage() {
   return (
