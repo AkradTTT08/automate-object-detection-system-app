@@ -42,6 +42,26 @@ export async function total(req: Request, res: Response, next: NextFunction){
 }
 
 /**
+ * Controller: ลบข้อมูลกล้องแบบ softdelete
+ * @route POST /api/cameras/create
+ * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
+ * @param res ส่งข้อมูลของกล้องกลับ
+ * @returns -JSON response แสดงสถานะ 202
+ * @author Chokchai
+ */
+
+export async function remove(req: Request, res: Response, next: NextFunction) { //soft delete
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) {
+    return res.status(400).json({ message: 'id must be a number' });
+  }
+  const deleteid = await CameraService.deleteCamera(id);
+  if (!deleteid) return res.status(404).json({ message: 'camera not found' });
+  return res.status(202).send();
+}
+
+
+/**
  * Controller: ดึงรายการประวัติการซ่อมบำรุงกล้องทั้งหมด
  *
  * @route GET /api/cameras/maintenance

@@ -29,6 +29,30 @@ export async function totalCameras() {
 }
 
 /**
+ * ลบข้อมูลกล้องแบบ Softdelete
+ * @param {camId: number} รหัสของ cameras cam_id 
+ * @returns {Promise<boolean>} คืนค่าเป็น boolean 
+ * @author Chokchai
+ */
+
+export async function deleteCamera(camId: number): Promise<boolean> { //ลบข้อมูลกล้องแบบ soft delete
+  try {
+    const sql = `
+    UPDATE public.cameras 
+    SET cam_is_use = false
+    WHERE cam_id = $1 
+      AND cam_is_use IS DISTINCT FROM FALSE   
+    RETURNING cam_id`;
+    const r = await pool.query<{ cam_id: number }>(sql, [camId]);
+    return r.rows.length > 0;
+  } catch (err) {
+    // log แล้วค่อยตัดสินใจว่าจะโยนออก/คืน false
+    console.error('deleteCamera error:', err);
+    return false;
+  }
+}
+
+/**
  * ดึงรายการประวัติการซ่อมบำรุงกล้องทั้งหมด
  *
  * @returns {Promise<any[]>} รายการประวัติการซ่อมบำรุงกล้องทั้งหมด
