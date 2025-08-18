@@ -272,3 +272,28 @@ export async function softDeleteEventDetect(req: Request, res: Response, next: N
         next(err);
     }
 }
+
+/**
+ * อัพเดท Access Control ตามข้อมูลใน req.body
+ * ส่ง Access Control ที่อัพเดทแล้วกลับเป็น JSON
+ *
+ * @param req - Request ของ Express (body: selectedAccess, status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ Access Control ที่อัพเดทแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัพเดท
+ *
+ * @author Napat
+ */
+export async function updateAccess(req: Request, res: Response, next: NextFunction) {
+    try{
+        const camId = Number(req.params.cam_id);
+
+        const { selectedAccess, status } = req.body
+        const update = await CameraService.updateAccessControl(camId, selectedAccess, status);
+        return res.json(update);
+    }catch(err){
+        next(err);
+    }
+}

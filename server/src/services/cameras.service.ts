@@ -308,3 +308,32 @@ export async function deleteEventDetection(cds_id: number, cds_is_use: boolean) 
 
     return events
 }
+
+/**
+ * อัพเดทข้อมูลของ Access Control
+ *
+ * @param {number} camId - รหัสของกล้อง
+ * @param {string} selectedAccess - Access ที่ต้องการอัพเดท
+ * @param {boolean} status - สถานะของ Acess
+ * @returns {Promise<object>} Access Control object หลังอัพเดทเสร็จ
+ *
+ * @author Napat
+ */
+export async function updateAccessControl(camId: number, selectedAccess: string, status: boolean) {
+    const { rows } = await pool.query(
+      `
+      UPDATE cameras_access
+      SET ${selectedAccess} = $1
+      WHERE caa_camera_id = $2
+      RETURNING *;
+      `,
+      [status, camId]);
+  
+    const accessControl = rows[0];
+  
+    if (!accessControl) {
+      throw new Error("Failed to update access control or not found");
+    }
+  
+    return accessControl;
+}
