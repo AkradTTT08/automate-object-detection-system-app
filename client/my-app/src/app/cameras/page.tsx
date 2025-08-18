@@ -13,7 +13,6 @@ export default function CamerasPage() {
         </div>
       </div>
       <CameraCard/>
-      
       {/* เนื้อหา Cameras ใส่ตรงนี้ */}
     </main>
   );
