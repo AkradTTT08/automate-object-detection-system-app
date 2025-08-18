@@ -31,7 +31,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => { // Moda
       background: 'rgba(0,0,0,0.5)',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'center', //Wowza
       zIndex: 1000
     }}>
       <div style={{ // Styles for the modal content
