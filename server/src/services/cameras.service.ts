@@ -137,18 +137,35 @@ export async function findCameras({id,name,location} : {id?:number; name?: strin
  */
 export async function createCameras(input: CreateCameraInput): Promise<CamerasRow>{ //สร้างกล้องตัวใหม่
 
-    const values = [
-    input.cam_name ?? null,
-    input.cam_address ?? null,
-    input.cam_type ?? null,
-    input.cam_resolution ?? null,
-    input.cam_description ?? null,
-    input.cam_installation_date ?? null,
-    input.cam_health ?? null,
-    input.cam_video_quality ?? null,
-    input.cam_network_latency ?? null,
-    input.cam_location_id ?? null,
+  const existing = await pool.query<CamerasRow>(`
+      SELECT * FROM cameras
+           WHERE cam_name = $1 AND cam_is_use = TRUE
+      `, [input.cam_name]);
+  if(existing.rows.length > 0){
+     throw new Error('cameras name already exists');
+  }    
+
+  const values = [
+  input.cam_name ?? null,
+  input.cam_address ?? null,
+  input.cam_type ?? null,
+  input.cam_resolution ?? null,
+  input.cam_description ?? null,
+  input.cam_installation_date ?? null,
+  input.cam_health ?? null,
+  input.cam_video_quality ?? null,
+  input.cam_network_latency ?? null,
+  input.cam_location_id ?? null,
   ];
+  
+
+  // const existing = await pool.query<UserRow>(`
+  //         SELECT * FROM users
+  //         WHERE usr_username = $1 OR usr_email = $2
+  //     `, [username, email]);
+  //     if (existing.rows.length > 0){
+  //         throw new Error('Username or email already exists');
+  //     }
 
   const sql = `
     INSERT INTO public.cameras
