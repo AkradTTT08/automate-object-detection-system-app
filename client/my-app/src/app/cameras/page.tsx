@@ -1,4 +1,5 @@
 import CameraCard, { type Camera } from "../components/CameraCard";
+import { TotalCamerasCard, ActiveCamerasCard, InactiveCamerasCard, AvgCameraHealthCard } from "../components/StatusCard";
 
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 
