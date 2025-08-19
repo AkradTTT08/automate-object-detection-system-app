@@ -38,6 +38,7 @@ const router = Router();
 // Cameras
 router.get('/', ctrl.list);
 router.get('/total', ctrl.total);
+router.get('/cards', ctrl.cards);
 
 router.get('/:cam_id/maintenance',ctrl.listMaintenanceByCamId);
 router.get('/maintenance',ctrl.listMaintenance);
@@ -55,10 +56,9 @@ router.post('/create', ctrl.create);
 // Maintenance
 router.get('/:cam_id/maintenance',ctrl.listMaintenanceByCamId);
 router.get('/maintenance',ctrl.listMaintenance);
-router.post('/:cam_id/maintenance/create', ctrl.createMaintenance);
+// router.post('/:cam_id/maintenance/create', ctrl.createMaintenance);
 router.patch('/:cam_id/maintenance/delete', ctrl.softDeleteMaintenance);
 router.put('/:cam_id/maintenance/update', ctrl.updateMaintenance);
-
 
 
 router.patch('/:cam_id/access', ctrl.updateAccess);
