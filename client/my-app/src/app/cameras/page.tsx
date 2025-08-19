@@ -12,10 +12,19 @@ export default async function CamerasPage() {
   const cameras: Camera[] = await res.json();
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
-      {cameras.map((cam) => (
-        <CameraCard key={cam.cam_id} cam={cam} />
-      ))}
+    <div className="space-y-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+        <TotalCamerasCard />
+        <ActiveCamerasCard />
+        <InactiveCamerasCard />
+        <AvgCameraHealthCard />
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
+        {cameras.map((cam) => (
+          <CameraCard key={cam.cam_id} cam={cam} />
+        ))}
+      </div>
     </div>
   );
 }
