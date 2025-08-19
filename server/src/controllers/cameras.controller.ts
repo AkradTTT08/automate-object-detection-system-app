@@ -165,7 +165,6 @@ export async function create(req: Request, res: Response, next: NextFunction) { 
  *
  * @author Jirayu
  * 
- *
  */
 export async function listMaintenance(req: Request, res: Response, next: NextFunction) {
     try {
@@ -201,24 +200,23 @@ export async function listMaintenanceByCamId(req: Request, res: Response, next: 
 }
 
 /**
- * Controller: สร้าง Maintenance History ใหม่
+ * Controller: ดึงข้อมูลการควบคุมสิทธิ์การเข้าถึงของกล้องตาม cam_id
  *
- * @route POST /api/cameras/:cam_id/maintenance/create
- * @param {Request} req - Express request object (body: { date, type, technician, note })
- * @param {Response} res - Express response object (ส่งกลับ Maintenance History ที่สร้างใหม่เป็น JSON)
+ * @route GET /api/cameras/:cam_id/access-control
+ * @param {Request} req - Express request object (ต้องมี params: cam_id)
+ * @param {Response} res - Express response object (ส่งกลับข้อมูล access control ของกล้องที่เลือกเป็น JSON)
  * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ Maintenance History  ที่สร้างใหม่
+ * @returns {Promise<void>} JSON response ของการควบคุมสิทธิ์กล้อง (access control)
  *
- * @author Napat
+ * @author Jirayu
  */
-export async function createMaintenance(req: Request, res: Response, next: NextFunction) {
+export async function getAccessControlById(req: Request, res: Response, next: NextFunction) {
     try {
-        const { date, type, technician, note } = req.body;
-        const camId = Number(req.params.cam_id);
-        const createHistory = await CameraService.createMaintenanceHistory(camId, date, type, technician, note);
-        res.json(createHistory);
-    } catch (err) {
-        next(err);
+        const cam_id = Number(req.params.cam_id); 
+        const cameraAccess = await CameraService.showCameraAccessControlById(cam_id);
+        return res.json(cameraAccess);
+    } catch (error) {
+        next(error);
     }
 }
 
@@ -297,45 +295,20 @@ export async function change(req: Request, res: Response, next: NextFunction){
 /**
  * Controller: ดึงรายการ Event Detection 
  *
- * @route GET /api/:cam_id/event-detection
+ * @route GET /api/cameras/access-control
  * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับ event detections เป็น JSON)
+ * @param {Response} res - Express response object (ส่งกลับข้อมูล access control ของกล้องทั้งหมดเป็น JSON)
  * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ event detections
+ * @returns {Promise<void>} JSON response ของการควบคุมสิทธิ์กล้องทั้งหมด
  *
- * @author Wongsakon
+ * @author Jirayu
  */
-export async function listEventDetection(req: Request, res: Response, next: NextFunction){
+export async function getAccessControl(req: Request, res: Response, next: NextFunction) {
     try {
-        const eventDetection = await CameraService.eventDetection();
-        res.json(eventDetection);
-    } catch(err) {
-        next(err);
-    }
-}
-
-
-/**
- * อัปเดต Event Detection
- *
- * @route PUT /api/events/:cds_id/update/event-detection
- * @param req - Request ของ Express (params: cds_id, body: cds_sensitivity, cds_priority, cds_status)
- * @param res - Response ของ Express
- * @param next - ส่งต่อ error ไปยัง error handler
- * @returns {Promise<Response>} JSON response ของ Event Detection ที่อัปเดตแล้ว
- *
- * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัปเดต
- * 
- * @author Wongsakon
- */
-export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
-    try {
-      const cds_id = Number(req.params.cds_id);
-      const { cds_sensitivity, cds_priority, cds_status } = req.body;
-      const updated = await CameraService.updateEventDetection(cds_id, cds_sensitivity, cds_priority, cds_status);
-      return res.json(updated);
-    } catch (err) {
-      next(err);
+        const cameraAccess = await CameraService.showCameraAccessControl();
+        return res.json(cameraAccess);
+    } catch (error) {
+        next(error);
     }
 }
 

@@ -38,6 +38,12 @@ const router = Router();
 // Cameras
 router.get('/', ctrl.list);
 router.get('/total', ctrl.total);
+
+router.get('/:cam_id/maintenance',ctrl.listMaintenanceByCamId);
+router.get('/maintenance',ctrl.listMaintenance);
+
+router.get('/:cam_id/access-control',ctrl.getAccessControlById);
+router.get('/access-control',ctrl.getAccessControl);
 router.get('/total-inactive', ctrl.totalInactive);
 router.get('/find/:term', ctrl.find);
 
@@ -53,12 +59,7 @@ router.post('/:cam_id/maintenance/create', ctrl.createMaintenance);
 router.patch('/:cam_id/maintenance/delete', ctrl.softDeleteMaintenance);
 router.put('/:cam_id/maintenance/update', ctrl.updateMaintenance);
 
-router.get('/event-detection', ctrl.listEventDetection);
-router.post('/createDetect',ctrl.createEventDetection);
-router.put("/event-detection/:cds_id/update", ctrl.updateEventDetection);
-router.patch('/:cds_id/deleteDetect', ctrl.softDeleteEventDetect);
 
-router.patch('/:cam_id/change', ctrl.change);
 
 router.patch('/:cam_id/access', ctrl.updateAccess);
 
