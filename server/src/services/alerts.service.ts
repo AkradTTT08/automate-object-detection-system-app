@@ -1,10 +1,11 @@
 import { pool } from '../config/db';
-import { Alert, mapToAlert, InsertAlert } from '../models/alerts.model';
+import { Alert, Log, Related, Note, Trend, mapToAlert, mapRowToLogItem, mapRowToAlertItem, mapRowToNoteItem, mapRowToTrendItem, TrendAlertItem } from '../models/alerts.model';
 
 /**
- * ดึงรายการ Alert ที่ถูกใช้งานอยู่ทั้งหมดจากฐานข้อมูล
+ * ดึงรายการ Alert ทั้งหมดที่ใช้งานอยู่
  *
- * @returns {Promise<Alert[]>} รายการ Alert ทั้งหมดที่ alr_is_use = true
+ * @returns {Promise<Alert[]>} รายการ Alert ที่ถูกใช้งานอยู่ทั้งหมด
+ * @description ดึงข้อมูล Alert จากฐานข้อมูลโดย join กับตาราง cameras, footages, และ events
  * 
  * @author Wanasart
  */
@@ -21,80 +22,116 @@ export async function getAlertList() {
 }
 
 /**
- * ดึง Log ของ Alert ตามรหัส alr_id ที่กำหนด
+ * ดึง log ของ Alert ตามรหัส alr_id ที่กำหนด
  *
  * @param {number} alr_id - รหัสของ Alert ที่ต้องการดู log
- * @returns {Promise<any[]>} รายการ log ของ Alert ที่เจอ
+ * @returns {Promise<Log>} รายการ log ของ Alert ที่เจอ
  * 
  * @author Wanasart
  */
-export async function getAlertLogs(alr_id: number) {
-    const result = await pool.query(`
-        SELECT * FROM log_alerts
-        WHERE loa_alert_id = $1
-    `, [alr_id]);
+export async function getAlertLogs(alr_id: number): Promise<Log> {
+    const { rows } = await pool.query(
+        `SELECT loa_id, loa_event_name, loa_create_date, loa_user_id
+       FROM log_alerts
+       WHERE loa_alert_id = $1
+       ORDER BY loa_create_date DESC`,
+        [alr_id]
+    );
 
-    return result.rows;
+    return { alert_id: alr_id, log: rows.map(mapRowToLogItem) };
 }
 
 /**
  * ดึงรายการ Alert ที่เกี่ยวข้องกับ Event ตามรหัส evt_id ที่กำหนด
  *
- * @param {number} evt_id - รหัสของ Event ที่ต้องการดึง Alert ที่เกี่ยวข้อง
- * @returns {Promise<Alert[]>} รายการ Alert ที่เกี่ยวข้องกับ Event ที่เจอ
+ * @param {number} evt_id - รหัสของ Event ที่ต้องการดู Alert ที่เกี่ยวข้อง
+ * @returns {Promise<Related>} รายการ Alert ที่เกี่ยวข้องกับ Event ที่เจอ
  * 
  * @author Wanasart
  */
-export async function getAlertRelated(evt_id: number) {
-    const result = await pool.query(`
+export async function getAlertRelated(evt_id: number): Promise<Related> {
+    const { rows } = await pool.query(`
         SELECT * FROM alerts
         WHERE alr_event_id = $1 
         AND alr_is_use = true 
         AND alr_status != 'Active'
     `, [evt_id]);
 
-    return result.rows;
+    return { event_id: evt_id, alert: rows.map(mapRowToAlertItem) };
 }
 
 /**
- * ดึงรายการ Note ของ Alert ตามรหัส alr_id ที่กำหนด
+ * ดึงหมายเหตุของ Alert ตามรหัส alr_id ที่กำหนด
  *
- * @param {number} alr_id - รหัสของ Alert ที่ต้องการดู Note
- * @returns {Promise<any[]>} รายการ Note ของ Alert ที่เจอ
+ * @param {number} alr_id - รหัสของ Alert ที่ต้องการดูหมายเหตุ
+ * @returns {Promise<Note>} รายการหมายเหตุของ Alert ที่เจอ
  * 
  * @author Wanasart
  */
-export async function getAlertNotes(alr_id: number) {
-    const result = await pool.query(`
+export async function getAlertNotes(alr_id: number): Promise<Note> {
+    const { rows } = await pool.query(`
         SELECT * FROM alert_note_history
         WHERE anh_alert_id = $1
         AND anh_is_use = true
     `, [alr_id]);
 
-    return result.rows;
+    return { alert_id: alr_id, notes: rows.map(mapRowToNoteItem) };
 }
 
 /**
- * ดึงกราฟแนวโน้มของ Alert ตามจำนวนวันที่กำหนด
+ * ดึงแนวโน้มของ Alert ตามวันที่และความรุนแรงในช่วงวันที่ที่กำหนด
  *
- * @param {number} days_back - จำนวนวันที่ต้องการดูแนวโน้มย้อนหลัง
- * @returns {Promise<any[]>} รายการแนวโน้มของ Alert ที่เจอ
+ * @param {number} daysBack - จำนวนวันที่ต้องการดึงข้อมูลย้อนหลัง (ค่าเริ่มต้นคือ 7 วัน)
+ * @returns {Promise<Trend[]>} รายการแนวโน้มของ Alert ที่ถูกจัดกลุ่มตามวันที่และความรุนแรง
  * 
  * @author Wanasart
  */
-export async function getAlertTrend(){
-    const days_back = 7;
-    const result = await pool.query(`
-        SELECT alr_severity, date_trunc('day', alr_create_date)::date AS alert_date, COUNT(*) AS severity_count
-        FROM alerts
-        JOIN events ON alr_event_id = evt_id
-        WHERE alr_create_date >= CURRENT_DATE - ($1 || ' days')::interval
-        AND alr_create_date <  CURRENT_DATE + INTERVAL '1 day'
-        GROUP BY alr_severity, alert_date
-        ORDER BY alert_date ASC, alr_severity ASC
-    `, [days_back]);
+export async function getAlertTrend(daysBack = 7): Promise<Trend[]> {
+    const { rows } = await pool.query<{
+        alert_date: string | Date;
+        alr_severity: string;
+        count: number | string;
+    }>(
+        `
+      SELECT
+        date_trunc('day', alr_create_date)::date AS alert_date,
+        alr_severity,
+        COUNT(*)::int AS count
+      FROM alerts
+      GROUP BY alert_date, alr_severity
+      ORDER BY alert_date ASC, alr_severity ASC
+      `);
+    // }>(
+    //   `
+    //   SELECT
+    //     date_trunc('day', alr_create_date)::date AS alert_date,
+    //     alr_severity,
+    //     COUNT(*)::int AS count
+    //   FROM alerts
+    //   WHERE alr_create_date >= CURRENT_DATE - ($1::int - 1)
+    //     AND alr_create_date <  CURRENT_DATE + INTERVAL '1 day'
+    //   GROUP BY alert_date, alr_severity
+    //   ORDER BY alert_date ASC, alr_severity ASC
+    //   `,
+    //   [daysBack]
+    // );
 
-    return result.rows;
+    // group by date (string 'YYYY-MM-DD')
+    const grouped = new Map<string, TrendAlertItem[]>();
+
+    for (const row of rows) {
+        const dateOnly =
+            row.alert_date instanceof Date
+                ? row.alert_date.toISOString().slice(0, 10)
+                : String(row.alert_date);
+
+        if (!grouped.has(dateOnly)) grouped.set(dateOnly, []);
+        grouped.get(dateOnly)!.push(mapRowToTrendItem(row));
+    }
+
+    return Array.from(grouped.entries())
+        .map(([date, trend]) => ({ date, trend }))
+        .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
@@ -104,7 +141,7 @@ export async function getAlertTrend(){
  * 
  * @author Wanasart
  */
-export async function getAlertByEventType(){
+export async function getAlertByEventType() {
     const result = await pool.query(`
         SELECT evt_name, COUNT(*)
         FROM alerts
@@ -112,7 +149,7 @@ export async function getAlertByEventType(){
         WHERE alr_is_use = true
         GROUP BY evt_name
     `);
-    
+
     return result.rows;
 }
 
@@ -198,7 +235,7 @@ export async function updateAlert(id: number, status: string) {
  * 
  * @author Wanasart
  */
-export async function deleteAlert(id: number){
+export async function deleteAlert(id: number) {
     const alertExists = await pool.query(`
         SELECT alr_id FROM alerts 
         WHERE alr_id = $1
