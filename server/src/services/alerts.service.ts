@@ -82,7 +82,8 @@ export async function getAlertNotes(alr_id: number) {
  * 
  * @author Wanasart
  */
-export async function getAlertTrend(days_back: number){
+export async function getAlertTrend(){
+    const days_back = 7;
     const result = await pool.query(`
         SELECT alr_severity, date_trunc('day', alr_create_date)::date AS alert_date, COUNT(*) AS severity_count
         FROM alerts
