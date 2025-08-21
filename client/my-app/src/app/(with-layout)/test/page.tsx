@@ -1,7 +1,7 @@
 // Page ใช้สำหรับดึง component มาแสดงผลเพื่อทดสอบ
 'use client';
 
-import RegisterForm from "../components/RegisterForm";
+import RegisterForm from "../../components/RegisterForm";
 
 export default function Page() {
 

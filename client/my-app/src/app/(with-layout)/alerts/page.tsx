@@ -12,7 +12,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import LogoutButton from "../components/LogoutButton";
+import LogoutButton from "../../components/LogoutButton";
 
 export default function AlertsPage() {
     const onConfirm = () => {
