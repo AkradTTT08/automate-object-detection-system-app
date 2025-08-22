@@ -46,7 +46,7 @@ export async function createEvent(evt_icon: string, evt_name: string, evt_des: s
     const eventExists = await pool.query(`
         SELECT evt_id FROM events
         WHERE evt_name = $1 
-        AND evt_is_use = TRUE`,
+        AND evt_is_use = true`,
         [evt_name]
     )
 
@@ -94,7 +94,7 @@ export async function updateEvent(evt_id: number, evt_icon: string, evt_name: st
     const eventExists = await pool.query(`
         SELECT evt_id FROM events
         WHERE evt_id = $1 
-        AND evt_is_use = TRUE`,
+        AND evt_is_use = true`,
         [evt_id]
     )
 
