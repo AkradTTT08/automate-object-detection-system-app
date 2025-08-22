@@ -11,6 +11,24 @@ const ICON_SET: "fi" | "lucide" = "lucide";
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 
 /* ---------------------------------- Types --------------------------------- */
+interface CameraStatus {
+  total: number;
+  active: number;
+  inactive: number;
+  avg_health: number;
+}
+
+interface AlertStatus {
+  total: number;
+  active: number;
+  resolved: number;
+  dismissed: number;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
 interface StatusCardProps {
   id: number;
   title: string;
@@ -24,7 +42,7 @@ interface StatusCardProps {
 interface SummaryCardBase {
   id: number;
   title: string;
-  value: string;         // ค่าเริ่มต้น/สำรอง (จะถูกแทนด้วย fetch)
+  value: string;         // ค่า default (จะถูกแทนด้วยค่าจาก summary)
   totalValue?: string;
   subtitle?: string;
   textColorClass: string;
@@ -48,7 +66,6 @@ const StatusCard: React.FC<StatusCardProps> = ({
 
   return (
     <div className={cardBase}>
-      {/* จัดกึ่งกลางแนวตั้ง + ชิดซ้าย */}
       <div className={`flex flex-1 flex-col justify-center items-start text-left ${innerPad}`}>
         <h4 className="text-base font-medium text-[#000000]">{title}</h4>
 
@@ -94,22 +111,14 @@ const StatusSkeleton = () => (
 
 /* -------------------------- Cards Data (meta) ----------------------------- */
 const summaryCardsBase: SummaryCardBase[] = [
-  { id: 1, title: "Total Alerts",       value: "12", subtitle: "Last 7 days",
-    fi: "fi fi-br-bells",            lucide: Bell,          textColorClass: "text-[var(--color-primary)]" },
-  { id: 2, title: "Total Cameras",      value: "8",
-    fi: "fi fi-br-video-camera-alt", lucide: Video,         textColorClass: "text-[var(--color-primary)]" },
-  { id: 3, title: "Active Alerts",      value: "5", subtitle: "Require attention",
-    fi: "fi fi-br-info",             lucide: Info,          textColorClass: "text-[var(--color-danger)]" },
-  { id: 4, title: "Active Cameras",     value: "7", totalValue: "8",
-    fi: "fi fi-rr-check-circle",     lucide: CheckCircle2,  textColorClass: "text-[var(--color-success)]" },
-  { id: 5, title: "Resolved Alerts",    value: "5", subtitle: "Successfully handled",
-    fi: "fi fi-br-check-circle",     lucide: CheckCircle2,  textColorClass: "text-[var(--color-success)]" },
-  { id: 6, title: "Inactive Cameras",   value: "1",
-    fi: "fi fi-rr-cross-circle",     lucide: XCircle,       textColorClass: "text-[var(--color-danger)]" },
-  { id: 7, title: "Critical Alerts",    value: "3", subtitle: "High priority",
-    fi: "fi fi-br-triangle-warning", lucide: AlertTriangle, textColorClass: "text-[var(--color-danger)]" },
-  { id: 8, title: "Avg. Camera Health", value: "83 %",
-    fi: "fi fi-br-circle-heart",     lucide: Heart,         textColorClass: "text-[var(--color-warning)]" },
+  { id: 1, title: "Total Alerts", value: "—", subtitle: "Last 7 days", fi: "fi fi-br-bells", lucide: Bell, textColorClass: "text-[var(--color-primary)]" },
+  { id: 2, title: "Total Cameras", value: "—", fi: "fi fi-br-video-camera-alt", lucide: Video, textColorClass: "text-[var(--color-primary)]" },
+  { id: 3, title: "Active Alerts", value: "—", subtitle: "Require attention", fi: "fi fi-br-info", lucide: Info, textColorClass: "text-[var(--color-danger)]" },
+  { id: 4, title: "Active Cameras", value: "—", totalValue: "—", fi: "fi fi-rr-check-circle", lucide: CheckCircle2, textColorClass: "text-[var(--color-success)]" },
+  { id: 5, title: "Resolved Alerts", value: "—", subtitle: "Successfully handled", fi: "fi fi-br-check-circle", lucide: CheckCircle2, textColorClass: "text-[var(--color-success)]" },
+  { id: 6, title: "Inactive Cameras", value: "—", fi: "fi fi-rr-cross-circle", lucide: XCircle, textColorClass: "text-[var(--color-danger)]" },
+  { id: 7, title: "Critical Alerts", value: "—", subtitle: "High priority", fi: "fi fi-br-triangle-warning", lucide: AlertTriangle, textColorClass: "text-[var(--color-danger)]" },
+  { id: 8, title: "Avg. Camera Health", value: "— %", fi: "fi fi-br-circle-heart", lucide: Heart, textColorClass: "text-[var(--color-warning)]" },
 ];
 
 /* ---------------------- สร้าง props พื้นฐานจาก meta ---------------------- */
@@ -120,15 +129,15 @@ const baseById = (id: number) => {
 };
 
 const baseToProps = (b: SummaryCardBase) =>
-  ({
-    id: b.id,
-    title: b.title,
-    textColorClass: b.textColorClass,
-    IconComponent:
-      ICON_SET === "lucide"
-        ? React.createElement(b.lucide, { className: "h-[30px] w-[30px]" })
-        : <i className={`${b.fi} text-[30px] leading-none`} />,
-  } satisfies Omit<StatusCardProps, "value">);
+({
+  id: b.id,
+  title: b.title,
+  textColorClass: b.textColorClass,
+  IconComponent:
+    ICON_SET === "lucide"
+      ? React.createElement(b.lucide, { className: "h-[30px] w-[30px]" })
+      : <i className={`${b.fi} text-[30px] leading-none`} />,
+} satisfies Omit<StatusCardProps, "value">);
 
 /* --------------------------- fetch helper hook ---------------------------- */
 function useFetchJson<T>(url: string) {
@@ -164,30 +173,69 @@ function useFetchJson<T>(url: string) {
   return { data, loading, error };
 }
 
-/* -------------------- Generic MetricCard (per-path) ----------------------- */
-type Selector<T> = (json: T) => { value: string; totalValue?: string; subtitle?: string };
+/* -------------------------- Summary Context/Provider ---------------------- */
+interface SummaryCtxValue<T> {
+  data: T | null;
+  loading: boolean;
+  error: string;
+}
+
+function createSummaryCtx<T>() {
+  return React.createContext<SummaryCtxValue<T>>({
+    data: null,
+    loading: true,
+    error: "",
+  });
+}
+
+type SummaryProviderProps<T> = {
+  children: React.ReactNode;
+  path?: string;
+};
+
+function createSummaryProvider<T>(Ctx: React.Context<SummaryCtxValue<T>>) {
+  return function SummaryProvider({ children, path }: SummaryProviderProps<T>) {
+    const { data, loading, error } = useFetchJson<T>(path ?? "");
+    return (
+      <Ctx.Provider value={{ data, loading, error }}>
+        {children}
+      </Ctx.Provider>
+    );
+  };
+}
+
+/* ----------------- กล้อง ----------------- */
+const CameraSummaryCtx = createSummaryCtx<CameraStatus>();
+export const CameraSummaryProvider = createSummaryProvider<CameraStatus>(
+  CameraSummaryCtx
+);
+export const useCameraSummary = () => React.useContext(CameraSummaryCtx);
+
+/* ----------------- Alerts ----------------- */
+const AlertSummaryCtx = createSummaryCtx<AlertStatus>();
+export const AlertSummaryProvider = createSummaryProvider<AlertStatus>(
+  AlertSummaryCtx
+);
+export const useAlertSummary = () => React.useContext(AlertSummaryCtx);
+
+/* -------------------- Generic MetricCard (no per-card path) --------------- */
+type Selector<T> = (s: T) => { value: string; totalValue?: string; subtitle?: string };
 
 function MetricCard<T>({
   baseId,
-  path,
   select,
+  useSummary,
 }: {
   baseId: number;
-  path: string;
   select: Selector<T>;
+  useSummary: () => { data: T | null; loading: boolean; error: string };
 }) {
   const base = baseById(baseId);
-  const { data, loading, error } = useFetchJson<T>(path);
+  const { data, loading, error } = useSummary();
 
   if (loading) return <StatusSkeleton />;
   if (error || !data) {
-    return (
-      <StatusCard
-        {...baseToProps(base)}
-        value="—"
-        subtitle="Failed to load"
-      />
-    );
+    return <StatusCard {...baseToProps(base)} value="—" subtitle="Failed to load" />;
   }
 
   const picked = select(data);
@@ -201,78 +249,82 @@ function MetricCard<T>({
   );
 }
 
-/* ---------------------- Export: การ์ดแต่ละใบ (คนละ path) ------------------ */
-/** สมมุติ response:
- *  /api/alerts/total     -> { total: number, last7d?: string }
- *  /api/cameras/total    -> { total: number }
- *  /api/alerts/active    -> { count: number }
- *  /api/cameras/uptime   -> { active: number, total: number }
- *  /api/alerts/resolved  -> { count: number }
- *  /api/cameras/inactive -> { count: number }
- *  /api/alerts/critical  -> { count: number }
- *  /api/health/avg       -> { percent: number }
- */
+/* ---------------------- Metric wrappers per domain ------------------------ */
+function MetricCardCamera(p: { baseId: number; select: Selector<CameraStatus> }) {
+  return <MetricCard<CameraStatus> baseId={p.baseId} select={p.select} useSummary={useCameraSummary} />;
+}
 
+function MetricCardAlert(p: { baseId: number; select: Selector<AlertStatus> }) {
+  return <MetricCard<AlertStatus> baseId={p.baseId} select={p.select} useSummary={useAlertSummary} />;
+}
+
+/* ---------------------- Export: การ์ดแต่ละใบ (map domain) ---------------- */
+// ALERT CARDS (ids: 1,3,5,7)
 export const TotalAlertsCard = () => (
-  <MetricCard<{ total: number; last7d?: string }>
-    baseId={1}
-    path="/api/alerts/total"
-    select={(j) => ({ value: String(j.total), subtitle: j.last7d ?? "Last 7 days" })}
-  />
-);
-
-export const TotalCamerasCard = () => (
-  <MetricCard<Array<{ count: string }>>
-    baseId={2}
-    path="/api/cameras/total"
-    select={(j) => ({ value: String(Number(j?.[0]?.count ?? 0)) })}
-  />
+  <MetricCardAlert baseId={1} select={(s) => ({ value: String(s.total) })} />
 );
 
 export const ActiveAlertsCard = () => (
-  <MetricCard<{ count: number }>
-    baseId={3}
-    path="/api/alerts/active"
-    select={(j) => ({ value: String(j.count), subtitle: "Require attention" })}
-  />
-);
-
-export const ActiveCamerasCard = () => (
-  <MetricCard<{ active: number; total: number }>
-    baseId={4}
-    path="/api/cameras/uptime"
-    select={(j) => ({ value: String(j.active), totalValue: String(j.total) })}
-  />
+  <MetricCardAlert baseId={3} select={(s) => ({ value: String(s.active) })} />
 );
 
 export const ResolvedAlertsCard = () => (
-  <MetricCard<{ count: number }>
-    baseId={5}
-    path="/api/alerts/resolved"
-    select={(j) => ({ value: String(j.count), subtitle: "Successfully handled" })}
+  <MetricCardAlert baseId={5} select={(s) => ({ value: String(s.resolved) })} />
+);
+
+export const CriticalAlertsCard = () => (
+  <MetricCardAlert baseId={7} select={(s) => ({ value: String(s.critical) })} />
+);
+
+// CAMERA CARDS (ids: 2,4,6,8)
+export const TotalCamerasCard = () => (
+  <MetricCardCamera baseId={2} select={(s) => ({ value: String(s.total) })} />
+);
+
+export const ActiveCamerasCard = () => (
+  <MetricCardCamera
+    baseId={4}
+    select={(s) => {
+      const active = s.active;
+      return { value: String(active) };
+    }}
   />
 );
 
 export const InactiveCamerasCard = () => (
-  <MetricCard<{ count: number }>
-    baseId={6}
-    path="/api/cameras/inactive"
-    select={(j) => ({ value: String(j.count) })}
-  />
-);
-
-export const CriticalAlertsCard = () => (
-  <MetricCard<{ count: number }>
-    baseId={7}
-    path="/api/alerts/critical"
-    select={(j) => ({ value: String(j.count), subtitle: "High priority" })}
-  />
+  <MetricCardCamera baseId={6} select={(s) => ({ value: String(s.inactive) })} />
 );
 
 export const AvgCameraHealthCard = () => (
-  <MetricCard<{ percent: number }>
+  <MetricCardCamera
     baseId={8}
-    path="/api/health/avg"
-    select={(j) => ({ value: `${Math.round(j.percent)} %` })}
+    select={(s) => ({ value: `${Math.round(s.avg_health)} %` })}
   />
 );
+
+/* ---------------------- ตัวอย่างการใช้งานในหน้า Dashboard --------------- */
+export function DashboardSummaryCameraSection() {
+  return (
+    <CameraSummaryProvider path={`/api/cameras/status`}>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+        <TotalCamerasCard />
+        <ActiveCamerasCard />
+        <InactiveCamerasCard />
+        <AvgCameraHealthCard />
+      </div>
+    </CameraSummaryProvider>
+  );
+}
+
+export function DashboardSummaryAlertSection() {
+  return (
+    <AlertSummaryProvider path={`/api/alerts/status`}>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+        <TotalAlertsCard />
+        <ActiveAlertsCard />
+        <ResolvedAlertsCard />
+        <CriticalAlertsCard />
+      </div>
+    </AlertSummaryProvider>
+  );
+}

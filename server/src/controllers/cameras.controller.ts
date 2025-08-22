@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import * as CameraService from '../services/cameras.service';
+import * as CameraService from '../services/cameras/cameras.service';
+import * as MaintenanceService from '../services/cameras/maintenances.service';
+import * as EventDetectionService from '../services/cameras/eventDetections.service';
+import * as AccessControlService from '../services/cameras/accessControl.service';
 
+/* ------------------------------ Cameras ------------------------------ */
 /**
  * Controller: ดึงรายการ Cameras ทั้งหมดที่ถูกใช้งาน
  *
@@ -12,11 +16,29 @@ import * as CameraService from '../services/cameras.service';
  *
  * @author Wanasart
  */
-export async function list(req: Request, res: Response, next: NextFunction){
+export async function index(req: Request, res: Response, next: NextFunction) {
     try {
         const cameras = await CameraService.listCameras();
         res.json(cameras);
-    } catch(err) {
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * Controller: ดึงรายการ Camera Cards ทั้งหมด
+ * @route GET /api/cameras/cards
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับ camera cards เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ camera cards*
+ * @author Wongsakon
+*/
+export async function cardsSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cameras = await CameraService.getCardsSummary();
+        res.json(cameras);
+    } catch (err) {
         next(err);
     }
 };
@@ -32,70 +54,53 @@ export async function list(req: Request, res: Response, next: NextFunction){
  *
  * @author Premsirigul
  */
-export async function total(req: Request, res: Response, next: NextFunction){
+export async function count(req: Request, res: Response, next: NextFunction) {
     try {
-        const total = await CameraService.totalCameras();
+        const total = await CameraService.countCameras();
         res.json(total);
-    } catch(err) {
+    } catch (err) {
         next(err);
     }
 }
 
 /**
- * Controller: ลบข้อมูลกล้องแบบ softdelete
- * @route POST /api/cameras/create
- * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
- * @param res ส่งข้อมูลของกล้องกลับ
- * @returns -JSON response แสดงสถานะ 202
- * @author Chokchai
+ * Controller: นับรายการ Cameras ทั้งหมดที่มีสถานะ
+ *
+ * @route GET /api/cameras/status
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับรายการ จำนวนกล้องที่มีสถานะ เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของรายการ จำนวนกล้องที่มีสถานะ
+ *
+ * @author Premsirigul
  */
-export async function remove(req: Request, res: Response, next: NextFunction) { //soft delete
-  const id = Number(req.params.id);
-  if (!Number.isFinite(id)) {
-    return res.status(400).json({ message: 'id must be a number' });
-  }
-  const deleteid = await CameraService.deleteCamera(id);
-  if (!deleteid) return res.status(404).json({ message: 'camera not found' });
-  return res.status(202).send();
-}
- 
-/**
- * Controller: ค้นหากล้อง
- * @route POST /api/cameras/find/:term
- * @param req -กรอกข้อมูลของกล้องมี id ชื่อกล้อง สถานที่กล้อง 
- * @param res ส่งข้อมูลกล้องกลับมา
- * @param next ส่งต่อ error
- * @returns -JSON response ส่งข้อมูลของกล้องที่ค้นหากลับ
- * @author Chokchai
- */
-export async function find(req: Request, res: Response, next: NextFunction) { //ค้นหากล้อง 
-  try {
-    const term = decodeURIComponent(req.params.term || '').trim();
-
-    if (!term) return res.status(400).json({ message: 'term required' });
-
-    const id = Number(term);
-    const byId = Number.isFinite(id);
-
-    // ถ้า term เป็นตัวเลขล้วน → ค้นด้วย cam_id
-    // ถ้าไม่ใช่ตัวเลข → ค้นด้วยชื่อกล้อง (cam_name) OR ชื่อสถานที่ (loc_name)
-    type FindCameraParams = { id?: number; name?: string; location?: string }; //กำหนด type
-
-    const args: FindCameraParams = {}; //สร้าง object ว่าง ๆ ไว้
-    if (byId) {
-      args.id = id;
-    } else {
-      args.name = term;
-      args.location = term;
+export async function status(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cameras = await CameraService.countStatusCameras();
+        res.json(cameras);
+    } catch (err) {
+        next(err);
     }
+}
 
-    const rows = await CameraService.findCameras(args);
-
-    return res.json(rows);
-    
-  } catch (e) {
-    next(e);
-  }
+/**
+ * Controller: นับรายการ Cameras ทั้งหมดที่ไม่ได้ใช้งาน
+ *
+ * @route GET /api/cameras/totalInactive
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับรายการ จำนวนกล้องที่ไม่ได้ใช้งานทั้งหมด เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของรายการจำนวนกล้องที่ไม่ได้ใช้งานทั้งหมด
+ *
+ * @author Napat
+ */
+export async function countInactive(req: Request, res: Response, next: NextFunction) {
+    try {
+        const total = await CameraService.countInactiveCameras();
+        res.json(total);
+    } catch (err) {
+        next(err);
+    }
 }
 
 /**
@@ -107,15 +112,121 @@ export async function find(req: Request, res: Response, next: NextFunction) { //
  * @returns -JSON response ส่งข้อมูลของกล้องที่สร้างกลับพร้อมแสดงสถานะ 201
  * @author Chokchai
  */
-export async function create(req: Request, res: Response, next: NextFunction) { //create camera
-  try {
-    const created = await CameraService.createCameras(req.body);
-    return res.status(201).json(created);
-  } catch (err) {
-    next(err);
-  }
+export async function store(req: Request, res: Response, next: NextFunction) { //create camera
+    try {
+        const created = await CameraService.createCamera(req.body);
+        return res.status(201).json(created);
+    } catch (err) {
+        next(err);
+    }
 }
 
+/**
+ * Controller: แก้ไขข้อมูลกล้อง
+ * @route POST /api/cameras/update/:id
+ * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
+ * @param res ส่งข้อมูลของกล้องกลับ
+ * @returns -JSON response ส่งข้อมูลของกล้องที่แก้ไขกลับพร้อมแสดงสถานะ 200
+ * @author Chokchai
+ */
+export async function update(req: Request, res: Response, next: NextFunction) { //update camera
+    const id = Number(req.params.id);
+    const updated = await CameraService.updateCamera(id, req.body);
+    if (!updated) {
+        // ไม่พบ id หรือไม่มีฟิลด์ให้อัปเดต
+        return res.status(404).json({ message: 'camera not found or no fields to update' });
+    }
+    return res.status(200).json(updated);
+}
+
+/**
+ * Controller: ลบข้อมูลกล้องแบบ softdelete
+ * @route POST /api/cameras/create
+ * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
+ * @param res ส่งข้อมูลของกล้องกลับ
+ * @returns -JSON response แสดงสถานะ 202
+ * @author Chokchai
+ */
+export async function softDelete(req: Request, res: Response, next: NextFunction) { //soft delete
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+        return res.status(400).json({ message: 'id must be a number' });
+    }
+    const deleteid = await CameraService.softDeleteCamera(id);
+    if (!deleteid) return res.status(404).json({ message: 'camera not found' });
+    return res.status(202).send();
+}
+
+/**
+ * Controller: เปลี่ยนสถานะของกล้อง
+ *
+ * @route POST /api/cameras/change
+ * @param {Request} req - Express request object (ต้องมี body ที่ประกอบด้วย id และ status)
+ * @param {Response} res - Express response object (ส่งกลับกล้องที่ถูกเปลี่ยนสถานะเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของกล้องที่ถูกเปลี่ยนสถานะ
+ *
+ * @author Audomsak
+ */
+export async function change(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { cam_id } = req.params;
+        const { status } = req.body;
+
+        const id = Number(cam_id);
+
+        if (isNaN(id) || isNaN(status)) {
+            return res.status(400).json({ message: "id and status are required" });
+        }
+
+        const updatedCamera = await CameraService.updateCameraStatus(id, status);
+
+        res.json(updatedCamera);
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * Controller: ค้นหากล้อง
+ * @route POST /api/cameras/find/:term
+ * @param req -กรอกข้อมูลของกล้องมี id ชื่อกล้อง สถานที่กล้อง 
+ * @param res ส่งข้อมูลกล้องกลับมา
+ * @param next ส่งต่อ error
+ * @returns -JSON response ส่งข้อมูลของกล้องที่ค้นหากลับ
+ * @author Chokchai
+ */
+export async function search(req: Request, res: Response, next: NextFunction) { //ค้นหากล้อง 
+    try {
+        const term = decodeURIComponent(req.params.term || '').trim();
+
+        if (!term) return res.status(400).json({ message: 'term required' });
+
+        const id = Number(term);
+        const byId = Number.isFinite(id);
+
+        // ถ้า term เป็นตัวเลขล้วน → ค้นด้วย cam_id
+        // ถ้าไม่ใช่ตัวเลข → ค้นด้วยชื่อกล้อง (cam_name) OR ชื่อสถานที่ (loc_name)
+        type FindCameraParams = { id?: number; name?: string; location?: string }; //กำหนด type
+
+        const args: FindCameraParams = {}; //สร้าง object ว่าง ๆ ไว้
+        if (byId) {
+            args.id = id;
+        } else {
+            args.name = term;
+            args.location = term;
+        }
+
+        const rows = await CameraService.searchCameras(args);
+
+        return res.json(rows);
+
+    } catch (e) {
+        next(e);
+    }
+}
+
+/* ------------------------------ Maintenances History ------------------------------ */
 /**
  * Controller: ดึงรายการประวัติการซ่อมบำรุงกล้องทั้งหมด
  *
@@ -127,11 +238,10 @@ export async function create(req: Request, res: Response, next: NextFunction) { 
  *
  * @author Jirayu
  * 
- *
  */
-export async function listMaintenance(req: Request, res: Response, next: NextFunction) {
+export async function indexMaintenances(req: Request, res: Response, next: NextFunction) {
     try {
-        const history = await CameraService.getAllMaintenanceHistory();
+        const history = await MaintenanceService.listAllMaintenances();
         return res.json(history);
     } catch (err) {
         next(err);
@@ -149,13 +259,13 @@ export async function listMaintenance(req: Request, res: Response, next: NextFun
  *
  * @author Jirayu
  */
-export async function listMaintenanceByCamId(req: Request, res: Response, next: NextFunction) {
+export async function indexCameraMaintenances(req: Request, res: Response, next: NextFunction) {
     try {
         const cam_id = Number(req.params.cam_id);
         if (isNaN(cam_id)) {
             return res.status(400).json({ error: "Invalid camera ID" });
         }
-        const history = await CameraService.getMaintenanceHistoryByCamId(cam_id);
+        const history = await MaintenanceService.listMaintenancesByCamera(cam_id);
         return res.json(history);
     } catch (err) {
         next(err);
@@ -163,106 +273,58 @@ export async function listMaintenanceByCamId(req: Request, res: Response, next: 
 }
 
 /**
- * Controller: สร้าง Maintenance History ใหม่
+ * Controller: ลบ Maintenance History
  *
- * @route POST /api/maintenance_history/:cam_id/create
- * @param {Request} req - Express request object (body: { date, type, technician, note })
- * @param {Response} res - Express response object (ส่งกลับ Maintenance History ที่สร้างใหม่เป็น JSON)
+ * @route POST /api/cameras/:cam_id/maintenance/delete
+ * @param {Request} req - Express request object (body: { mnt_id, isUse })
+ * @param {Response} res - Express response object (ส่งกลับ Maintenance History ที่ลบเป็น JSON)
  * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ Maintenance History  ที่สร้างใหม่
+ * @returns {Promise<void>} JSON response ของ Maintenance History  ที่ลบ
  *
  * @author Napat
  */
-export async function createMaintenance(req: Request, res: Response, next: NextFunction) {
+export async function softDeleteCameraMaintenance(req: Request, res: Response, next: NextFunction) {
     try {
-        const { date, type, technician, note } = req.body;
-        const camId = Number(req.params.cam_id);
-        const createHistory = await CameraService.createMaintenanceHistory(camId, date, type, technician, note);
+        const { mnt_id, isUse } = req.body;
+        const softDeleteHistory = await MaintenanceService.softDeleteMaintenance(mnt_id, isUse);
+        res.json(softDeleteHistory);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function storeCameraMaintenance(req: Request, res: Response, next: NextFunction) { }
+
+/**
+ * Controller: อัพเดท Maintenance History
+ *
+ * @route POST /api/cameras/:cam_id/maintenance/update
+ * @param {Request} req - Express request object (body: { mnt_id, date, type, technician, note })
+ * @param {Response} res - Express response object (ส่งกลับ Maintenance History ที่อัพเดทเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ Maintenance History  ที่อัพเดท
+ *
+ * @author Napat
+ */
+export async function updateCameraMaintenance(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { mnt_id, date, type, technician, note } = req.body;
+        const createHistory = await MaintenanceService.updateMaintenance(mnt_id, date, type, technician, note);
         res.json(createHistory);
     } catch (err) {
         next(err);
     }
 }
 
-/**
- * Controller: เปลี่ยนสถานะของกล้อง
- *
- * @route POST /api/cameras/change
- * @param {Request} req - Express request object (ต้องมี body ที่ประกอบด้วย id และ status)
- * @param {Response} res - Express response object (ส่งกลับกล้องที่ถูกเปลี่ยนสถานะเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของกล้องที่ถูกเปลี่ยนสถานะ
- *
- * @author Audomsak
- */
-export async function change(req: Request, res: Response, next: NextFunction){
-    try {
-        const {cam_id} = req.params;
-        const {status} = req.body;
+export async function deleteCameraMaintenance(req: Request, res: Response, next: NextFunction) { }
 
-        const id = Number(cam_id);
+/* ------------------------------ Event Detection ------------------------------ */
 
-        if (isNaN(id) || isNaN(status)) {
-            return res.status(400).json({ message: "id and status are required" });
-        }
-
-        const updatedCamera = await CameraService.changeStatus(id, status);
-
-        res.json(updatedCamera);
-    } catch(err) {
-        next(err);
-    }
-};
-
-/**
- * Controller: ดึงรายการ Event Detection 
- *
- * @route GET /api/:cam_id/event-detection
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับ event detections เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ event detections
- *
- * @author Wongsakon
- */
-export async function listEventDetection(req: Request, res: Response, next: NextFunction){
-    try {
-        const eventDetection = await CameraService.eventDetection();
-        res.json(eventDetection);
-    } catch(err) {
-        next(err);
-    }
-}
-
-
-/**
- * อัปเดต Event Detection
- *
- * @route PUT /api/events/:cds_id/update/event-detection
- * @param req - Request ของ Express (params: cds_id, body: cds_sensitivity, cds_priority, cds_status)
- * @param res - Response ของ Express
- * @param next - ส่งต่อ error ไปยัง error handler
- * @returns {Promise<Response>} JSON response ของ Event Detection ที่อัปเดตแล้ว
- *
- * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัปเดต
- * 
- * @author Wongsakon
- */
-export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
-    try {
-      const cds_id = Number(req.params.cds_id);
-      const { cds_sensitivity, cds_priority, cds_status } = req.body;
-      const updated = await CameraService.updateEventDetection(cds_id, cds_sensitivity, cds_priority, cds_status);
-      return res.json(updated);
-    } catch (err) {
-      next(err);
-    }
-}
+export async function indexEventDetections(req: Request, res: Response, next: NextFunction) { }
 
 /**
  * สร้าง Event Detect 
  *
- *  
  * @route POST /api/events/createDetect
  * @param req - Request ของ Express (body: cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status)
  * @param res - Response ของ Express
@@ -271,15 +333,17 @@ export async function updateEventDetection(req: Request, res: Response, next: Ne
  *
  * @author Audomsak
  */
-export async function createEventDetection(req: Request, res: Response, next: NextFunction){
-    try{
-        const { cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status } = req.body;        
-        const createEventDetection = await CameraService.createEventDetection( cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status);
+export async function storeEventDetection(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status } = req.body;
+        const createEventDetection = await EventDetectionService.createEventDetection(cds_event_id, cds_camera_id);
         return res.json(createEventDetection);
-    }catch (err){
-         next(err);
+    } catch (err) {
+        next(err);
     }
 }
+
+export async function updateEventDetection(req: Request, res: Response, next: NextFunction) { }
 
 /**
  * ลบ EventDetect ตามข้อมูลใน req.body
@@ -294,16 +358,85 @@ export async function createEventDetection(req: Request, res: Response, next: Ne
  *
  * @author Audomsak
  */
-export async function softDeleteEventDetect(req: Request, res: Response, next: NextFunction) {
-    try{
+export async function softDeleteEventDetection(req: Request, res: Response, next: NextFunction) {
+    try {
         const id = Number(req.params.cds_id);
 
         const { status } = req.body
-        const deleteEventDetection = await CameraService.deleteEventDetection( id, status);
+        const deleteEventDetection = await EventDetectionService.softDeleteEventDetection(id, status);
         return res.json(deleteEventDetection);
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 }
 
+/* ------------------------------ Access Control ------------------------------ */
+/**
+ * Controller: ดึงรายการ Event Detection 
+ *
+ * @route GET /api/cameras/access-control
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับข้อมูล access control ของกล้องทั้งหมดเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของการควบคุมสิทธิ์กล้องทั้งหมด
+ *
+ * @author Jirayu
+ */
+export async function indexAccessControls(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cameraAccess = await AccessControlService.listAccessControls();
+        return res.json(cameraAccess);
+    } catch (error) {
+        next(error);
+    }
+}
 
+/**
+ * Controller: ดึงข้อมูลการควบคุมสิทธิ์การเข้าถึงของกล้องตาม cam_id
+ *
+ * @route GET /api/cameras/:cam_id/access-control
+ * @param {Request} req - Express request object (ต้องมี params: cam_id)
+ * @param {Response} res - Express response object (ส่งกลับข้อมูล access control ของกล้องที่เลือกเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของการควบคุมสิทธิ์กล้อง (access control)
+ *
+ * @author Jirayu
+ */
+export async function showAccessControl(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cam_id = Number(req.params.cam_id);
+        const cameraAccess = await AccessControlService.getAccessControlByCamera(cam_id);
+        return res.json(cameraAccess);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function createAccessControl(req: Request, res: Response, next: NextFunction) {}
+
+/**
+ * อัพเดท Access Control ตามข้อมูลใน req.body
+ * ส่ง Access Control ที่อัพเดทแล้วกลับเป็น JSON
+ *
+ * @param req - Request ของ Express (body: selectedAccess, status)
+ * @param res - Response ของ Express
+ * @param next - ส่งต่อ error
+ * @returns {Promise<Response>} JSON response ของ Access Control ที่อัพเดทแล้ว
+ *
+ * @throws Error หากเกิดข้อผิดพลาดระหว่างการอัพเดท
+ *
+ * @author Napat
+ */
+export async function updateAccessControl(req: Request, res: Response, next: NextFunction) {
+    try {
+        const camId = Number(req.params.cam_id);
+
+        const { selectedAccess, status } = req.body
+        const update = await AccessControlService.updateAccessControl(camId, selectedAccess, status);
+        return res.json(update);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function deleteAccessControl(req: Request, res: Response, next: NextFunction) {}
