@@ -64,6 +64,26 @@ export async function count(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
+ * Controller: นับรายการ Cameras ทั้งหมดที่มีสถานะ
+ *
+ * @route GET /api/cameras/status
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับรายการ จำนวนกล้องที่มีสถานะ เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของรายการ จำนวนกล้องที่มีสถานะ
+ *
+ * @author Premsirigul
+ */
+export async function status(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cameras = await CameraService.countStatusCameras();
+        res.json(cameras);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
  * Controller: นับรายการ Cameras ทั้งหมดที่ไม่ได้ใช้งาน
  *
  * @route GET /api/cameras/totalInactive
@@ -316,7 +336,7 @@ export async function indexEventDetections(req: Request, res: Response, next: Ne
 export async function storeEventDetection(req: Request, res: Response, next: NextFunction) {
     try {
         const { cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status } = req.body;
-        const createEventDetection = await EventDetectionService.createEventDetection(cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status);
+        const createEventDetection = await EventDetectionService.createEventDetection(cds_event_id, cds_camera_id);
         return res.json(createEventDetection);
     } catch (err) {
         next(err);
