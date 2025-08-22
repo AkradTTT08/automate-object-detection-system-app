@@ -12,7 +12,7 @@ import * as AlertService from "../services/alerts.service";
  *
  * @author Wanasart
  */
-export async function list(req: Request, res: Response, next: NextFunction) {
+export async function index(req: Request, res: Response, next: NextFunction) {
     try {
         const alerts = await AlertService.getAlertList();
         res.json(alerts);
@@ -32,7 +32,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function logs(req: Request, res: Response, next: NextFunction) {
+export async function indexLogs(req: Request, res: Response, next: NextFunction) {
     try {
         const alr_id = Number(req.params.alr_id);
         if (isNaN(alr_id)) {
@@ -56,7 +56,7 @@ export async function logs(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function related(req: Request, res: Response, next: NextFunction) {
+export async function indexByEvent(req: Request, res: Response, next: NextFunction) {
     try {
         const evt_id = Number(req.params.evt_id);
         if (isNaN(evt_id)) {
@@ -80,7 +80,7 @@ export async function related(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function notes(req: Request, res: Response, next: NextFunction) {
+export async function indexNotes(req: Request, res: Response, next: NextFunction) {
     try {
         const alr_id = Number(req.params.alr_id);
         if (isNaN(alr_id)) {
@@ -104,14 +104,14 @@ export async function notes(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function trend(req: Request, res: Response, next: NextFunction) {
+export async function trendAnalytics(req: Request, res: Response, next: NextFunction) {
     try {
-        const days_back = Number(req.params.days_back);
-        if (isNaN(days_back)) {
-            return res.status(400).json({ error: "Missing days_back query parameter" });
-        }
+        // const days_back = Number(req.params.days_back);
+        // if (isNaN(days_back)) {
+        //     return res.status(400).json({ error: "Missing days_back query parameter" });
+        // }
 
-        const trendData = await AlertService.getAlertTrend(days_back);
+        const trendData = await AlertService.getAlertTrend();
         res.json(trendData);
     } catch (err) {
         next(err);
@@ -129,11 +129,92 @@ export async function trend(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function distribution(req: Request, res: Response, next: NextFunction){
+export async function distributionAnalytics(req: Request, res: Response, next: NextFunction) {
     try {
         const distributionData = await AlertService.getAlertByEventType();
         return res.json(distributionData);
-    } catch (err){
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: สร้าง Alert ใหม่
+ *
+ * @route POST /api/alerts
+ * @param {Request} req - Express request object (body: { severity, camera_id, footage_id, event_id, description })
+ * @param {Response} res - Express response object (ส่งกลับ Alert ที่สร้างใหม่เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ Alert ที่สร้างใหม่
+ *
+ * @author Wanasart
+ */
+export async function store(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { severity, camera_id, footage_id, event_id, description } = req.body;
+        if (!severity || !camera_id || !footage_id || !event_id || !description) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const newAlert = await AlertService.createAlert(severity, camera_id, footage_id, event_id, description);
+        res.status(201).json(newAlert);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: อัปเดตสถานะของ Alert
+ *
+ * @route POST /api/alerts/:alr_id/update
+ * @param {Request} req - Express request object (params: { alr_id }, body: { status })
+ * @param {Response} res - Express response object (ส่งกลับ Alert ที่อัปเดตเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ Alert ที่อัปเดต
+ *
+ * @author Wanasart
+ */
+export async function update(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { alr_id } = req.params;
+        const { status } = req.body;
+
+        if (!alr_id || isNaN(Number(alr_id))) {
+            return res.status(400).json({ error: "Invalid alert ID" });
+        }
+
+        if (!status || !['Resolved', 'Dismissed'].includes(status)) {
+            return res.status(400).json({ error: "Invalid status. Must be 'Resolved' or 'Dismissed'" });
+        }
+
+        const updatedAlert = await AlertService.updateAlert(Number(alr_id), status);
+        res.json(updatedAlert);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: ลบ Alert โดยการอัปเดตสถานะเป็น false
+ *
+ * @route DELETE /api/alerts/:alr_id
+ * @param {Request} req - Express request object (params: { alr_id })
+ * @param {Response} res - Express response object (ส่งกลับ Alert ที่ถูกลบเป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ Alert ที่ถูกลบ
+ *
+ * @author Wanasart
+ */
+export async function softDelete(req: Request, res: Response, next: NextFunction){
+    try {
+        const { alr_id } = req.params;
+        if (!alr_id || isNaN(Number(alr_id))) {
+            return res.status(400).json({ error: "Invalid alert ID" });
+        }
+
+        const deletedAlert = await AlertService.deleteAlert(Number(alr_id));
+        res.json(deletedAlert);
+    } catch (err) {
         next(err);
     }
 }
