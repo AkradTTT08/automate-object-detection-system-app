@@ -3,6 +3,7 @@
 import FormCreateAlert from "../../components/FormCreateAlert"
 import IconPickerDemo from "../../components/IconPickerDemo";
 import CreateEventForm from "../../components/CreateEventForm";
+import FullScreenView from "@/app/components/FullScreenView";
 
 export default function Page() {
   return (
@@ -11,6 +12,7 @@ export default function Page() {
         <IconPickerDemo />
         <FormCreateAlert></FormCreateAlert>
         <CreateEventForm />
+        {/* <FullScreenView /> */}
       </div>
     </div>
   );
