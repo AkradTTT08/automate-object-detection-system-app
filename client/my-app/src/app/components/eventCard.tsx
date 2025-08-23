@@ -34,7 +34,9 @@ const EventCard: React.FC<Props> = ({ event }) => {
           {event.evt_name && event.evt_name.trim() !== "" ? event.evt_name : "No name"}
         </h3>
         <p className="event-card-description">{event.evt_description}</p>
-
+        <h3 className="event-card-description">
+          {event.evt_description && event.evt_description.trim() !== "" ? event.evt_description : "No desscription"}
+        </h3>
         <div className="event-card-footer">
   {/* ซ้ายสุด */}
   <div className="footer-left">
