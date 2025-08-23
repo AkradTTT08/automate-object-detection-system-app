@@ -200,7 +200,7 @@ const CameraDetail: React.FC = () => {
               </div>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.02fr', marginTop: 5, rowGap: 18, columnGap: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.02fr', rowGap: 18, columnGap: 1 }}>
             <div style={{ color: '#bbb', fontSize: 14 }}>Installation Date</div>
             <div style={{ color: '#bbb', fontSize: 14 }}>Last Maintenance</div>
             <div style={{ fontWeight: 600, fontSize: 14, marginTop: '-10px' }}>{install_date}</div>
