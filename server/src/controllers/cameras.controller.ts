@@ -3,6 +3,7 @@ import * as CameraService from '../services/cameras/cameras.service';
 import * as MaintenanceService from '../services/cameras/maintenances.service';
 import * as EventDetectionService from '../services/cameras/eventDetections.service';
 import * as AccessControlService from '../services/cameras/accessControl.service';
+import * as LocationService from '../services/cameras/location.service';
 
 /* ------------------------------ Cameras ------------------------------ */
 /**
@@ -43,6 +44,25 @@ export async function show(req: Request, res: Response, next: NextFunction) {
         }
         const camera = await CameraService.getCameraById(cam_id);
         res.json(camera);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: ดึงข้อมูล Location ของกล้องตาม cam_id
+ * @route GET /api/cameras/:cam_id/location
+ * @param {Request} req - Express request object (ต้องมี params.cam_id)
+ * @param {Response} res - Express response object (ส่งกลับข้อมูล location เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของ location ของกล้องที่เลือก
+ *
+ * @author Wanasart
+ */
+export async function location(req: Request, res: Response, next: NextFunction) {
+    try {
+        const location = await LocationService.index();
+        res.json(location);
     } catch (err) {
         next(err);
     }
