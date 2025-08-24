@@ -80,7 +80,7 @@ export default function CameraCard({ cam }: { cam: Camera }) {
 
   // ถ้าไม่มีวิดีโอ ใช้ภาพแทน
   const imageSrc = rawImg || "/library-room.jpg";
-  const videoSrc = rawVideo || ""; // ไม่มีวิดีโอจริง ๆ ให้ปล่อยเป็น "" จะไม่ render <video>
+  const videoSrc = rawVideo || "/footage-library-room.mp4"; // ไม่มีวิดีโอจริง ๆ ให้ปล่อยเป็น "" จะไม่ render <video>
 
   const camCode = `CAM${String(cam.id).padStart(3, "0")}`;
   const locationName = getLocationName(cam);
