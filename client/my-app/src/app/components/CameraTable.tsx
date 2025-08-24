@@ -192,11 +192,10 @@ export default function CameraTable({
 
               <TableCell>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    c.status
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${c.status
                       ? "bg-emerald-50 text-emerald-700"
                       : "bg-red-50 text-red-700"
-                  }`}
+                    }`}
                 >
                   {c.status ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -218,7 +217,23 @@ export default function CameraTable({
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
-                  <span className="truncate max-w-[260px]">{(c as any).last_maintenance ?? "-"}</span>
+
+                  {(() => {
+                    const date = (c as any).last_maintenance_date as string | undefined;
+                    const time = (c as any).last_maintenance_time as string | undefined;
+
+                    const combined = `${date ?? ""} ${time ?? ""}`.trim();
+
+                    // เป็น "-" ถ้าไม่มีค่า หรือเป็นค่า epoch placeholder: 1970-01-01 07:00:00
+                    const showDash =
+                      !combined ||
+                      combined === "1970-01-01 07:00:00" ||
+                      (date === "1970-01-01" && (!time || time.startsWith("07:00")));
+
+                    const label = showDash ? "-" : combined;
+
+                    return <span className="truncate max-w-[260px]">{label}</span>;
+                  })()}
                 </div>
               </TableCell>
 

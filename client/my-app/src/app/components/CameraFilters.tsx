@@ -10,6 +10,24 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import {
+    Camera as CameraIcon,
+    Move,        // ใช้แทน PTZ (pan/tilt/zoom)
+    Scan,        // ใช้แทน Panoramic
+    Thermometer, // ใช้แทน Thermal
+} from "lucide-react";
+
+const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
+    fixed: CameraIcon,
+    ptz: Move,
+    panoramic: Scan,
+    thermal: Thermometer,
+};
+
+function getTypeIcon(typeKey?: string | null) {
+    const key = (typeKey ?? "").toLowerCase();
+    return TYPE_ICON[key] ?? CameraIcon;
+}
 
 type LocationItem =
     | { id?: number | string; name?: string; location?: string }
@@ -39,12 +57,14 @@ function Field({
     value,
     onChange,
     children,
+    renderPrefix, // optional
 }: {
     label: string;
     placeholder: string;
     value?: string | null;
     onChange: (val: string) => void;
     children: React.ReactNode;
+    renderPrefix?: React.ReactNode;
 }) {
     return (
         <div className="grid gap-1 w-full">
@@ -62,7 +82,14 @@ function Field({
               md:px-3 md:py-2.5 md:text-sm
             "
                 >
-                    <SelectValue placeholder={placeholder} />
+                    {renderPrefix ? (
+                        <div className="grid grid-cols-[auto_1fr] items-center gap-2 w-full">
+                            <span className="inline-block h-4 w-4">{renderPrefix}</span>
+                            <SelectValue placeholder={placeholder} />
+                        </div>
+                    ) : (
+                        <SelectValue placeholder={placeholder} />
+                    )}
                 </SelectTrigger>
                 <SelectContent className="border-[var(--color-primary)]">
                     {children}
@@ -175,11 +202,20 @@ export default function CameraFilters({
                 onChange={(v) => setParam("type", v)}
             >
                 <SelectItem value="All">All Types</SelectItem>
-                {typeOpts.map((t) => (
-                    <SelectItem key={t} value={t.toLowerCase()}>
-                        {t}
-                    </SelectItem>
-                ))}
+
+                {typeOpts.map((t) => {
+                    const value = t.toLowerCase();
+                    const Icon = getTypeIcon(value);
+                    return (
+                        <SelectItem key={t} value={value}>
+                            {/* grid จัดไอคอน + ข้อความ (ไม่ใช้ flex) */}
+                            <span className="grid grid-cols-[auto_1fr] items-center gap-2">
+                                <Icon className="h-4 w-4 text-[var(--color-primary)]" />
+                                <span>{t}</span>
+                            </span>
+                        </SelectItem>
+                    );
+                })}
             </Field>
         </div>
     );

@@ -12,14 +12,28 @@ export type UpdateCameraInput = Partial<Model.CreateCameraInput>; // แปล�
  * @author Wanasart
  */
 export async function listCameras(): Promise<Model.Camera[]> {
-    const { rows } = await pool.query(`
+  // const { rows } = await pool.query(`
+  //   SELECT * FROM cameras
+  //   JOIN locations ON cam_location_id = loc_id
+  //   WHERE cam_is_use = true 
+  //   ORDER BY cam_id ASC
+  //   `);
+  const { rows } = await pool.query(`
       SELECT * FROM cameras
       JOIN locations ON cam_location_id = loc_id
+	    LEFT JOIN LATERAL (
+        SELECT mnt_camera_id,mnt_date
+        FROM maintenance_history
+        WHERE mnt_camera_id = cam_id
+        AND mnt_is_use = true
+        ORDER BY mnt_date DESC, mnt_id DESC
+        LIMIT 1
+      ) AS last_mnt ON TRUE
       WHERE cam_is_use = true 
       ORDER BY cam_id ASC
-      `);
+    `);
 
-    return rows.map(Mapping.mapToCamera);
+  return rows.map(Mapping.mapToCamera);
 }
 
 /**
@@ -31,14 +45,14 @@ export async function listCameras(): Promise<Model.Camera[]> {
  * @author Wanasart
  */
 export async function getCameraById(cam_id: number): Promise<Model.Camera> {
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(`
       SELECT * FROM cameras
       JOIN locations ON cam_location_id = loc_id
       WHERE cam_is_use = true
       AND cam_id = $1
       `, [cam_id]);
 
-    return Mapping.mapToCamera(rows[0]);
+  return Mapping.mapToCamera(rows[0]);
 }
 
 /**
@@ -65,12 +79,12 @@ export async function getCardsSummary() {
  * @author Premsirigul
  */
 export async function countCameras() {
-    const result = await pool.query(`
+  const result = await pool.query(`
         SELECT COUNT(*)::int 
         FROM cameras 
         WHERE cam_is_use = true
     `);
-    return result.rows;
+  return result.rows;
 }
 
 
@@ -80,30 +94,30 @@ export async function countCameras() {
  * @returns {CamerasRow} รายการของ Camera ที่สร้าง
  * @author Chokchai
  */
-export async function createCamera(input: Model.CreateCameraInput): Promise<Model.Camera>{ //สร้างกล้องตัวใหม่
+export async function createCamera(input: Model.CreateCameraInput): Promise<Model.Camera> { //สร้างกล้องตัวใหม่
 
   const existing = await pool.query<Model.Camera>(`
       SELECT * FROM cameras
            WHERE cam_name = $1 AND cam_is_use = TRUE
       `, [input.cam_name]);
-  if(existing.rows.length > 0){
-     throw new Error('cameras name already exists');
-  }    
+  if (existing.rows.length > 0) {
+    throw new Error('cameras name already exists');
+  }
 
   const values = [
-  input.cam_name ?? null,
-  input.cam_address ?? null,
-  input.cam_type ?? null,
-  input.cam_resolution ?? null,
-  input.cam_description ?? null,
-  input.cam_installation_date ?? new Date().toISOString(),
-  input.cam_status ?? true,
-  input.cam_health ?? 100,
-  input.cam_video_quality ?? 80.66,
-  input.cam_network_latency ?? 20,
-  input.cam_location_id ?? null,
+    input.cam_name ?? null,
+    input.cam_address ?? null,
+    input.cam_type ?? null,
+    input.cam_resolution ?? null,
+    input.cam_description ?? null,
+    input.cam_installation_date ?? new Date().toISOString(),
+    input.cam_status ?? true,
+    input.cam_health ?? 100,
+    input.cam_video_quality ?? 80.66,
+    input.cam_network_latency ?? 20,
+    input.cam_location_id ?? null,
   ];
-  
+
 
   // const existing = await pool.query<UserRow>(`
   //         SELECT * FROM users
@@ -125,8 +139,8 @@ export async function createCamera(input: Model.CreateCameraInput): Promise<Mode
       cam_installation_date, cam_status, cam_health, cam_video_quality, cam_network_latency,
       cam_is_use, cam_location_id
   `;
-    const r = await pool.query(sql, values);
-    return r.rows[0] as Model.Camera;
+  const r = await pool.query(sql, values);
+  return r.rows[0] as Model.Camera;
 }
 
 /**
@@ -135,8 +149,8 @@ export async function createCamera(input: Model.CreateCameraInput): Promise<Mode
  * @returns {CamerasRow} รายการของ Camera ที่แก้ไข
  * @author Chokchai
  */
-export async function updateCamera(camId: number , patch: UpdateCameraInput): Promise<Model.Camera | null>{ //แก้ไขข้อมูลกล้อง
-  
+export async function updateCamera(camId: number, patch: UpdateCameraInput): Promise<Model.Camera | null> { //แก้ไขข้อมูลกล้อง
+
   const allowed = new Set([
     'cam_name',
     'cam_location_id',
@@ -144,10 +158,10 @@ export async function updateCamera(camId: number , patch: UpdateCameraInput): Pr
     'cam_address',
     'cam_resolution'
   ]);
-  const entries = Object.entries(patch).filter(([key, value]) =>  allowed.has(key) && value !== undefined); //แปลงข้อมูลให้เป็น Array คู่ จากนั้นทำการ filter
-  
+  const entries = Object.entries(patch).filter(([key, value]) => allowed.has(key) && value !== undefined); //แปลงข้อมูลให้เป็น Array คู่ จากนั้นทำการ filter
+
   if (!entries.length) return null;
-  const set  = entries.map(([k], i) => `${k} = $${i + 1}`).join(', '); //วนลูปเพื่อดึงค่าของ Key => ให้ค่าตัวแรกเริ่มนับที่ 1 จากนั้น join ด้วย , 
+  const set = entries.map(([k], i) => `${k} = $${i + 1}`).join(', '); //วนลูปเพื่อดึงค่าของ Key => ให้ค่าตัวแรกเริ่มนับที่ 1 จากนั้น join ด้วย , 
   // [k] หยิบตัวแรก => ["cam_name = $1"]
   const val = entries.map(([, v]) => v);
 
@@ -192,26 +206,26 @@ export async function softDeleteCamera(camId: number): Promise<boolean> { //ล�
  * @returns cam_id คืนเลข id ของกล้องที่เจอ
  * @author Chokchai
  */
-export async function searchCameras({id,name,location} : {id?:number; name?: string; location?:string}) {
-  const conds:string[] = []; // เก็บเงื่อนไข WHERE
-  const params:any[] = []; // เก็บค่าพารามิเตอร์สำหรับ
+export async function searchCameras({ id, name, location }: { id?: number; name?: string; location?: string }) {
+  const conds: string[] = []; // เก็บเงื่อนไข WHERE
+  const params: any[] = []; // เก็บค่าพารามิเตอร์สำหรับ
   let i = 1;
-  if(id){                      // ถ้ามี id ให้ค้น
+  if (id) {                      // ถ้ามี id ให้ค้น
     conds.push(`c.cam_id = $${i++}`);
     params.push(id);
   }
-  if(name){
+  if (name) {
     conds.push(`c.cam_name ILIKE $${i++}`);
     params.push(`%${name}%`);
   }
-  if (location){ 
-    conds.push(`l.loc_name ILIKE $${i++}`);   
-    params.push(`%${location}%`); 
+  if (location) {
+    conds.push(`l.loc_name ILIKE $${i++}`);
+    params.push(`%${location}%`);
   }
   if (conds.length === 0) {
     throw new Error('id or name or location required');
   }
-  
+
   const sql = `
     SELECT c.*, l.loc_name AS location_name
     FROM public.cameras c
@@ -220,7 +234,7 @@ export async function searchCameras({id,name,location} : {id?:number; name?: str
       AND c.cam_is_use IS TRUE
     ORDER BY c.cam_id ASC
     `;
-  
+
   const r = await pool.query(sql, params);
   return r.rows.map((row: any) => row.cam_id);;
 }
@@ -233,12 +247,12 @@ export async function searchCameras({id,name,location} : {id?:number; name?: str
  * @author Napat
  */
 export async function countInactiveCameras() {
-    const result = await pool.query(`
+  const result = await pool.query(`
         SELECT COUNT(*)::int
         FROM cameras 
         WHERE cam_status = false"
     `);
-    return result.rows;
+  return result.rows;
 }
 
 /**
@@ -259,17 +273,17 @@ export async function updateCameraStatus(cam_id: number, cam_status: boolean) {
         AND cam_is_use = true
     `, [cam_id]);
 
-    if (cameraExists.rows.length === 0) {
-        throw new Error('Camera not found or Camera not in use');
-    }
+  if (cameraExists.rows.length === 0) {
+    throw new Error('Camera not found or Camera not in use');
+  }
 
-    const result = await pool.query(`
+  const result = await pool.query(`
         UPDATE cameras 
         SET cam_status = $1 
         WHERE cam_id = $2 
         RETURNING *
     `, [cam_status, cam_id]);
-    return result.rows[0]; // คืนค่ากล้องที่ถูกอัพเดต
+  return result.rows[0]; // คืนค่ากล้องที่ถูกอัพเดต
 }
 
 export async function countStatusCameras(): Promise<Model.CameraStatus> {
