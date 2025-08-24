@@ -12,10 +12,30 @@ import * as AlertService from "../services/alerts.service";
  *
  * @author Wanasart
  */
-export async function list(req: Request, res: Response, next: NextFunction) {
+export async function index(req: Request, res: Response, next: NextFunction) {
     try {
         const alerts = await AlertService.getAlertList();
         res.json(alerts);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Controller: ดึงสถานะของ Alerts ทั้งหมด
+ *
+ * @route GET /api/alerts/status
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object (ส่งกลับสถานะ alerts เป็น JSON)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response ของสถานะ alerts
+ *
+ * @author Wanasart
+ */
+export async function status(req: Request, res: Response, next: NextFunction) {
+    try {
+        const cameras = await AlertService.countStatusAlerts();
+        res.json(cameras);
     } catch (err) {
         next(err);
     }
@@ -32,7 +52,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function logs(req: Request, res: Response, next: NextFunction) {
+export async function indexLogs(req: Request, res: Response, next: NextFunction) {
     try {
         const alr_id = Number(req.params.alr_id);
         if (isNaN(alr_id)) {
@@ -56,7 +76,7 @@ export async function logs(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function related(req: Request, res: Response, next: NextFunction) {
+export async function indexByEvent(req: Request, res: Response, next: NextFunction) {
     try {
         const evt_id = Number(req.params.evt_id);
         if (isNaN(evt_id)) {
@@ -80,7 +100,7 @@ export async function related(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function notes(req: Request, res: Response, next: NextFunction) {
+export async function indexNotes(req: Request, res: Response, next: NextFunction) {
     try {
         const alr_id = Number(req.params.alr_id);
         if (isNaN(alr_id)) {
@@ -104,14 +124,14 @@ export async function notes(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function trend(req: Request, res: Response, next: NextFunction) {
+export async function trendAnalytics(req: Request, res: Response, next: NextFunction) {
     try {
-        const days_back = Number(req.params.days_back);
-        if (isNaN(days_back)) {
-            return res.status(400).json({ error: "Missing days_back query parameter" });
-        }
+        // const days_back = Number(req.params.days_back);
+        // if (isNaN(days_back)) {
+        //     return res.status(400).json({ error: "Missing days_back query parameter" });
+        // }
 
-        const trendData = await AlertService.getAlertTrend(days_back);
+        const trendData = await AlertService.getAlertTrend();
         res.json(trendData);
     } catch (err) {
         next(err);
@@ -129,7 +149,7 @@ export async function trend(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function distribution(req: Request, res: Response, next: NextFunction) {
+export async function distributionAnalytics(req: Request, res: Response, next: NextFunction) {
     try {
         const distributionData = await AlertService.getAlertByEventType();
         return res.json(distributionData);
@@ -149,7 +169,7 @@ export async function distribution(req: Request, res: Response, next: NextFuncti
  *
  * @author Wanasart
  */
-export async function create(req: Request, res: Response, next: NextFunction) {
+export async function store(req: Request, res: Response, next: NextFunction) {
     try {
         const { severity, camera_id, footage_id, event_id, description } = req.body;
         if (!severity || !camera_id || !footage_id || !event_id || !description) {

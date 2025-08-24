@@ -1,4 +1,38 @@
 import { pool } from '../config/db';
+import * as Model from "../models/events.model"
+import * as Mapping from "../models/Mapping/events.map"
+
+
+/**
+ * ดึงรายการ Events ทั้งหมดที่ยังใช้งานอยู่
+ *
+ * @returns {Promise<Event[]>} รายการ Events ที่ถูกใช้งานอยู่ทั้งหมด
+ * @description ดึงข้อมูล Events จากฐานข้อมูลโดยเรียงตาม evt_id จากมากไปน้อย และแสดงเฉพาะ Events ที่ยังใช้งานอยู่
+
+ * 
+ * @author Jirayu
+ */
+export async function getAllEvents(): Promise<Model.Events[]> {
+    const query = `
+        SELECT evt_id, evt_icon, evt_name, evt_description, evt_is_use
+        FROM events 
+        WHERE evt_is_use = true
+        ORDER BY evt_id DESC
+    `;
+
+    const result = await pool.query<Event>(query);
+    return result.rows.map(Mapping.mapToEvent);
+}
+
+export async function getEventById(evt_id: number): Promise<Model.Events> {
+    const { rows } = await pool.query(`
+        SELECT * FROM events
+        WHERE evt_id = $1
+        AND evt_is_use = true    
+    `, [evt_id]) 
+
+    return Mapping.mapToEvent(rows[0]);
+}
 
 /**
  * เพิ่มข้อมูลของ Event
@@ -15,12 +49,29 @@ import { pool } from '../config/db';
  * 
  * @author Fasai
  */
-export async function createEvent(evt_icon: string, evt_name: string, evt_des: string) {
+export async function createEvent(evt_icon: string, evt_name: string, evt_des: string, evt_status: boolean): Promise<Model.Events> {
+
+
+    if (!evt_icon.trim() || !evt_name.trim() || !evt_des.trim()) {
+        throw new Error("Event fields cannot be empty");
+    }
+
+    // const eventExists = await pool.query(`
+    //     SELECT evt_id FROM events
+    //     WHERE evt_name = $1 
+    //     AND evt_is_use = true`,
+    //     [evt_name]
+    // )
+
+    // if (eventExists.rows.length > 0) {
+    //     throw new Error('Event already exists');
+    // }
+
     const { rows } = await pool.query(`
-        INSERT INTO events(evt_icon, evt_name, evt_description) 
-        VALUES($1, $2, $3)
+        INSERT INTO events(evt_icon, evt_name, evt_description, evt_status) 
+        VALUES($1, $2, $3, $4)
         RETURNING *
-    `, [evt_icon, evt_name, evt_des]);
+    `, [evt_icon, evt_name, evt_des, evt_status]);
 
     const events = rows[0];
 
@@ -28,28 +79,7 @@ export async function createEvent(evt_icon: string, evt_name: string, evt_des: s
         throw new Error('Failed to insert events');
     }
 
-    return events;
-}
-
-/**
- * ดึงรายการ Events ทั้งหมดที่ยังใช้งานอยู่
- *
- * @returns {Promise<Event[]>} รายการ Events ที่ถูกใช้งานอยู่ทั้งหมด
- * @description ดึงข้อมูล Events จากฐานข้อมูลโดยเรียงตาม evt_id จากมากไปน้อย และแสดงเฉพาะ Events ที่ยังใช้งานอยู่
-
- * 
- * @author Jirayu
- */
-export async function getAllEvents(): Promise<Event[]> {
-    const query = `
-        SELECT evt_id, evt_icon, evt_name, evt_description, evt_is_use
-        FROM events 
-        WHERE evt_is_use = true
-        ORDER BY evt_id DESC
-    `;
-    
-    const { rows } = await pool.query<Event>(query);
-    return rows;
+    return Mapping.mapToEvent(rows[0]);
 }
 
 /**
@@ -68,7 +98,23 @@ export async function getAllEvents(): Promise<Event[]> {
  *
  * @author Fasai
  */
-export async function updateEvent(evt_id: number, evt_icon: string, evt_name: string, evt_des: string) {
+export async function updateEvent(evt_id: number, evt_icon: string, evt_name: string, evt_des: string): Promise<Model.Events> {
+
+    if (!evt_icon.trim() || !evt_name.trim() || !evt_des.trim()) {
+        throw new Error("Event fields cannot be empty");
+    }
+
+    const eventExists = await pool.query(`
+        SELECT evt_id FROM events
+        WHERE evt_id = $1 
+        AND evt_is_use = true`,
+        [evt_id]
+    )
+
+    if (eventExists.rows.length === 0) {
+        throw new Error("Event not found or inactive");
+    }
+
     const { rows } = await pool.query(`
         UPDATE events
         SET evt_icon = $1,
@@ -84,7 +130,7 @@ export async function updateEvent(evt_id: number, evt_icon: string, evt_name: st
         throw new Error('Failed to update event or event not found');
     }
 
-    return events;
+    return events.row.map(Mapping.mapToEvent);
 }
 
 /**
@@ -101,7 +147,19 @@ export async function updateEvent(evt_id: number, evt_icon: string, evt_name: st
  *
  * @author Fasai
  */
-export async function deleteEvent(evt_id: number, evt_is_use: boolean) {
+export async function deleteEvent(evt_id: number, evt_is_use: boolean): Promise<Model.EventSafeDelete> {
+
+    const eventExists = await pool.query(`
+      SELECT evt_id FROM events
+      WHERE evt_id = $1
+      AND evt_is_use = true  
+    `, [evt_id]
+    )
+
+    if (eventExists.rows.length === 0) {
+        throw new Error('Event not found');
+    }
+
     const { rows } = await pool.query(`
         UPDATE events
         set evt_is_use = $1
@@ -116,37 +174,4 @@ export async function deleteEvent(evt_id: number, evt_is_use: boolean) {
     }
 
     return events
-}
-
-/**
- * เพิ่มข้อมูลของ EventDetection
- *
- * @param {number} cds_event_id - รหัสของ Event 
- * @param {number} cds_camera_id - รหัสของ Camera
- * @param {string} cds_sensitivity - ความไวในการตรวจจับ
- * @param {string} cds_priority - ความสำคัญของ Eventdetection
- * @param {string} cds_status - สถานะของ Eventdetection
- * @returns {Promise<object>} EventDetection object หลังสร้างเสร็จ
- *
- * @author Audomsak
- */
-export async function createEventDetection( cds_event_id: number,
-    cds_camera_id: number,
-    cds_sensitivity: string = "Medium",
-    cds_priority: string = "Medium",
-    cds_status: boolean = true
-) {
-    const { rows } = await pool.query(`
-        INSERT INTO camera_detection_settings (cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
-    `, [cds_event_id, cds_camera_id, cds_sensitivity, cds_priority, cds_status]);
-
-    const eventDetection = rows[0];
-
-    if (!eventDetection) {
-        throw new Error('Failed to insert Event Detection');
-    }
-
-    return eventDetection;
 }
