@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import AlertTable, { type Alert } from "../components/AlertTable"; // ปรับ path ตามโปรเจกต์
+import AlertTable, { type Alert } from "./AlertTable"; // ปรับ path ตามโปรเจกต์
 import SearchAlertsInput from "@/app/components/Alerts/SearchAlertsInput";
 import AlertFilters from "@/app/components/Alerts/AlertFilters";
 
