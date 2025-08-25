@@ -81,6 +81,9 @@ router.patch('/event-detections/:cds_id/soft-delete', ctrl.softDeleteEventDetect
 // router.get('/:cam_id/event-detections', ctrl.indexCameraEventDetections);    // NEW
 // router.patch('/event-detections/:cds_id/restore', ctrl.restoreEventDetection); // optional
 
+/* ---------- Location ---------- */
+router.get('/location', ctrl.location);
+
 /* ---------- Collection ---------- */
 router.get('/', ctrl.index);
 router.post('/', ctrl.store);

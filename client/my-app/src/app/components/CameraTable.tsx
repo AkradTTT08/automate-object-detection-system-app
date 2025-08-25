@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -24,6 +24,15 @@ type Props = {
   onDelete?: (id: number) => void;
 };
 
+// แปลงค่าจาก query เป็น boolean | null
+function parseStatusParam(v: string | null): boolean | null {
+  if (!v) return null;
+  const s = v.trim().toLowerCase();
+  if (s === "active" || s === "true" || s === "1") return true;
+  if (s === "inactive" || s === "false" || s === "0") return false;
+  return null;
+}
+
 export default function CameraTable({
   cameras,
   active,
@@ -33,10 +42,12 @@ export default function CameraTable({
   onDelete,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get("status"); // e.g. "Active" | "Inactive"
 
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
-  const [busyId, setBusyId] = useState<number | null>(null); // กันคลิกซ้ำตอนลบ
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
@@ -49,42 +60,42 @@ export default function CameraTable({
     }
   };
 
+  // ✅ กรองตาม status จาก URL ก่อน (เทียบกับ c.status แบบ boolean)
+  const filtered = useMemo(() => {
+    const want = parseStatusParam(statusParam);
+    if (want === null) return cameras;
+    return cameras.filter((c) => !!c.status === want);
+  }, [cameras, statusParam]);
+
   const getVal = (c: Camera, key: SortKey) => {
     switch (key) {
       case "id":
-        return (c as any).id ?? (c as any).cam_id ?? 0;
+        return c.id ?? 0;
       case "name":
-        return (c as any).name ?? (c as any).cam_name ?? "";
+        return c.name ?? "";
       case "status":
-        return (c as any).status ?? (c as any).cam_status ?? false;
+        return c.status ? 1 : 0; // boolean -> 1/0 เพื่อ sort
       case "location":
-        return (
-          (c as any).location?.name ??
-          (c as any).cam_location ??
-          (c as any).location ??
-          ""
-        );
+        return c.location?.name ?? "";
       case "health":
-        return (c as any).health ?? (c as any).cam_health ?? 0;
+        return c.health ?? 0;
       default:
         return "";
     }
   };
 
   const sorted = useMemo(() => {
-    if (!sortKey || !sortOrder) return cameras;
-    const arr = [...cameras];
+    if (!sortKey || !sortOrder) return filtered;
+    const arr = [...filtered];
     arr.sort((a, b) => {
-      const A = getVal(a, sortKey);
-      const B = getVal(b, sortKey);
-      const aVal = typeof A === "boolean" ? (A ? 1 : 0) : A;
-      const bVal = typeof B === "boolean" ? (B ? 1 : 0) : B;
-      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      const A = getVal(a, sortKey) as any;
+      const B = getVal(b, sortKey) as any;
+      if (A < B) return sortOrder === "asc" ? -1 : 1;
+      if (A > B) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
     return arr;
-  }, [cameras, sortKey, sortOrder]);
+  }, [filtered, sortKey, sortOrder]);
 
   const renderSortIcon = (key: SortKey) => {
     if (sortKey !== key || !sortOrder) return <ArrowUpDown className="w-4 h-4 ml-1 inline-block" />;
@@ -92,8 +103,12 @@ export default function CameraTable({
     return <ArrowDown className="w-4 h-4 ml-1 inline-block" />;
   };
 
-  if (!cameras?.length) {
-    return <div className="text-sm text-gray-500">No cameras to display.</div>;
+  if (!filtered.length) {
+    return (
+      <div className="text-sm text-gray-500">
+        {cameras?.length ? "No cameras match this status filter." : "No cameras to display."}
+      </div>
+    );
   }
 
   return (
@@ -153,85 +168,36 @@ export default function CameraTable({
 
       <TableBody>
         {sorted.map((c) => {
-          const id = (c as any).id ?? (c as any).cam_id;
-          const name = (c as any).name ?? (c as any).cam_name ?? "-";
-          const statusVal = (c as any).status ?? (c as any).cam_status ?? false;
-          const statusLabel = statusVal ? "Active" : "Inactive";
-          const location =
-            (c as any).location?.name ??
-            (c as any).cam_location ??
-            (c as any).location ??
-            "-";
-          const health = (c as any).health ?? (c as any).cam_health ?? null;
-          const type = (c as any).type ?? (c as any).cam_type ?? "Fixed";
-          const maintenance =
-            (c as any).maintenance ??
-            (c as any).cam_maintenance ??
-            (c as any).last_maintenance ??
-            "-";
-          const camCode = `CAM${String(id).padStart(3, "0")}`;
-
-          // --- action handlers (ต่อกล้องแต่ละตัว) ---
-          const handleView = () =>
-            onView ? onView(id) : router.push(`/cameras/${id}`);
-
-          const handleEdit = () =>
-            onEdit ? onEdit(id) : router.push(`/cameras/${id}/edit`);
-
-          const handleDetails = () =>
-            onDetails ? onDetails(id) : router.push(`/cameras/${id}?tab=details`);
-
-          const handleDelete = async () => {
-            if (onDelete) return onDelete(id);
-            if (!confirm("ลบกล้องนี้?")) return;
-            try {
-              setBusyId(id);
-              const res = await fetch(`/api/cameras/${id}`, { method: "DELETE" });
-              if (!res.ok) throw new Error("Delete failed");
-              router.refresh();
-            } catch (e) {
-              alert((e as Error).message || "Delete failed");
-            } finally {
-              setBusyId(null);
-            }
-          };
-
-          const btnBase =
-            "inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2";
-          const primary = "bg-[var(--color-primary)] text-white focus:ring-[var(--color-primary)]";
-          const hoverPrimary = "hover:bg-[var(--color-primary)] border hover:border-[var(--color-primary)] hover:text-white";
-          const danger = "bg-white border border-[var(--color-danger)] text-[var(--color-danger)]";
-          const hoverDanger = "hover:bg-[var(--color-danger)] border hover:border-[var(--color-danger)] hover:text-white";
-          const ghost  = "bg-white border border-[var(--color-primary)] text-[var(--color-primary)]";
-          const hoverGhost  = "hover:bg-white border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]";
+          const camCode = `CAM${String(c.id).padStart(3, "0")}`;
+          const statusLabel = c.status ? "Active" : "Inactive";
 
           return (
-            <TableRow key={id} className="border-b last:border-b-0">
+            <TableRow key={c.id} className="border-b last:border-b-0">
               <TableCell>{camCode}</TableCell>
+
               <TableCell className="font-medium truncate max-w-[320px]">
-                {name}
+                {c.name ?? "-"}
               </TableCell>
 
               <TableCell>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
-                  <span className="truncate max-w-[260px]">{location}</span>
+                  <span className="truncate max-w-[260px]">{c.location?.name ?? "-"}</span>
                 </div>
               </TableCell>
 
               <TableCell>
-                <span className="truncate max-w-[260px]">{type}</span>
+                <span className="truncate max-w-[260px]">{c.type ?? "-"}</span>
               </TableCell>
 
               <TableCell>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    statusVal
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${c.status
                       ? "bg-emerald-50 text-emerald-700"
                       : "bg-red-50 text-red-700"
-                  }`}
+                    }`}
                 >
-                  {statusVal ? (
+                  {c.status ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   ) : (
                     <XCircle className="w-3.5 h-3.5" />
@@ -241,9 +207,9 @@ export default function CameraTable({
               </TableCell>
 
               <TableCell>
-                {health === null ? "-" : (
+                {c.health == null ? "-" : (
                   <span className="tabular-nums">
-                    {typeof health === "number" ? `${health}%` : String(health)}
+                    {typeof c.health === "number" ? `${c.health}%` : String(c.health)}
                   </span>
                 )}
               </TableCell>
@@ -251,7 +217,23 @@ export default function CameraTable({
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
-                  <span className="truncate max-w-[260px]">{maintenance}</span>
+
+                  {(() => {
+                    const date = (c as any).last_maintenance_date as string | undefined;
+                    const time = (c as any).last_maintenance_time as string | undefined;
+
+                    const combined = `${date ?? ""} ${time ?? ""}`.trim();
+
+                    // เป็น "-" ถ้าไม่มีค่า หรือเป็นค่า epoch placeholder: 1970-01-01 07:00:00
+                    const showDash =
+                      !combined ||
+                      combined === "1970-01-01 07:00:00" ||
+                      (date === "1970-01-01" && (!time || time.startsWith("07:00")));
+
+                    const label = showDash ? "-" : combined;
+
+                    return <span className="truncate max-w-[260px]">{label}</span>;
+                  })()}
                 </div>
               </TableCell>
 
@@ -259,41 +241,54 @@ export default function CameraTable({
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={handleView}
+                    onClick={() => (onView ? onView(c.id) : router.push(`/cameras/${c.id}`))}
                     title="View"
                     aria-label="View"
-                    className={`${btnBase} ${ghost} ${hoverPrimary}`}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
                   >
                     <Eye className="h-4 w-4" />
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleEdit}
+                    onClick={() => (onEdit ? onEdit(c.id) : router.push(`/cameras/${c.id}/edit`))}
                     title="Edit"
                     aria-label="Edit"
-                    className={`${btnBase} ${ghost} ${hoverPrimary}`}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleDetails}
+                    onClick={() => (onDetails ? onDetails(c.id) : router.push(`/cameras/${c.id}?tab=details`))}
                     title="Details"
                     aria-label="Details"
-                    className={`${btnBase} ${ghost} ${hoverPrimary}`}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
                   >
                     <CircleAlert className="h-4 w-4" />
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleDelete}
+                    onClick={async () => {
+                      if (onDelete) return onDelete(c.id);
+                      if (!confirm("ลบกล้องนี้?")) return;
+                      try {
+                        setBusyId(c.id);
+                        const res = await fetch(`/api/cameras/${c.id}`, { method: "DELETE" });
+                        if (!res.ok) throw new Error("Delete failed");
+                        router.refresh();
+                      } catch (e) {
+                        alert((e as Error).message || "Delete failed");
+                      } finally {
+                        setBusyId(null);
+                      }
+                    }}
                     title="Delete"
                     aria-label="Delete"
-                    disabled={busyId === id}
-                    className={`${btnBase} ${danger} ${hoverDanger}`}
+                    disabled={busyId === c.id}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger)] hover:border-[var(--color-danger)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

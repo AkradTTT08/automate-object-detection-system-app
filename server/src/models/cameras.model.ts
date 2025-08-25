@@ -16,6 +16,8 @@ export interface Camera {
         id: number;
         name: string;
     }
+    last_maintenance_date: string;
+    last_maintenance_time: string;
 }
 
 export type CreateCameraInput = {
@@ -28,8 +30,10 @@ export type CreateCameraInput = {
   cam_health: number | null;
   cam_video_quality: number | null;
   cam_network_latency: number | null;
+  cam_status: boolean;
   cam_is_use: boolean | null;      
   cam_location_id: number | null;
+  password: string;
 };
 
 export interface CameraStatus {

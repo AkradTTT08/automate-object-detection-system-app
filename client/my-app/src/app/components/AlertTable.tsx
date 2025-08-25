@@ -7,6 +7,45 @@ import { Eye, CheckCircle2, XCircle, MapPin, ArrowUpDown, ArrowUp, ArrowDown } f
 import * as Icons from "lucide-react";
 import type { LucideProps } from "lucide-react";
 
+const SEVERITY_STYLES = {
+    critical: { pill: "bg-rose-50 text-rose-700 ring-rose-200", Icon: Icons.TriangleAlert },
+    high: { pill: "bg-orange-50 text-orange-700 ring-orange-200", Icon: Icons.CircleAlert },
+    medium: { pill: "bg-yellow-50 text-yellow-700 ring-yellow-200", Icon: Icons.Minus },
+    low: { pill: "bg-emerald-50 text-emerald-700 ring-emerald-200", Icon: Icons.ArrowDown },
+    default: { pill: "bg-slate-50 text-slate-700 ring-slate-200", Icon: Icons.CircleAlert },
+} as const;
+
+function SeverityBadge({ value }: { value?: string }) {
+    const key = (value ?? "").trim().toLowerCase() as keyof typeof SEVERITY_STYLES;
+    const { pill, Icon } = SEVERITY_STYLES[key] ?? SEVERITY_STYLES.default;
+    return (
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${pill}`}>
+            <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="capitalize">{value ?? "Unknown"}</span>
+        </span>
+    );
+}
+
+const STATUS_STYLES = {
+    active:       "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    resolved:     "bg-sky-50 text-sky-700 ring-sky-200",
+    dismissed:    "bg-rose-50 text-rose-700 ring-rose-200",
+    // pending:      "bg-amber-50 text-amber-700 ring-amber-200",
+    // acknowledged: "bg-indigo-50 text-indigo-700 ring-indigo-200",
+    // inactive:     "bg-slate-100 text-slate-700 ring-slate-300",
+    default:      "bg-slate-50 text-slate-700 ring-slate-200",
+  } as const;
+  
+  function StatusBadge({ value }: { value?: string }) {
+    const key = (value ?? "").trim().toLowerCase() as keyof typeof STATUS_STYLES;
+    const pill = STATUS_STYLES[key] ?? STATUS_STYLES.default;
+    return (
+      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${pill}`}>
+        <span className="capitalize">{value ?? "Unknown"}</span>
+      </span>
+    );
+  }
+
 export type Alert = {
     id: number;
     severity: string;
@@ -126,12 +165,31 @@ export default function AlertTable({ alerts }: Props) {
             <TableBody>
                 {sortedAlerts.map((alr) => {
                     const EventIcon = iconFromName(alr.event?.icon);
+                    const alrCode = `ALT${String(alr.id).padStart(3, "0")}`;
+
                     return (
                         <TableRow key={alr.id}>
-                            <TableCell>{alr.severity}</TableCell>
-                            <TableCell>{alr.id}</TableCell>
-                            <TableCell>{alr.create_date} {alr.create_time}</TableCell>
-                            <TableCell>{alr.camera.name}</TableCell>
+                            <TableCell>
+                                <SeverityBadge value={alr.severity} />
+                            </TableCell>
+
+                            <TableCell>{alrCode}</TableCell>
+
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                    <Icons.Clock3 className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
+                                    <span>{alr.create_date} {alr.create_time}</span>
+                                </div>
+                            </TableCell>
+                            {/* <TableCell>{alr.create_date} {alr.create_time}</TableCell> */}
+
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                    <Icons.Camera className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
+                                    <span>{alr.camera.name}</span>
+                                </div>
+                            </TableCell>
+                            {/* <TableCell>{alr.camera.name}</TableCell> */}
 
                             {/* Event Type + icon */}
                             <TableCell>
@@ -149,21 +207,30 @@ export default function AlertTable({ alerts }: Props) {
                                 </div>
                             </TableCell>
 
-                            <TableCell>{alr.status}</TableCell>
+                            <TableCell>
+                                <StatusBadge value={alr.status} />
+                            </TableCell>
 
                             <TableCell className="flex gap-2">
-                                <button className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-white px-4 py-1 rounded-sm hover:opacity-90">
+                                {/* ปุ่ม View แสดงเสมอ */}
+                                <button className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2">
                                     <Eye className="h-4 w-4" aria-hidden="true" />
                                     <span>View</span>
                                 </button>
-                                <button className="inline-flex items-center gap-2 bg-[var(--color-success)] text-white px-4 py-1 rounded-sm hover:opacity-90">
-                                    <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                                    <span>Resolved</span>
-                                </button>
-                                <button className="inline-flex items-center gap-2 bg-[var(--color-danger)] text-white px-4 py-1 rounded-sm hover:opacity-90">
-                                    <XCircle className="h-4 w-4" aria-hidden="true" />
-                                    <span>Dismiss</span>
-                                </button>
+
+                                {/* แสดงปุ่ม Resolved / Dismiss เฉพาะเมื่อสถานะเป็น Active */}
+                                {alr.status?.trim().toLowerCase() === "active" && (
+                                    <>
+                                        <button className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-success)] text-[var(--color-success)] hover:bg-[var(--color-success)] hover:border-[var(--color-success)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2">
+                                            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                                            <span>Resolved</span>
+                                        </button>
+                                        <button className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger)] hover:border-[var(--color-danger)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2">
+                                            <XCircle className="h-4 w-4" aria-hidden="true" />
+                                            <span>Dismiss</span>
+                                        </button>
+                                    </>
+                                )}
                             </TableCell>
                         </TableRow>
                     );

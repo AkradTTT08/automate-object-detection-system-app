@@ -1,9 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifySessionToken, getUserSafeById } from '../services/auth.service';
+import { verifySessionToken, getUserSafeById, verifyPassword } from '../services/auth.service';
 import * as AuthService from '../services/auth.service';
 import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../../..', '.env.local') });
+
+const isProd = process.env.NODE_ENV === 'production';
+const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined; // เช่น ".example.com"
+const cookieOpts = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: (process.env.COOKIE_SAMESITE as any) || (isProd ? 'lax' : 'lax'),
+  path: '/',
+  domain: COOKIE_DOMAIN,
+};
 
 /**
  * จัดการการเข้าสู่ระบบของผู้ใช้
@@ -20,28 +30,24 @@ dotenv.config({ path: path.resolve(__dirname, '../../..', '.env.local') });
  * @author Wanasart
  */
 export async function login(req: Request, res: Response, next: NextFunction) {
-    console.log('LOGIN body:', req.body);
+  console.log('LOGIN body:', req.body);
 
-    try {
-        const { usernameOrEmail, password } = req.body;
-        const user = await AuthService.authenticateUser(usernameOrEmail, password);
+  try {
+    const { usernameOrEmail, password } = req.body;
+    const user = await AuthService.authenticateUser(usernameOrEmail, password);
 
-        const token = AuthService.createSessionToken({ id: user.usr_id, role: user.usr_role  }); // Generate a token for the user
+    const token = AuthService.createSessionToken({ id: user.usr_id, role: user.usr_role }); // Generate a token for the user
 
-        const isProd = process.env.NODE_ENV === 'production';
-        res.cookie('access_token', token, {
-            httpOnly: true, // Prevents client-side JavaScript from accessing the token
-            secure: isProd, // Use secure cookies in production
-            sameSite: 'lax', // Helps prevent CSRF attacks
-            path: '/', // Cookie is accessible on all routes
-            domain: 'dekdee2.informatics.buu.ac.th', // ใส่เมื่อโปรดักชันถ้าจำเป็น
-            maxAge: 60 * 60 * 1000 // 1 hour expiration
-        });
+    // ใช้ option เดียวกับด้านบนของไฟล์
+    res.cookie('access_token', token, {
+      ...cookieOpts,
+      maxAge: 60 * 60 * 1000, // หรืออ่านจาก ENV: Number(process.env.COOKIE_MAX_AGE_MS) ?? 3600000
+    });
 
-        return res.json({ message: 'Login successful', success: true, user });
-    } catch (err) {
-        next(err);
-    }
+    return res.json({ message: 'Login successful', success: true, user });
+  } catch (err) {
+    next(err);
+  }
 }
 
 /**
@@ -58,13 +64,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
  * @author Wanasart
  */
 export async function logout(req: Request, res: Response, next: NextFunction) {
-    try {
-        // Clear the session or token here
-        res.clearCookie('access_token', { path: '/' });
-        return res.json({ message: 'Logout successful' });
-    } catch (err) {
-        next(err);
-    }
+  try {
+    // ลบด้วย option เดิมทุกตัว + เขียนทับให้หมดอายุ
+    res.clearCookie('access_token', cookieOpts);
+    res.cookie('access_token', '', { ...cookieOpts, maxAge: 0 });
+    return res.json({ message: 'Logout successful' });
+  } catch (err) {
+    next(err);
+  }
 }
 
 /**
@@ -83,15 +90,15 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
  * @author Wanasart
  */
 export async function register(req: Request, res: Response, next: NextFunction) {
-    try {
-        const { username, email, password, role } = req.body;
+  try {
+    const { username, email, password, role } = req.body;
 
-        const { user, token } = await AuthService.registerUser(username, email, password, role);
+    const { user, token } = await AuthService.registerUser(username, email, password, role);
 
-        return res.json({ message: 'Register successful', user, token });
-    } catch (err) {
-        next(err);
-    }
+    return res.json({ message: 'Register successful', user, token });
+  } catch (err) {
+    next(err);
+  }
 }
 
 /**
@@ -109,6 +116,12 @@ export async function register(req: Request, res: Response, next: NextFunction) 
  * @author Wanasart
  */
 export async function me(req: Request, res: Response, next: NextFunction) {
+  res.set({
+    'Cache-Control': 'no-store',
+    'Pragma': 'no-cache',
+    'Vary': 'Cookie',
+  });
+  
   try {
     const token = req.cookies?.access_token;
     if (!token) return res.status(401).json({ error: 'Unauthenticated' });
@@ -126,5 +139,42 @@ export async function me(req: Request, res: Response, next: NextFunction) {
     });
   } catch (err) {
     return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+
+/**
+ * เป็นการตรวจสอบรหัสผ่านก่อนเพิ่ม camera
+ *
+ * - ใช้ token เพื่อเก็บค่าผู้ใช้งานที่กำลัง login อยู่
+ * - และทำการตรวจสอบว่า token หมดอายุหรือยัง
+ * 
+ *
+ * @route Post /api/auth/recheckPassword
+ * @param {Request} req - Express request object (cookie: access_token)
+ * @param {Response} res - Express response object (ส่งข้อมูลผู้ใช้)
+ * @returns {success: true } คืนค่า true หากรหัสผ่านถูกต้อง
+ *
+ * @author Chokchai
+ */
+
+export async function recheckPassword(req: Request, res: Response) {
+  try {
+    const token = req.cookies?.access_token;
+    if (!token) return res.status(401).json({ error: "Unauthenticated" });
+
+    const payload = verifySessionToken(token); // ตรวจสอบว่า token ถูกต้อง และยังไม่หมดอายุ
+    const { password } = req.body; //เก็บค่าเฉพาะ password
+
+    const ok = await verifyPassword(payload.id, password);
+
+    if (!ok) {
+      return res.status(401).json({ error: "Password incorrect" });
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("recheckPassword error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
