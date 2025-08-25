@@ -1,5 +1,5 @@
 import { Camera } from "@/app/models/cameras.model";
-import CameraDetails from '@/app/components/CameraDetails'
+import CameraDetails from '@/app/components/Cameras/Details/CameraDetails'
 
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 

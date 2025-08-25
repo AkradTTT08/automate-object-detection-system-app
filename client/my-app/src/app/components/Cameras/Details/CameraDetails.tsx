@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Camera } from "@/app/models/cameras.model";
 import { ArrowLeft } from "lucide-react"
-import HealthStatus from "@/app/components/Details/HealthStatus";
+import HealthStatus from "@/app/components/Cameras/Details/HealthStatus";
 
 function EventDetection() { return <div>Event logs / charts…</div>; }
 function AccessControl() { return <div>Door events…</div>; }

@@ -1,8 +1,8 @@
 // app/(...)/alerts/page.tsx
-import AlertTable, { type Alert } from "../../components/AlertTable";
-import * as StatusCard from "../../components/StatusCard";
+import AlertTable, { type Alert } from "../../components/Alerts/AlertTable";
+import * as StatusCard from "../../components/Utilities/StatusCard";
 import { Separator } from "@/components/ui/separator";
-import AlertsClient from "@/app/components/AlertsClient";
+import AlertsClient from "@/app/components/Alerts/AlertsClient";
 
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 
