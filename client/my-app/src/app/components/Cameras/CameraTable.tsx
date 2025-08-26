@@ -338,7 +338,7 @@ export default function CameraTable({
 
                   <button
                     type="button"
-                    onClick={() => (onDetails ? onDetails(c.id) : router.push(`/cameras/${c.id}?tab=details`))}
+                    onClick={() => (onDetails ? onDetails(c.id) : router.push(`/cameras/${c.id}/details`))}
                     title="Details"
                     aria-label="Details"
                     className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
