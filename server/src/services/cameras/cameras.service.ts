@@ -327,7 +327,7 @@ export async function countStatusCameras(): Promise<Model.CameraStatus> {
       COUNT(*) FILTER (WHERE cam_is_use = true) AS total,
       COUNT(*) FILTER (WHERE cam_is_use = true AND cam_status = true) AS active,
       COUNT(*) FILTER (WHERE cam_is_use = true AND cam_status = false) AS inactive,
-      ROUND(AVG(cam_health)::numeric, 2)::float AS avg_health
+      ROUND((AVG(cam_health) FILTER (WHERE cam_is_use))::numeric, 2)::float AS avg_health
     FROM cameras
   `);
 

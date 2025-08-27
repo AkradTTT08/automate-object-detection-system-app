@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import { MapPin, Video, Anchor, Camera as CameraIcon } from "lucide-react";
-import BottomCameraCard from "./bottomCameraCard";
+import BottomCameraCard from "./Utilities/bottomCameraCard";
 
 
 export type Camera = {
