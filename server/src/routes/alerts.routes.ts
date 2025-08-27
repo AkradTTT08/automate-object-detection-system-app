@@ -52,7 +52,7 @@ const router = Router();
 router.get('/status', ctrl.status);
 
 /* ---------- Analytics (static ก่อน :alr_id) ---------- */
-router.get("/analytics/trend", ctrl.trendAnalytics);              // แทน /:days_back/trend → ใช้ query ?days_back=
+router.get("/analytics/:days_back/trend", ctrl.trendAnalytics);              // แทน /:days_back/trend → ใช้ query ?days_back=
 router.get("/analytics/distribution", ctrl.distributionAnalytics);
 
 /* ---------- Relations / Filters ---------- */
