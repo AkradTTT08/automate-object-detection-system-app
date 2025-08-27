@@ -1,8 +1,10 @@
 "use client";
 
+
 import Image from "next/image";
 import { MapPin, Video, Anchor, Camera as CameraIcon } from "lucide-react";
 import BottomCameraCard from "./bottomCameraCard";
+
 
 export type Camera = {
   id: number;
@@ -61,6 +63,7 @@ export default function CameraCard({ cam }: { cam: Camera }) {
 
   const statusBool = getStatusBool(cam);
   const statusLabel = statusBool ? "Active" : "Inactive";
+
 
   const camBorder = statusBool
     ? "border-[var(--color-primary)]"
@@ -147,11 +150,10 @@ export default function CameraCard({ cam }: { cam: Camera }) {
           </span>
 
           <span
-            className={`absolute right-3 top-3 rounded-full px-3 py-0.5 text-[11px] font-semibold shadow-sm border ${
-              statusBool
-                ? "bg-emerald-50 text-emerald-700 border-emerald-700"
-                : "bg-red-50 text-red-700 border-red-700"
-            }`}
+            className={`absolute right-3 top-3 rounded-full px-3 py-0.5 text-[11px] font-semibold shadow-sm border ${statusBool
+              ? "bg-emerald-50 text-emerald-700 border-emerald-700"
+              : "bg-red-50 text-red-700 border-red-700"
+              }`}
           >
             {statusLabel}
           </span>
@@ -180,7 +182,10 @@ export default function CameraCard({ cam }: { cam: Camera }) {
             </span>
           </div>
 
+
+
           <BottomCameraCard camId={cam.id} iconSet="lucide" className="mt-4" />
+
         </div>
       </div>
     </div>
