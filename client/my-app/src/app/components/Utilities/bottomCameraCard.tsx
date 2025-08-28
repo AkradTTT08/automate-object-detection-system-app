@@ -48,7 +48,7 @@ export default function BottomCameraCard({
   const doDelete = async () => {
     if (onDelete) return onDelete(camId);
     if (!confirm("ลบกล้องนี้?")) return;
-    await fetch(`/api/cameras/${camId}`, { method: "DELETE" });
+    await fetch(`/api/cameras/${camId}/soft-delete`, { method: "PATCH" });
     router.refresh();
   };
 

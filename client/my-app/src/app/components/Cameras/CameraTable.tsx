@@ -363,7 +363,7 @@ export default function CameraTable({
                       if (!confirm("ลบกล้องนี้?")) return;
                       try {
                         setBusyId(c.id);
-                        const res = await fetch(`/api/cameras/${c.id}`, { method: "DELETE" });
+                        const res = await fetch(`/api/cameras/${c.id}/soft-delete`, { method: "PATCH" });
                         if (!res.ok) throw new Error("Delete failed");
                         router.refresh();
                       } catch (e) {
