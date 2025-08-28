@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { Camera } from "./CameraCard";
 import * as Icons from "lucide-react";
+import EditCameraModal from "../Cameras/EditCameraModal";
 
 type SortKey = "id" | "name" | "status" | "location" | "health";
 type SortOrder = "asc" | "desc" | null;
@@ -112,6 +113,14 @@ export default function CameraTable({
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const goEdit = () => {
+    if (onEdit) {
+      onEdit(getVal(cameras[0], "id") as number);
+    }
+    setOpen(true);
+  };
 
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
@@ -230,6 +239,7 @@ export default function CameraTable({
         </TableRow>
       </TableHeader>
 
+      <EditCameraModal camId={getVal(cameras[0], "id") as number} open={open} setOpen={setOpen} />
       <TableBody>
         {sorted.map((c) => {
           const camCode = `CAM${String(c.id).padStart(3, "0")}`;
@@ -328,7 +338,7 @@ export default function CameraTable({
 
                   <button
                     type="button"
-                    onClick={() => (onEdit ? onEdit(c.id) : router.push(`/cameras/${c.id}/edit`))}
+                    onClick={goEdit}
                     title="Edit"
                     aria-label="Edit"
                     className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
