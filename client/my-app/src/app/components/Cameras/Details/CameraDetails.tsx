@@ -16,10 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Camera } from "@/app/models/cameras.model";
 import { ArrowLeft } from "lucide-react"
 import HealthStatus from "@/app/components/Cameras/Details/HealthStatus";
-
-function EventDetection() { return <div>Event logs / charts…</div>; }
-function AccessControl() { return <div>Door events…</div>; }
-function Maintenance() { return <div>Tickets & schedules…</div>; }
+import Maintenance from "@/app/components/Cameras/Details/Maintenance";
+import EventDetection from "@/app/components/Cameras/Details/EventDetection";
+import AccessControl from "@/app/components/Cameras/Details/AccessControl";
 
 export default function CameraDetails({ camera }: { camera: Camera }) {
 

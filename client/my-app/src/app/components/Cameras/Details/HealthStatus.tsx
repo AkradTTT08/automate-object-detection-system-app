@@ -43,8 +43,8 @@ export default function HealthStatus() {
       markers: { size: 0, hover: { sizeOffset: 6 } },
       xaxis: {
         categories: [
-          "01 Jan","02 Jan","03 Jan","04 Jan","05 Jan","06 Jan",
-          "07 Jan","08 Jan","09 Jan","10 Jan","11 Jan","12 Jan",
+          "01 Jan", "02 Jan", "03 Jan", "04 Jan", "05 Jan", "06 Jan",
+          "07 Jan", "08 Jan", "09 Jan", "10 Jan", "11 Jan", "12 Jan",
         ],
       },
       tooltip: {
@@ -60,6 +60,24 @@ export default function HealthStatus() {
   );
 
   return (
-        <ReactApexChart type="line" height={350} options={options} series={series} />
+    <>
+      <label
+        htmlFor="OverallHealth"
+        className="min-w-0 flex-1 font-bold text-lg text-[var(--color-primary)]"
+      >
+        Overall Health
+      </label>
+
+      <ReactApexChart type="line" height={350} options={options} series={series} />
+
+      <label
+        htmlFor="HealthMetrics"
+        className="min-w-0 flex-1 font-bold text-lg text-[var(--color-primary)]"
+      >
+        Health Metrics
+      </label>
+
+      <ReactApexChart type="line" height={350} options={options} series={series} />
+    </>
   );
 }
