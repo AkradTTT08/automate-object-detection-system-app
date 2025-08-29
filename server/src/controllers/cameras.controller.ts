@@ -197,7 +197,7 @@ export async function update(req: Request, res: Response, next: NextFunction) { 
  * @author Chokchai
  */
 export async function softDelete(req: Request, res: Response, next: NextFunction) { //soft delete
-    const id = Number(req.params.id);
+    const id = Number(req.params.cam_id);
     if (!Number.isFinite(id)) {
         return res.status(400).json({ message: 'id must be a number' });
     }

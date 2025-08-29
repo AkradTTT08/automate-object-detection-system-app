@@ -1,9 +1,10 @@
 "use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Info, Trash2 } from "lucide-react"; // ใช้เมื่อ iconSet="lucide"
 import "@/styles/camera-card.css";
 import EditCameraModal from "./EditCameraModal";
-import { useState } from "react";
+import DeleteCameraModal from "./DeleteCameraModal";
 
 type IconSet = "fi" | "lucide";
 
@@ -32,25 +33,27 @@ export default function BottomCameraCard({
 
   // default handlers
   const goView = () => (onView ? onView(camId) : router.push(`/cameras/${camId}`));
-  const [open, setOpen] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
   // const goEdit = () => (onEdit ? onEdit(camId) : router.push(`/cameras/${camId}/edit`));
   const goEdit = () => {
     if (onEdit) {
       onEdit(camId); // ส่งค่า camId กลับไปให้ parent
     }
-    setOpen(true);
+    setOpenEdit(true);
   };
-
-
+  
+  const doDelete = () =>{
+    if(onDelete){
+      onDelete(camId);
+    }
+    setOpenDelete(true);
+  };
+  
   const goDetails = () =>
     onDetails ? onDetails(camId) : router.push(`/cameras/${camId}?tab=details`);
-  const doDelete = async () => {
-    if (onDelete) return onDelete(camId);
-    if (!confirm("ลบกล้องนี้?")) return;
-    await fetch(`/api/cameras/${camId}`, { method: "DELETE" });
-    router.refresh();
-  };
+  
 
   // กล่องรวมปุ่ม: ใช้ border ที่ container + divide-x เพื่อไม่ให้ขอบทับกัน
   const wrap =
@@ -142,7 +145,7 @@ export default function BottomCameraCard({
         </span>
       </button>
       
-      <EditCameraModal camId={camId} open={open} setOpen={setOpen} />
+      <EditCameraModal camId={camId} open={openEdit} setOpen={setOpenEdit} />
 
       {/* Details */}
       <button
@@ -173,6 +176,8 @@ export default function BottomCameraCard({
 
         </span>
       </button>
+      <DeleteCameraModal camId={camId} open={openDelete} setOpen={setOpenDelete} />
+
     </div>
   );
 }
