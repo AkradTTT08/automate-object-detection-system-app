@@ -3,7 +3,8 @@ import { splitDateTime } from "./timeDate.map"
 
 export function mapToCamera(row: any): Model.Camera {
 
-    const { date, time } = splitDateTime(row.cam_installation_date);
+    const camera = splitDateTime(row.cam_installation_date);
+    const maintenance = splitDateTime(row.mnt_date);
 
     return {
         id: row.cam_id,
@@ -13,8 +14,8 @@ export function mapToCamera(row: any): Model.Camera {
         resolution: row.cam_resolution,
         description: row.cam_description,
         status: row.cam_status,
-        installation_date: date,
-        installation_time: time,
+        installation_date: camera.date,
+        installation_time: camera.time,
         health: Number(row.cam_health),
         video_quality: Number(row.cam_video_quality),
         network_latency: row.cam_network_latency,
@@ -22,6 +23,8 @@ export function mapToCamera(row: any): Model.Camera {
         location: {
             id: row.loc_id,
             name: row.loc_name
-        }
+        },
+        last_maintenance_date: maintenance.date,
+        last_maintenance_time: maintenance.time
     };
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Search } from "lucide-react";
-import CameraCard from "./cameraCard";
+import CameraCard from "./Cameras/CameraCard";
 import InputBox from "./inputBox";
 
 interface Camera {
