@@ -9,7 +9,7 @@ import {
   Thermometer,
   Activity,
 } from "lucide-react";
-import BottomCameraCard from "./bottomCameraCard";
+import BottomCameraCard from "../Utilities/bottomCameraCard";
 
 export type Camera = {
   id: number;
@@ -302,7 +302,7 @@ export default function CameraCard({ cam }: { cam: Camera }) {
             </span>
           </div>
 
-          <BottomCameraCard camId={cam.id} iconSet="lucide" className="mt-4" />
+          <BottomCameraCard camId={cam.id} camName={cam.name} iconSet="lucide" className="mt-4" />
         </div>
       </div>
     </div>

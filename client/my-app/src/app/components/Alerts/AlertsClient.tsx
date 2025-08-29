@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import AlertTable, { type Alert } from "../components/AlertTable"; // ปรับ path ตามโปรเจกต์
-import SearchAlertsInput from "@/app/components/SearchAlertsInput";
-import AlertFilters from "@/app/components/AlertFilters";
+import AlertTable, { type Alert } from "./AlertTable"; // ปรับ path ตามโปรเจกต์
+import SearchAlertsInput from "@/app/components/Alerts/SearchAlertsInput";
+import AlertFilters from "@/app/components/Alerts/AlertFilters";
 
 function getStr(v: unknown) {
     return (v ?? "").toString();

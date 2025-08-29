@@ -1,11 +1,12 @@
-import * as StatusCard from "../../components/StatusCard";
-import CreateEventForm from "@/app/components/CreateEventForm";
+import * as StatusCard from "../../components/Utilities/StatusCard";
+import CreateEventForm from "@/app/components/Forms/CreateEventForm";
 import { Separator } from "@/components/ui/separator";
-import ToggleViewButton from "@/app/components/ToggleViewButton";
-import CameraView from "@/app/components/CameraView";
-import SearchCamerasInput from "@/app/components/SearchCamerasInput";
-import CameraFilters from "@/app/components/CameraFilters";
-import CreateCameraForm from "@/app/components/CreateCameraForm";
+import ToggleViewButton from "@/app/components/Cameras/ToggleViewButton";
+import CameraView from "@/app/components/Cameras/CameraView";
+import SearchCamerasInput from "@/app/components/Cameras/SearchCamerasInput";
+import CameraFilters from "@/app/components/Cameras/CameraFilters";
+import CreateCameraForm from "@/app/components/Forms/CreateCameraForm";
+import EventGrid from "@/app/components/Events/EventCardGrid";
 
 type ViewMode = "grid" | "list";
 
@@ -76,7 +77,9 @@ export default async function CamerasPage({
           </label>
           <CreateEventForm />
         </div>
-        <Separator className="bg-[var(--color-primary-bg)]" />
+        <Separator className="bg-[var(--color-primary-bg)] mb-3" />
+
+        <EventGrid />
       </div>
     </div>
   );
