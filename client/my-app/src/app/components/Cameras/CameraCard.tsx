@@ -154,10 +154,7 @@ export default function CameraCard({ cam }: { cam: Camera }) {
     (cam as any).footage_url ??
     null;
 
-  //portTest
-  const flaskHost = process.env.NEXT_PUBLIC_FLASK_HOST;
-  const flaskPort = process.env.NEXT_PUBLIC_FLASK_PORT;
-  const streamUrl = `http://${flaskHost}:${flaskPort}/video`;
+  
 
   const statusBool = getStatusBool(cam);
   const statusLabel = statusBool ? "Active" : "Inactive";
@@ -231,20 +228,15 @@ export default function CameraCard({ cam }: { cam: Camera }) {
           <div className="relative aspect-video">
             {cam.status ? (
               videoSrc ? (
-                // <video
-                //   src={videoSrc}
-                //   autoPlay
-                //   muted
-                //   loop
-                //   playsInline
-                //   controls={false}
-                //   preload="metadata"
-                //   poster={imageSrc}
-                //   className="absolute inset-0 h-full w-full object-cover"
-                // />
-                <img
-                  src={streamUrl}
-                  alt={cam.name}
+                <video
+                  src={videoSrc}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controls={false}
+                  preload="metadata"
+                  poster={imageSrc}
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (

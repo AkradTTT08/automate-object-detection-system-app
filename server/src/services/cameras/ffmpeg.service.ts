@@ -4,14 +4,14 @@ import { Response } from "express";
 export class FFmpegService {
   private ffmpegProcess: ChildProcessWithoutNullStreams | null = null;
 
-  // 👉 กำหนด RTSP URL ไว้ตรงนี้เลย
-  private rtspUrl: string = "rtsp://relayreader:VeryStrongPassword123@100.114.77.30:9554/camerassg02";
+  // กล้องตัวเดียว → ชี้ไปที่ stream จำลอง
+  private rtspUrl: string = "rtsp://rtsp-server:8554/city-traffic";
 
   public startStream(res: Response) {
     res.setHeader("Content-Type", "multipart/x-mixed-replace; boundary=frame");
 
     this.ffmpegProcess = spawn("ffmpeg", [
-      "-i", this.rtspUrl, // ใช้ค่าใน property
+      "-i", this.rtspUrl,
       "-f", "mjpeg",
       "-q:v", "5",
       "pipe:1"
@@ -30,13 +30,6 @@ export class FFmpegService {
       console.log("FFmpeg closed");
       res.end();
     });
-  }
-
-  public stopStream() {
-    if (this.ffmpegProcess) {
-      this.ffmpegProcess.kill("SIGINT");
-      this.ffmpegProcess = null;
-    }
   }
 }
 
