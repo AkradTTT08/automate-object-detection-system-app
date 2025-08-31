@@ -128,7 +128,7 @@ export default function AlertTable({ alerts }: Props) {
         <Table className="table-auto w-full">
             <TableHeader>
                 <TableRow className="border-b border-[var(--color-primary)]">
-                    <TableHead onClick={() => handleSort("severity")} className="cursor-pointer select-none text-[var(--color-primary)]">
+                    <TableHead onClick={() => handleSort("severity")} className="cursor-pointer select-none ]">
                         <div className="flex items-center justify-between pr-3 border-r border-[var(--color-primary)] w-full">
                             <span>Severity</span>
                             {renderSortIcon("severity")}
@@ -223,7 +223,7 @@ export default function AlertTable({ alerts }: Props) {
                                     <>
                                         <button className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-success)] text-[var(--color-success)] hover:bg-[var(--color-success)] hover:border-[var(--color-success)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2">
                                             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                                            <span>Resolved</span>
+                                            <span>Resolve</span>
                                         </button>
                                         <button className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger)] hover:border-[var(--color-danger)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2">
                                             <XCircle className="h-4 w-4" aria-hidden="true" />

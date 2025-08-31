@@ -2,11 +2,15 @@
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Info, Trash2 } from "lucide-react"; // ใช้เมื่อ iconSet="lucide"
 import "@/styles/camera-card.css";
+import EditCameraModal from "../Cameras/EditCameraModal";
+import { useState } from "react";
+import { DeleteConfirmModal } from "@/app/components/Alertspopup";
 
 type IconSet = "fi" | "lucide";
 
 type Props = {
   camId: number;
+  camName: string;
   className?: string;
   iconSet?: IconSet; // "fi" (flaticon) | "lucide"
   active?: "view" | "edit" | "details" | "delete";
@@ -18,6 +22,7 @@ type Props = {
 
 export default function BottomCameraCard({
   camId,
+  camName,
   className = "",
   iconSet = "fi",
   active,
@@ -30,15 +35,38 @@ export default function BottomCameraCard({
 
   // default handlers
   const goView = () => (onView ? onView(camId) : router.push(`/cameras/${camId}`));
-  const goEdit = () => (onEdit ? onEdit(camId) : router.push(`/cameras/${camId}/edit`));
-  const goDetails = () =>
-    onDetails ? onDetails(camId) : router.push(`/cameras/${camId}/details`)
-  const doDelete = async () => {
-    if (onDelete) return onDelete(camId);
-    if (!confirm("ลบกล้องนี้?")) return;
-    await fetch(`/api/cameras/${camId}`, { method: "DELETE" });
-    router.refresh();
+  const [open, setOpen] = useState(false);
+
+  // const goEdit = () => (onEdit ? onEdit(camId) : router.push(`/cameras/${camId}/edit`));
+  const goEdit = () => {
+    if (onEdit) {
+      onEdit(camId); // ส่งค่า camId กลับไปให้ parent
+    }
+    setOpen(true);
   };
+
+  const goDetails = () =>
+    onDetails ? onDetails(camId) : router.push(`/cameras/${camId}/details`);
+
+  // ลบ + reload หน้า
+  const [busyDelete, setBusyDelete] = useState(false);
+  async function confirmDelete() {
+    try {
+      setBusyDelete(true);
+      if (onDelete) {
+        await Promise.resolve(onDelete(camId));
+      } else {
+        const res = await fetch(`/api/cameras/${camId}/soft-delete`, { method: "PATCH" });
+        if (!res.ok) throw new Error("Delete failed");
+      }
+      // ✅ reload ทั้งหน้าให้เห็นผลทันที
+      setTimeout(() => window.location.reload(), 0);
+    } catch (e) {
+      alert((e as Error).message || "Delete failed");
+    } finally {
+      setBusyDelete(false);
+    }
+  }
 
   // กล่องรวมปุ่ม: ใช้ border ที่ container + divide-x เพื่อไม่ให้ขอบทับกัน
   const wrap =
@@ -130,6 +158,8 @@ export default function BottomCameraCard({
         </span>
       </button>
 
+      <EditCameraModal camId={camId} open={open} setOpen={setOpen} />
+
       {/* Details */}
       <button
         onClick={goDetails}
@@ -146,19 +176,29 @@ export default function BottomCameraCard({
         </span>
       </button>
 
-      {/* Delete */}
-      <button
-        onClick={doDelete}
-        type="button"
-        className={`${btnTrash} ${hoverRed} ${active === "delete" ? activeRed : ""}`}
-        title="Delete"
-        aria-label="Delete"
-      >
-        {icon.delete}
-        <span className={`${active === "delete" ? "text-[var(--color-danger)]" : ""}`}>
-          
-        </span>
-      </button>
+      {/* Delete (ใช้ shadcn modal เป็น trigger รอบปุ่ม) */}
+      <DeleteConfirmModal
+        title="Delete Camera?"
+        description={`This will remove camera ID: ${camId}. This action cannot be undone.`}
+        confirmWord={camName || undefined} 
+        confirmText="Delete"
+        onConfirm={async () => {
+          await confirmDelete();
+        }}
+        trigger={
+          <button
+            type="button"
+            disabled={busyDelete}
+            className={`${btnTrash} ${hoverRed} ${active === "delete" ? activeRed : ""}`}
+            title="Delete"
+            aria-label="Delete"
+          >
+            {icon.delete}
+            {/* เว้น label ว่างไว้ตามดีไซน์เดิม */}
+            <span className={`${active === "delete" ? "text-[var(--color-danger)]" : ""}`} />
+          </button>
+        }
+      />
     </div>
   );
 }

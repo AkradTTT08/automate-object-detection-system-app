@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import type { Camera } from "./CameraCard";
 import * as Icons from "lucide-react";
+import EditCameraModal from "../Cameras/EditCameraModal";
+import { DeleteConfirmModal } from "@/app/components/Alertspopup";
 
 type SortKey = "id" | "name" | "status" | "location" | "health";
 type SortOrder = "asc" | "desc" | null;
@@ -112,6 +114,46 @@ export default function CameraTable({
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name?: string } | null>(null);
+
+  function openDelete(c: Camera) {
+    setDeleteTarget({ id: c.id!, name: c.name });
+    setDeleteOpen(true);
+  }
+
+  async function onConfirmDelete(_: { input?: string; note?: string }) {
+    if (!deleteTarget) return;
+    try {
+      setBusyId(deleteTarget.id);
+
+      if (onDelete) {
+        await Promise.resolve(onDelete(deleteTarget.id));
+      } else {
+        const res = await fetch(`/api/cameras/${deleteTarget.id}/soft-delete`, { method: "PATCH" });
+        if (!res.ok) throw new Error("Delete failed");
+      }
+
+      // ปิด modal ก่อน แล้ว reload หน้า
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+
+      // ✅ reload ทั้งหน้า
+      setTimeout(() => window.location.reload(), 0);
+    } catch (e) {
+      alert((e as Error).message || "Delete failed");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  const goEdit = () => {
+    if (onEdit) {
+      onEdit(getVal(cameras[0], "id") as number);
+    }
+    setOpen(true);
+  };
 
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
@@ -230,6 +272,7 @@ export default function CameraTable({
         </TableRow>
       </TableHeader>
 
+      <EditCameraModal camId={getVal(cameras[0], "id") as number} open={open} setOpen={setOpen} />
       <TableBody>
         {sorted.map((c) => {
           const camCode = `CAM${String(c.id).padStart(3, "0")}`;
@@ -328,7 +371,7 @@ export default function CameraTable({
 
                   <button
                     type="button"
-                    onClick={() => (onEdit ? onEdit(c.id) : router.push(`/cameras/${c.id}/edit`))}
+                    onClick={goEdit}
                     title="Edit"
                     aria-label="Edit"
                     className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
@@ -348,20 +391,7 @@ export default function CameraTable({
 
                   <button
                     type="button"
-                    onClick={async () => {
-                      if (onDelete) return onDelete(c.id);
-                      if (!confirm("ลบกล้องนี้?")) return;
-                      try {
-                        setBusyId(c.id);
-                        const res = await fetch(`/api/cameras/${c.id}`, { method: "DELETE" });
-                        if (!res.ok) throw new Error("Delete failed");
-                        router.refresh();
-                      } catch (e) {
-                        alert((e as Error).message || "Delete failed");
-                      } finally {
-                        setBusyId(null);
-                      }
-                    }}
+                    onClick={() => openDelete(c)}
                     title="Delete"
                     aria-label="Delete"
                     disabled={busyId === c.id}
@@ -375,6 +405,20 @@ export default function CameraTable({
           );
         })}
       </TableBody>
+
+      <DeleteConfirmModal
+        open={deleteOpen}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null);
+          setDeleteOpen(v);
+        }}
+        title="Delete Camera?"
+        description={`This will remove ${deleteTarget?.name ?? "this camera"} (ID: ${deleteTarget?.id ?? "—"}) and related data. This action cannot be undone.`}
+        confirmWord={deleteTarget?.name || undefined}   // ต้องพิมพ์ชื่อกล้องให้ตรง
+        confirmText="Delete"
+        onConfirm={onConfirmDelete}
+      />
+
     </Table>
   );
 }
