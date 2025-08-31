@@ -14,9 +14,12 @@ import {
 import {
     DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import CreateAlertForm from "@/app/components/Forms/CreateAlertForm";
+import { SuccessModal } from "@/app/components/Alertspopup";
 
 export default function FullScreenView({ camera }: { camera: Camera }) {
     const [currentCamera, setCurrentCamera] = useState(camera);
+    const [open, setOpen] = useState(false);
 
     const containerRef = useRef<HTMLDivElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -29,6 +32,10 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
     function onBack() {
         window.history.back();
     }
+
+    const goEdit = () => {
+        setOpen(true);
+      };
 
     const handleCapture = useCallback(async () => {
         const box = containerRef.current;
@@ -146,8 +153,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-start gap-3 justify-center mb-3">
-                    {/* ▼▼ แทนที่บล็อก “Actions” เดิมตั้งแต่ label จนจบแถวนั้น ด้วยโค้ดนี้ ▼▼ */}
+                <div className="flex flex-wrap items-start gap-3 justify-center my-3">
                     <div
                         className="
     sticky top-1 z-20 mb-3 rounded-xl border
@@ -204,6 +210,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                                         <TooltipTrigger asChild>
                                             <Button
                                                 type="button"
+                                                onClick={goEdit}
                                                 className="shrink-0 bg-[var(--color-danger)] text-white hover:bg-[var(--color-danger-hard)]
                          px-3 py-2 rounded-md flex items-center gap-2"
                                             >
@@ -238,6 +245,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                                             <span>Settings</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
+                                            onClick={goEdit}
                                             className="text-[var(--color-danger)] focus:text-[var(--color-danger)]"
                                         >
                                             <TriangleAlert className="mr-2 h-4 w-4" />
@@ -250,7 +258,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                     </div>
                 </div>
 
-                <Separator className="bg-[var(--color-primary-bg)] my-3" />
+                {/* <Separator className="bg-[var(--color-primary-bg)] my-3" /> */}
 
                 <label htmlFor="camerainfo" className="col-span-3 text-lg text-[var(--color-primary)]">
                     Camera Information
@@ -291,6 +299,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                     </TableBody>
                 </Table>
             </div>
+            <CreateAlertForm camera={currentCamera} open={open} setOpen={setOpen} />
         </div>
     );
 }
