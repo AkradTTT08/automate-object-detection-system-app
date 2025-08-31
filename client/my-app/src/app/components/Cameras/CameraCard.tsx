@@ -9,7 +9,7 @@ import {
   Thermometer,
   Activity,
 } from "lucide-react";
-import BottomCameraCard from "../Utilities/bottomCameraCard";
+import BottomCameraCard from "../Utilities/ButtonCameraCard";
 
 export type Camera = {
   id: number;

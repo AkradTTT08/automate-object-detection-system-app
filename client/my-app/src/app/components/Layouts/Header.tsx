@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUI } from "./ui-provider";
+import { useUI } from "./UI-Provider";
 import { PanelLeft, PanelLeftOpen, Bell, UserRound } from "lucide-react";
 import ClockLive from "../Utilities/ClockLive";
 import Image from "next/image";

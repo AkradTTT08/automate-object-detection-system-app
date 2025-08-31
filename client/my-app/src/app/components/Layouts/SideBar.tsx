@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useUI } from "./ui-provider";
+import { useUI } from "./UI-Provider";
 
 /** hook: ตรวจขนาดจอ */
 function useMediaQuery(query: string) {

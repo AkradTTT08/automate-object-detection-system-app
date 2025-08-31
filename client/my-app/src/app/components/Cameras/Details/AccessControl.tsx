@@ -1,4 +1,4 @@
-import CameraAccess from "@/app/components/CameraAccess";
+import CameraAccess from "@/app/components/Cameras/Details/CameraAccess";
 
 export default function AccessControl() {
     return (

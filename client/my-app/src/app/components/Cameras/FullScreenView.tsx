@@ -5,7 +5,7 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Camera } from "@/app/models/cameras.model";
+import { Camera } from "@/app/Models/cameras.model";
 import { ArrowLeft, Camera as CameraIcon, Settings, TriangleAlert, MoreVertical } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -15,7 +15,7 @@ import {
     DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import CreateAlertForm from "@/app/components/Forms/CreateAlertForm";
-import { SuccessModal } from "@/app/components/Alertspopup";
+import { SuccessModal } from "@/app/components/Utilities/AlertsPopup";
 
 export default function FullScreenView({ camera }: { camera: Camera }) {
     const [currentCamera, setCurrentCamera] = useState(camera);

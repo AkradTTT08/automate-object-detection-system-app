@@ -1,107 +1,143 @@
+import Link from "next/link";
 import Image from "next/image";
 
 export default function Home() {
-
   return (
-    <>
-      <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main
+      className="
+        relative isolate min-h-[100dvh] overflow-hidden
+        bg-gradient-to-b from-[#F0F7FF] via-[#F6FAFF] to-[#EEF2FF]
+        dark:from-[#0B1220] dark:via-[#0A1020] dark:to-[#0A0F1E]
+        [--spot:40rem] sm:[--spot:48rem] lg:[--spot:56rem]
+      "
+    >
+      {/* Background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-[calc(var(--spot)/2)] -left-[calc(var(--spot)/2)] h-[var(--spot)] w-[var(--spot)] rounded-full bg-blue-300/40 blur-3xl dark:bg-blue-900/30" />
+        <div className="absolute -bottom-[calc(var(--spot)/2)] -right-[calc(var(--spot)/2)] h-[var(--spot)] w-[var(--spot)] rounded-full bg-indigo-300/40 blur-3xl dark:bg-indigo-900/30" />
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Top nav */}
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/automate-object-detection-system-icon.png"
+            alt="App logo"
+            width={28}
+            height={28}
+            className="rounded object-contain mix-blend-multiply dark:mix-blend-darken"
+            priority
+          />
+          <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            Automate <span className="text-[var(--color-primary,_#0B63FF)]">ODS</span>
+          </span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-    </>
 
+        <nav className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="rounded-full px-4 py-2 text-sm font-medium text-white
+                       bg-[var(--color-primary,_#0B63FF)] hover:bg-[var(--color-secondary,_#1E3A8A)]"
+          >
+            Sign in
+          </Link>
+        </nav>
+      </header>
+
+      {/* Hero */}
+      <section className="mx-auto grid min-h-[70vh] w-full max-w-6xl place-items-center px-6 py-10">
+        <div className="text-center">
+          <p className="mb-3 text-xs tracking-widest text-blue-600/90 dark:text-blue-400/90">
+            AI-Powered CCTV
+          </p>
+
+          <h1 className="text-[clamp(2rem,6vw,3.5rem)] font-semibold leading-tight tracking-tight text-slate-900 dark:text-slate-100">
+            Automate Object Detection System
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-slate-600 dark:text-slate-400">
+            Real-time alerts, camera management, and clean analytics — all in one sleek dashboard.
+          </p>
+
+          {/* Decorative line */}
+          <div
+            aria-hidden
+            className="mx-auto mt-10 h-px w-24 sm:w-32 bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-700"
+          />
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto w-full max-w-6xl px-6 pb-14">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <FeatureCard
+            title="Real-time Alerts"
+            desc="Instant notifications with clear severity to keep you ahead of incidents."
+            icon={
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+                <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            }
+          />
+          <FeatureCard
+            title="Camera Management"
+            desc="Organize cameras, statuses, and health in a streamlined interface."
+            icon={
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+                <path d="M3 7h13l3 3v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Zm5 10h8M7 7V4h6v3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            }
+          />
+          <FeatureCard
+            title="Analytics & Trends"
+            desc="Clean charts for daily activity and severity breakdowns."
+            icon={
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+                <path d="M3 3v18h18M7 15l4-4 3 3 5-6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            }
+          />
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="mx-auto w-full max-w-6xl px-6 pb-10">
+        <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+          <p className="text-xs text-slate-500/80 dark:text-slate-400/80">
+            © {new Date().getFullYear()} Automate ODS
+          </p>
+          <p className="text-[11px] sm:text-xs text-slate-500/80 dark:text-slate-400/80">
+            SynTech-T5 x TTT Brother
+          </p>
+        </div>
+      </footer>
+    </main>
+  );
+}
+
+/* Lightweight Feature Card (server-safe) */
+function FeatureCard({
+  title,
+  desc,
+  icon,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div
+      className="
+        group relative rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm
+        hover:shadow-md transition
+        dark:bg-slate-900/60 dark:border-slate-800/70
+      "
+    >
+      <div className="mb-3 inline-grid h-10 w-10 place-items-center rounded-full bg-white ring-2 ring-blue-100 dark:bg-slate-900 dark:ring-blue-900/40 text-[var(--color-primary,_#0B63FF)]">
+        {icon}
+      </div>
+      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{desc}</p>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "./EventCard";
-import type { EventItem, EventSensitivity } from "./types";
+import type { EventItem, EventSensitivity } from "../../Models/events.model";
 
 export default function EventGrid({
   className,

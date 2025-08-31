@@ -1,7 +1,7 @@
 import "../../styles/globals.css";
 import Sidebar from "../components/Layouts/SideBar";
 import Header from "../components/Layouts/Header";
-import { UIProvider } from "../components/Layouts/ui-provider";
+import { UIProvider } from "../components/Layouts/UI-Provider";
 import Title from "../components/Layouts/Title";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

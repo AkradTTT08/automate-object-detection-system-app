@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import type { Camera } from "./CameraCard";
 import * as Icons from "lucide-react";
-import EditCameraModal from "../Cameras/EditCameraModal";
-import { DeleteConfirmModal } from "@/app/components/Alertspopup";
+import EditCameraModal from "../Forms/EditCameraForm";
+import { DeleteConfirmModal } from "@/app/components/Utilities/AlertsPopup";
 
 type SortKey = "id" | "name" | "status" | "location" | "health";
 type SortOrder = "asc" | "desc" | null;

@@ -2,9 +2,9 @@
 import { useRouter } from "next/navigation";
 import { Eye, Pencil, Info, Trash2 } from "lucide-react"; // ใช้เมื่อ iconSet="lucide"
 import "@/styles/camera-card.css";
-import EditCameraModal from "../Cameras/EditCameraModal";
+import EditCameraModal from "../Forms/EditCameraForm";
 import { useState } from "react";
-import { DeleteConfirmModal } from "@/app/components/Alertspopup";
+import { DeleteConfirmModal } from "@/app/components/Utilities/AlertsPopup";
 
 type IconSet = "fi" | "lucide";
 
