@@ -16,7 +16,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { EventItem, EventSensitivity } from "./types";
+import type { EventItem, EventSensitivity } from "../../Models/events.model";
 
 export function EventCard({
     item,

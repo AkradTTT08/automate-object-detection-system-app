@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Camera } from "@/app/models/cameras.model";
+import { Camera } from "@/app/Models/cameras.model";
 import { ArrowLeft } from "lucide-react"
 import HealthStatus from "@/app/components/Cameras/Details/HealthStatus";
 import Maintenance from "@/app/components/Cameras/Details/Maintenance";

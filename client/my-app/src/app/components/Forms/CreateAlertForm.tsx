@@ -10,7 +10,7 @@ import {
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Camera } from "@/app/models/cameras.model";
+import { Camera } from "@/app/Models/cameras.model";
 
 /* ✅ ใช้ shadcn Select เพื่อให้สไตล์เดียวกัน */
 import {

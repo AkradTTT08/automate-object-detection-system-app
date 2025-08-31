@@ -1,4 +1,4 @@
-import MaintenanceHistoryTable from '@/app/components/MaintenanceHistoryTable'
+import MaintenanceHistoryTable from '@/app/components/Cameras/Details/MaintenanceHistoryTable'
 import Createnote from "@/app/components/CreateNote"
 import { Separator } from "@/components/ui/separator";
 
