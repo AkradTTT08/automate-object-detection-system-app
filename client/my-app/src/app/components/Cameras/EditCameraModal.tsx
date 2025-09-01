@@ -264,7 +264,7 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
 
                         {/* ปุ่มยืนยัน */}
                         <Button
-                            onClick={handleSubmit}
+                            type ="submit"
                             className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-secondary)] px-4 py-2 rounded-md disabled:opacity-50"
                         >
                             Save
