@@ -184,10 +184,10 @@ export async function update(req: Request, res: Response, next: NextFunction) { 
         }
         return res.status(200).json(updated);
 
-    } catch (err:any){
+    } catch (err: any) {
         res.status(400).json({ message: err.message });
     }
-    
+
 }
 
 /**
@@ -546,22 +546,45 @@ export async function updateAccessControl(req: Request, res: Response, next: Nex
 export async function deleteAccessControl(req: Request, res: Response, next: NextFunction) { }
 
 
+// utils/stream.ts
+export function rtspToWhep(rtspUrl: string, webrtcBase = 'http://localhost:8889') {
+    // rtsp://user:pass@host:8003/<path>
+    const m = rtspUrl.match(/^rtsp:\/\/([^@]*@)?[^/]+\/(.+)$/i);
+    const path = m?.[2] ?? ''; // เช่น 'city-traffic'
+    if (!path) throw new Error('Invalid RTSP url, no path');
+
+    // ถ้าต้อง auth (readUser/readPass) ให้แนบ Basic Auth
+    // ในงานจริง แนะนำซ่อนไว้หลัง API/Token ของคุณ
+    const authHeader = (rtspUrl.includes('viewer:viewpass@'))
+        ? 'Basic ' + Buffer.from('viewer:viewpass').toString('base64')
+        : undefined;
+
+    return {
+        whepUrl: `${webrtcBase.replace(/\/+$/, '')}/whep/${encodeURIComponent(path)}`,
+        authHeader,
+    };
+}
+
 export async function streamCamera(req: Request, res: Response) {
-  try {
-    const camId = Number(req.params.cam_id);
-    if (!camId) return res.status(400).send("camId required");
+    try {
+        const camId = Number(req.params.cam_id);
+        if (!camId) return res.status(400).send("cam_id required");
 
-    const camera = await CameraService.getCameraById(camId);
-    if (!camera) return res.status(404).send("Camera not found");
+        const cam = await CameraService.getCameraById(camId);
+        if (!cam) return res.status(404).send("Camera not found");
 
-    const rtspUrl = camera.address;   // ✅ ใช้ RTSP จริง
-    if (!rtspUrl?.startsWith("rtsp://")) {
-      return res.status(400).json({ error: "Invalid RTSP URL" });
+        const rtspUrl = String(cam.address);
+        rtspToWhep(rtspUrl);
+
+        // const finalUrl = normalizeForHost(rtspUrl);
+        const finalUrl = rtspUrl;
+
+        const forceEncode = req.query.encode === "1"; // ?encode=1 จะบังคับ x264
+        ffmpegService.startStream(res, finalUrl, { forceEncode });
+    } catch (err: any) {
+        const status = err?.status ?? 500;
+        const msg = err?.message ?? "Failed to stream camera";
+        console.error("stream error:", err);
+        if (!res.headersSent) res.status(status).json({ error: msg });
     }
-
-    return ffmpegService.startStream(res, rtspUrl);
-  } catch (err) {
-    console.error("Stream error:", err);
-    return res.status(500).json({ error: "Failed to stream camera" });
-  }
 }
