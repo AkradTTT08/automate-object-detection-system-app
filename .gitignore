@@ -1,2 +1,3 @@
 .env.local
 postgresql.sql
+aods_dev_v2.sql
