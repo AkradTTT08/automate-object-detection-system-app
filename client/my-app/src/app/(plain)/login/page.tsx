@@ -176,9 +176,9 @@ export default function LoginPage() {
                   </Button>
 
                   {/* credit */}
-                  <p className="mt-3 w-full text-center text-[11px] sm:text-xs text-slate-500/80 dark:text-slate-400/80">
+                  {/* <p className="mt-3 w-full text-center text-[11px] sm:text-xs text-slate-500/80 dark:text-slate-400/80">
                     SynTech-T5 x TTT Brother
-                  </p>
+                  </p> */}
                 </div>
               </CardFooter>
             </form>
