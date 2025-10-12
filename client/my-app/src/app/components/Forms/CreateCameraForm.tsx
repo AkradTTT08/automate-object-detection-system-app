@@ -17,7 +17,7 @@ import { useMe } from "@/hooks/useMe";
 
 interface CameraForm {
   cam_name: string;
-  cam_address: string;
+  cam_url: string;
   cam_type: string;
   cam_resolution: string;
   cam_description: string;
@@ -162,7 +162,7 @@ export default function Page() {
       const fd = new FormData(formRef.current);
       const payload: CameraForm = {
         cam_name: String(fd.get("name") ?? ""),
-        cam_address: String(fd.get("address") ?? ""),
+        cam_url: String(fd.get("url") ?? ""),
         cam_type: String(fd.get("type") ?? "Fixed"),
         cam_resolution: String(fd.get("resolution") ?? "1080p"),
         cam_description: String(fd.get("description") ?? ""),
@@ -234,15 +234,15 @@ export default function Page() {
               />
             </div>
 
-            {/* IP Address */}
+            {/* IP url */}
             <div className="grid gap-1">
-              <label className="text-sm font-medium" htmlFor="address">
-                IP Address
+              <label className="text-sm font-medium" htmlFor="url">
+                URL
               </label>
               <input
-                id="address"
-                name="address"
-                placeholder="Enter your IP Address"
+                id="url"
+                name="url"
+                placeholder="Enter your URL"
                 className="font-light w-full rounded-md border px-3 py-2 outline-none focus-within:ring focus-within:ring-[var(--color-primary)]"
                 required
               />

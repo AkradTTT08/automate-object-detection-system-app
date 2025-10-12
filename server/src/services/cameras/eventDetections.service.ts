@@ -1,4 +1,58 @@
 import { pool } from '../../config/db';
+import * as Mapping from '../../models/Mapping/cameras.map';
+
+export async function getEventDetectionById(camera_id: number){
+    const { rows } = await pool.query(`
+        SELECT
+            cds_id,
+            cds_evt_id,
+            evt_name,
+            evt_icon,
+            cds_cam_id,
+            cds_sensitivity, 
+            cds_priority,
+            cds_updated_at,
+            cds_status
+        FROM camera_detection_settings
+        JOIN events ON cds_evt_id = evt_id
+        WHERE
+            cds_cam_id = $1
+        AND
+            cds_is_use = true;
+    `,[
+        camera_id
+    ]);
+
+    return rows.map(Mapping.mapEventDetectionToSaveResponse);
+}
+
+export async function updateEventDetection(
+    detection_sensitivity: string, 
+    detection_priority: string, 
+    detection_status: boolean, 
+    detection_id: number
+){
+    const { rows } = await pool.query(`
+        UPDATE camera_detection_settings
+        SET
+            cds_sensitivity = $1, 
+            cds_priority = $2,
+            cds_updated_at = CURRENT_TIMESTAMP,
+            cds_status = $3
+        WHERE
+            cds_id = $4
+        AND
+            cds_is_use = true
+        RETURNING *;
+    `,[
+        detection_sensitivity,
+        detection_priority,
+        detection_status,
+        detection_id
+    ]);
+
+    return Mapping.mapEventDetectionToSaveResponse(rows[0]);
+}
 
 /**
  * ดึงรายการ Event Detection จากฐานข้อมูล
@@ -84,26 +138,26 @@ export async function createEventDetection( cds_event_id: number,
  * 
  * @author Wanasart
  */
-export async function updateEventDetection(id: number, event_id: number, camera_id: number, sensitivity: string, priority: string, status: boolean ) {
-    const { rows } = await pool.query(`
-        UPDATE camera_detection_settings
-        SET cds_event_id = $1,
-            cds_camera_id = $2,
-            cds_sensitivity = $3,
-            cds_priority = $4,
-            cds_status = $5
-        WHERE cds_id = $6
-        RETURNING *;
-    `, [event_id, camera_id, sensitivity, priority, status, id]);
+// export async function updateEventDetection(id: number, event_id: number, camera_id: number, sensitivity: string, priority: string, status: boolean ) {
+//     const { rows } = await pool.query(`
+//         UPDATE camera_detection_settings
+//         SET cds_event_id = $1,
+//             cds_camera_id = $2,
+//             cds_sensitivity = $3,
+//             cds_priority = $4,
+//             cds_status = $5
+//         WHERE cds_id = $6
+//         RETURNING *;
+//     `, [event_id, camera_id, sensitivity, priority, status, id]);
 
-    const eventDetection = rows[0];
+//     const eventDetection = rows[0];
 
-    if (!eventDetection) {
-        throw new Error('Failed to update Event Detection or Event Detection not found');
-    }
+//     if (!eventDetection) {
+//         throw new Error('Failed to update Event Detection or Event Detection not found');
+//     }
 
-    return eventDetection;
-}
+//     return eventDetection;
+// }
 
 /**
  * ลบ EventDetection ที่เลือก

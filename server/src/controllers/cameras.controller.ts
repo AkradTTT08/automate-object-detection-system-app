@@ -7,7 +7,8 @@ import * as LocationService from '../services/cameras/location.service';
 import { ffmpegService } from '../services/cameras/ffmpeg.service';
 
 /* ------------------------------ Cameras ------------------------------ */
-/**
+
+/**✅
  * Controller: ดึงรายการ Cameras ทั้งหมดที่ถูกใช้งาน
  *
  * @route GET /api/cameras
@@ -17,38 +18,64 @@ import { ffmpegService } from '../services/cameras/ffmpeg.service';
  * @returns {Promise<void>} JSON response ของรายการ cameras
  *
  * @author Wanasart
+ * @lastModified 2025-10-12
  */
-export async function index(req: Request, res: Response, next: NextFunction) {
+export async function getCameras(req: Request, res: Response, next: NextFunction) {
     try {
-        const cameras = await CameraService.listCameras();
-        res.json(cameras);
+        const list = await CameraService.getCameras();
+        return res.status(200).json({ message: 'Fetched successfully', data: list });
     } catch (err) {
         next(err);
     }
 };
 
-/**
- * Controller: ดึงข้อมูลกล้องตาม cam_id
+/**✅
+ * ดึงข้อมูลรายละเอียดของกล้องตามรหัสที่ระบุ
+ * ใช้สำหรับแสดงข้อมูลกล้องเฉพาะตัว เช่น ชื่อ ประเภท สถานะ ตำแหน่ง และแหล่งที่มา
+ * 
  * @route GET /api/cameras/:cam_id
- * @param {Request} req - Express request object (ต้องมี params.cam_id)
- * @param {Response} res - Express response object (ส่งกลับข้อมูลกล้องเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของกล้องที่เลือก
- *
+ * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสกล้อง)
+ * @param {Response} res - Response สำหรับส่งข้อมูลกลับไปยัง client
+ * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
+ * @returns {Promise<Response>} คืนค่า response ที่มีข้อมูลกล้องและข้อความสถานะ
+ * @throws {Error} ถ้าไม่พบกล้องตามรหัสที่ระบุ หรือเกิดข้อผิดพลาดระหว่างการดึงข้อมูล
+ * 
  * @author Wanasart
+ * @lastModified 2025-10-12
  */
-export async function show(req: Request, res: Response, next: NextFunction) {
+export async function getCameraById(req: Request, res: Response, next: NextFunction) {
     try {
-        const cam_id = Number(req.params.cam_id);
-        if (isNaN(cam_id)) {
-            return res.status(400).json({ error: "Invalid camera ID" });
-        }
-        const camera = await CameraService.getCameraById(cam_id);
-        res.json(camera);
+        const camera_id = Number(req.params.cam_id);
+
+        const camera = await CameraService.getCameraById(camera_id);
+        return res.status(200).json({ message: 'Fetched successfully', data: camera });
     } catch (err) {
         next(err);
     }
-}
+};
+
+/**✅
+ * ดึงข้อมูลสรุปภาพรวมของกล้องทั้งหมดในระบบ
+ * ใช้สำหรับแสดงข้อมูลเชิงสถิติ เช่น จำนวนกล้องที่เปิดใช้งาน ปิดใช้งาน หรือจำนวนทั้งหมด
+ * 
+ * @route GET /api/cameras/summary
+ * @param {Request} req - Request ที่รับข้อมูลการเรียกใช้งาน
+ * @param {Response} res - Response สำหรับส่งข้อมูลสรุปกลับไปยัง client
+ * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
+ * @returns {Promise<Response>} คืนค่า response ที่มีข้อมูลสรุปกล้องและข้อความสถานะ
+ * @throws {Error} ถ้าเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูลหรือ service layer
+ * 
+ * @author Wanasart
+ * @lastModified 2025-10-12
+ */
+export async function getSummaryCameras(req: Request, res: Response, next: NextFunction) {
+    try {
+        const summary = await CameraService.summaryCameras();
+        return res.status(200).json({ message: 'Fetched successfully', data: summary });
+    } catch (err) {
+        next(err);
+    }
+};
 
 /**
  * Controller: ดึงข้อมูล Location ของกล้องตาม cam_id
@@ -69,212 +96,104 @@ export async function location(req: Request, res: Response, next: NextFunction) 
     }
 }
 
-/**
- * Controller: ดึงรายการ Camera Cards ทั้งหมด
- * @route GET /api/cameras/cards
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับ camera cards เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ camera cards*
- * @author Wongsakon
-*/
-export async function cardsSummary(req: Request, res: Response, next: NextFunction) {
-    try {
-        const cameras = await CameraService.getCardsSummary();
-        res.json(cameras);
-    } catch (err) {
-        next(err);
-    }
-};
-
-/**
- * Controller: นับรายการ Cameras ทั้งหมดที่ถูกใช้งาน
- *
- * @route GET /api/cameras/total
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับรายการ จำนวนกล้องทั้งหมด เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของรายการ จำนวนกล้องทั้งหมด
- *
- * @author Premsirigul
- */
-export async function count(req: Request, res: Response, next: NextFunction) {
-    try {
-        const total = await CameraService.countCameras();
-        res.json(total);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: นับรายการ Cameras ทั้งหมดที่มีสถานะ
- *
- * @route GET /api/cameras/status
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับรายการ จำนวนกล้องที่มีสถานะ เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของรายการ จำนวนกล้องที่มีสถานะ
- *
- * @author Premsirigul
- */
-export async function status(req: Request, res: Response, next: NextFunction) {
-    try {
-        const cameras = await CameraService.countStatusCameras();
-        res.json(cameras);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: นับรายการ Cameras ทั้งหมดที่ไม่ได้ใช้งาน
- *
- * @route GET /api/cameras/totalInactive
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับรายการ จำนวนกล้องที่ไม่ได้ใช้งานทั้งหมด เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของรายการจำนวนกล้องที่ไม่ได้ใช้งานทั้งหมด
- *
- * @author Napat
- */
-export async function countInactive(req: Request, res: Response, next: NextFunction) {
-    try {
-        const total = await CameraService.countInactiveCameras();
-        res.json(total);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
+/**✅
  * Controller: เพิ่มกล้องใหม่
- * @route POST /api/cameras/create
+ * @route POST /api/cameras
  * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
  * @param res ส่งข้อมูลของกล้องกลับ
  * @param next ส่งต่อ error
  * @returns -JSON response ส่งข้อมูลของกล้องที่สร้างกลับพร้อมแสดงสถานะ 201
- * @author Chokchai
+ * 
+ * @author Wanasart
+ * @lastModified 2025-10-12
  */
-export async function store(req: Request, res: Response, next: NextFunction) { //create camera
+export async function createCamera(req: Request, res: Response, next: NextFunction) { 
     try {
-        const created = await CameraService.createCamera(req.body);
-        return res.status(201).json(created);
-    } catch (err: any) {
-        res.status(400).json({ message: err.message });
+        const { 
+            camera_name, 
+            camera_type, 
+            camera_status, 
+            source_type, 
+            source_value, 
+            location_id, 
+            description, 
+            creator_id 
+        } = req.body
+
+        const create = await CameraService.insertCamera(
+            camera_name, 
+            camera_type, 
+            camera_status, 
+            source_type, 
+            source_value, 
+            location_id, 
+            description, 
+            creator_id
+        );
+        return res.status(201).json({ message: 'Created successfully', data: create });
+    } catch (err) {
+        next(err);
     }
 }
 
-/**
+/**✅
  * Controller: แก้ไขข้อมูลกล้อง
- * @route POST /api/cameras/update/:id
+ * @route PUT /api/cameras/:id
  * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
  * @param res ส่งข้อมูลของกล้องกลับ
  * @returns -JSON response ส่งข้อมูลของกล้องที่แก้ไขกลับพร้อมแสดงสถานะ 200
  * 
- * @author Chokchai
+ * @author Wanasart
+ * @lastModified 2025-10-12
  */
-export async function update(req: Request, res: Response, next: NextFunction) { //update camera
+export async function updateCamera(req: Request, res: Response, next: NextFunction) { //update camera
     try {
-        const id = Number(req.params.cam_id);
-        const updated = await CameraService.updateCamera(id, req.body);
-        if (!updated) {
-            // ไม่พบ id หรือไม่มีฟิลด์ให้อัปเดต
-            return res.status(404).json({ message: 'camera not found or no fields to update' });
-        }
-        return res.status(200).json(updated);
+        const camera_id = Number(req.params.cam_id);
+        const { 
+            camera_name, 
+            camera_type, 
+            camera_status, 
+            source_type, 
+            source_value, 
+            location_id, 
+            description,
+        } = req.body
 
-    } catch (err:any){
-        res.status(400).json({ message: err.message });
+        const update = await CameraService.updateCamera(
+            camera_id,
+            camera_name, 
+            camera_type, 
+            camera_status, 
+            source_type, 
+            source_value, 
+            location_id, 
+            description
+        );
+        return res.status(200).json({ message: 'Updated successfully', data: update });
+    } catch (err) {
+        next(err);
     }
     
 }
 
-/**
+/**✅
  * Controller: ลบข้อมูลกล้องแบบ softdelete
  * @route POST /api/cameras/create
  * @param req -กรอกข้อมูลของกล้องทั้งหมดตามฟิลด์
  * @param res ส่งข้อมูลของกล้องกลับ
  * @returns -JSON response แสดงสถานะ 202
- * @author Chokchai
+ * 
+ * @author Wanasart
+ * @lastModified 2025-10-12
  */
-export async function softDelete(req: Request, res: Response, next: NextFunction) { //soft delete
-    const id = Number(req.params.cam_id);
-    console.log(id)
-    if (!Number.isFinite(id)) {
-        return res.status(400).json({ message: 'id must be a number' });
-    }
-    const deleteid = await CameraService.softDeleteCamera(id);
-    if (!deleteid) return res.status(404).json({ message: 'camera not found' });
-    return res.status(202).send();
-}
-
-/**
- * Controller: เปลี่ยนสถานะของกล้อง
- *
- * @route POST /api/cameras/change
- * @param {Request} req - Express request object (ต้องมี body ที่ประกอบด้วย id และ status)
- * @param {Response} res - Express response object (ส่งกลับกล้องที่ถูกเปลี่ยนสถานะเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของกล้องที่ถูกเปลี่ยนสถานะ
- *
- * @author Audomsak
- */
-export async function activate(req: Request, res: Response, next: NextFunction) {
+export async function softDeleteCamera(req: Request, res: Response, next: NextFunction) { //soft delete
     try {
-        const { cam_id } = req.params;
-        const { status } = req.body;
+        const camera_id = Number(req.params.cam_id);
+        const softDelete = await CameraService.removeCamera(camera_id);
 
-        const id = Number(cam_id);
-
-        if (isNaN(id) || isNaN(status)) {
-            return res.status(400).json({ message: "id and status are required" });
-        }
-
-        const updatedCamera = await CameraService.updateCameraStatus(id, status);
-
-        res.json(updatedCamera);
+        return res.status(200).json({ message: 'Deleted successfully', data: softDelete });
     } catch (err) {
         next(err);
-    }
-};
-
-/**
- * Controller: ค้นหากล้อง
- * @route POST /api/cameras/find/:term
- * @param req -กรอกข้อมูลของกล้องมี id ชื่อกล้อง สถานที่กล้อง 
- * @param res ส่งข้อมูลกล้องกลับมา
- * @param next ส่งต่อ error
- * @returns -JSON response ส่งข้อมูลของกล้องที่ค้นหากลับ
- * @author Chokchai
- */
-export async function search(req: Request, res: Response, next: NextFunction) { //ค้นหากล้อง 
-    try {
-        const term = decodeURIComponent(req.params.term || '').trim();
-
-        if (!term) return res.status(400).json({ message: 'term required' });
-
-        const id = Number(term);
-        const byId = Number.isFinite(id);
-
-        // ถ้า term เป็นตัวเลขล้วน → ค้นด้วย cam_id
-        // ถ้าไม่ใช่ตัวเลข → ค้นด้วยชื่อกล้อง (cam_name) OR ชื่อสถานที่ (loc_name)
-        type FindCameraParams = { id?: number; name?: string; location?: string }; //กำหนด type
-
-        const args: FindCameraParams = {}; //สร้าง object ว่าง ๆ ไว้
-        if (byId) {
-            args.id = id;
-        } else {
-            args.name = term;
-            args.location = term;
-        }
-
-        const rows = await CameraService.searchCameras(args);
-
-        return res.json(rows);
-
-    } catch (e) {
-        next(e);
     }
 }
 
@@ -381,6 +300,38 @@ export async function deleteCameraMaintenance(req: Request, res: Response, next:
 
 /* ------------------------------ Event Detection ------------------------------ */
 
+export async function getEventDetectionById(req: Request, res: Response, next: NextFunction) {
+    try {
+        const camera_id = Number(req.params.cam_id);
+
+        const eventDetection = await EventDetectionService.getEventDetectionById(camera_id);
+        return res.status(200).json({ message: 'Fetched successfully', data: eventDetection });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
+    try {
+        const detection_id = Number(req.params.cds_id);
+        const { 
+            detection_sensitivity, 
+            detection_priority, 
+            detection_status
+        } = req.body;
+
+        const updateEventDetection = await EventDetectionService.updateEventDetection(
+            detection_sensitivity, 
+            detection_priority, 
+            detection_status, 
+            detection_id
+        );
+        return res.status(200).json({ message: 'Updated successfully', data: updateEventDetection });
+    } catch (err) {
+        next(err);
+    }
+}
+
 /**
  * Controller: ดึงรายการ Event Detection ทั้งหมด
  *
@@ -435,17 +386,17 @@ export async function storeEventDetection(req: Request, res: Response, next: Nex
  *
  * @author Wanasart
  */
-export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
-    try {
-        const id = Number(req.params.cds_id);
-        const { event_id, camera_id, sensitivity, priority, status } = req.body
-        console.log(event_id, camera_id, sensitivity, priority, status)
-        const updateEventDetection = await EventDetectionService.updateEventDetection(id, event_id, camera_id, sensitivity, priority, status);
-        return res.json(updateEventDetection);
-    } catch (err) {
-        next(err);
-    }
-}
+// export async function updateEventDetection(req: Request, res: Response, next: NextFunction) {
+//     try {
+//         const id = Number(req.params.cds_id);
+//         const { event_id, camera_id, sensitivity, priority, status } = req.body
+//         console.log(event_id, camera_id, sensitivity, priority, status)
+//         const updateEventDetection = await EventDetectionService.updateEventDetection(id, event_id, camera_id, sensitivity, priority, status);
+//         return res.json(updateEventDetection);
+//     } catch (err) {
+//         next(err);
+//     }
+// }
 
 /**
  * ลบ EventDetect ตามข้อมูลใน req.body
@@ -562,26 +513,26 @@ export function rtspToWhep(rtspUrl: string, webrtcBase = 'http://localhost:8889'
     };
 }
 
-export async function streamCamera(req: Request, res: Response) {
-    try {
-        const camId = Number(req.params.cam_id);
-        if (!camId) return res.status(400).send("cam_id required");
+// export async function streamCamera(req: Request, res: Response) {
+//     try {
+//         const camId = Number(req.params.cam_id);
+//         if (!camId) return res.status(400).send("cam_id required");
 
-        const cam = await CameraService.getCameraById(camId);
-        if (!cam) return res.status(404).send("Camera not found");
+//         const cam = await CameraService.getCameraById(camId);
+//         if (!cam) return res.status(404).send("Camera not found");
 
-        const rtspUrl = String(cam.address);
-        rtspToWhep(rtspUrl);
+//         const rtspUrl = String(cam.address);
+//         rtspToWhep(rtspUrl);
 
-        // const finalUrl = normalizeForHost(rtspUrl);
-        const finalUrl = rtspUrl;
+//         // const finalUrl = normalizeForHost(rtspUrl);
+//         const finalUrl = rtspUrl;
 
-        const forceEncode = req.query.encode === "1"; // ?encode=1 จะบังคับ x264
-        ffmpegService.startStream(res, finalUrl, { forceEncode });
-    } catch (err: any) {
-        const status = err?.status ?? 500;
-        const msg = err?.message ?? "Failed to stream camera";
-        console.error("stream error:", err);
-        if (!res.headersSent) res.status(status).json({ error: msg });
-    }
-}
+//         const forceEncode = req.query.encode === "1"; // ?encode=1 จะบังคับ x264
+//         ffmpegService.startStream(res, finalUrl, { forceEncode });
+//     } catch (err: any) {
+//         const status = err?.status ?? 500;
+//         const msg = err?.message ?? "Failed to stream camera";
+//         console.error("stream error:", err);
+//         if (!res.headersSent) res.status(status).json({ error: msg });
+//     }
+// }

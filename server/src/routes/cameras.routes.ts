@@ -3,43 +3,26 @@
  *
  * Base: /api/cameras
  *
- * Collections
- *  - GET    /                  → ดึงรายการกล้องทั้งหมด
- *  - POST   /                  → เพิ่มกล้องใหม่
- *
- * Item
- *  - GET    /:cam_id           → ดูรายละเอียดกล้องตาม cam_id
- *  - PATCH  /:cam_id           → อัปเดตข้อมูล/สถานะกล้องตาม cam_id
- *  - PATCH  /:cam_id/activate  → เปลี่ยนแปลงบางฟิลด์ของกล้อง
- *  - PATCH  /:cam_id/soft-delete → ลบแบบนุ่ม
- *  - DELETE /:cam_id           → ลบจริง (ปิดไว้)
- *
- * Utilities & Lookups
- *  - GET    /cards             → ข้อมูลสรุปแบบการ์ด (UI use-case)
- *  - GET    /status            → สถานะกล้อง (active/inactive) + ค่าเฉลี่ยสุขภาพ
- *  - GET    /total             → จำนวนกล้องทั้งหมด
- *  - GET    /total-inactive    → จำนวนกล้องที่ไม่ใช้งาน
- *  - GET    /search/:term      → ค้นหากล้อง (id/ชื่อ/สถานที่) *รองรับ path param*
- *    หมายเหตุ: ถ้าจะใช้ query string ก็ใช้ /search?q=... และให้ ctrl รองรับเอง
- *  - GET    /location          → รายการ location (lookup)
- *
- * Subresources - Access Control
- *  - GET    /access-controls           → ดึงรายการ Access Control ของทุกกล้อง
- *  - GET    /:cam_id/access-control    → ดึงของกล้องหนึ่งตัว
- *  - PATCH  /:cam_id/access-control    → อัปเดตของกล้องหนึ่งตัว
- *
- * Subresources - Maintenances
- *  - GET    /maintenances                              → ประวัติซ่อมบำรุงของทุกกล้อง
- *  - GET    /:cam_id/maintenances                      → ของกล้องตาม cam_id
- *  - POST   /:cam_id/maintenances                      → สร้างรายการใหม่ให้กล้องนั้น
- *  - PUT    /:cam_id/maintenances/:mtn_id              → อัปเดตรายการหนึ่ง
- *  - PATCH  /:cam_id/maintenances/:mtn_id/soft-delete  → ลบแบบนุ่ม
- *
- * Subresources - Event Detections
- *  - GET    /event-detections                      → ทั้งหมด
- *  - POST   /event-detections                      → สร้างใหม่
- *  - PUT    /event-detections/:cds_id              → แก้ไข
- *  - PATCH  /event-detections/:cds_id/soft-delete  → ลบแบบนุ่ม
+ * ## Cameras
+ *  - GET       /                   → ดึงรายการกล้องทั้งหมด
+ *  - GET       /:cam_id            → ดึงรายการกล้องตาม cam_id
+ *  - POST      /                   → เพิ่มกล้องใหม่
+ *  - PUT       /:cam_id            → อัปเดตข้อมูลกล้อง
+ *  - PATCH     /:cam_id            → ลบกล้อง
+ * 
+ *  - GET       /summary            → ดึงรายการผลสรุปของกล้อง
+ * 
+ * ## Performance
+ * 
+ * 
+ * ## Event Detection
+ *  - GET       /:cam_id/event-detection            → ดึงรายการ event detection ของกล้องตาม cam_id
+ * 
+ * ## Access Control
+ * 
+ * 
+ * ## Maintenance
+ * 
  *
  * @module routes/cameras
  * @requires express
@@ -47,7 +30,7 @@
  *
  * @author Wanasart
  * @created 2025-08-16
- * @lastModified 2025-08-27
+ * @lastModified 2025-10-12
  */
 
 import { Router } from 'express';
@@ -55,13 +38,22 @@ import * as ctrl from '../controllers/cameras.controller';
 
 const router = Router();
 
-/* ========================== Collections (Base) ========================== */
-router.get('/', ctrl.index);
-router.post('/', ctrl.store);
+/* ========================== Cameras ========================== */
+router.get('/', ctrl.getCameras); // ✅
+router.get('/:cam_id', ctrl.getCameraById); // ✅
+router.post('/', ctrl.createCamera); // ✅
+router.put('/:cam_id', ctrl.updateCamera); // ✅
+router.patch('/:cam_id', ctrl.softDeleteCamera); // ✅
+
+router.get('/summary', ctrl.getSummaryCameras); // ✅
+
+/* ========================== Event Detection ========================== */
+router.get('/:cam_id/event-detections', ctrl.getEventDetectionById);
+router.put('/event-detections/:cds_id', ctrl.updateEventDetection);
 
 /* ======================= Utilities & Lookups ======================= */
 // Disabled     // router.get('/cards', ctrl.cardsSummary);
-router.get('/status', ctrl.status);
+// router.get('/status', ctrl.status);
 // Disabled     // router.get('/total', ctrl.count);
 // Disabled     // router.get('/total-inactive', ctrl.countInactive);
 // Disabled     // router.get('/search/:term', ctrl.search);
@@ -84,17 +76,15 @@ router.get('/:cam_id/maintenances', ctrl.indexCameraMaintenances);
 /* =================== Subresources: Event Detections =================== */
 router.get('/event-detections', ctrl.indexEventDetections);
 router.post('/event-detections', ctrl.storeEventDetection);
-router.put('/event-detections/:cds_id', ctrl.updateEventDetection);
 router.patch('/event-detections/:cds_id/soft-delete', ctrl.softDeleteEventDetection);
 // router.get('/event-detections/:cds_id', ctrl.showEventDetection);                       // NEW
 // router.get('/:cam_id/event-detections', ctrl.indexCameraEventDetections);               // NEW
 // router.patch('/event-detections/:cds_id/restore', ctrl.restoreEventDetection);          // optional
 
 /* ============================== Item ============================== */
-router.get('/:cam_id', ctrl.show);
-router.patch('/:cam_id', ctrl.update);
-router.patch('/:cam_id/activate', ctrl.activate);
-router.patch('/:cam_id/soft-delete', ctrl.softDelete);
+// router.get('/:cam_id', ctrl.show);
+
+// router.patch('/:cam_id/activate', ctrl.activate);
 // router.delete('/:cam_id', ctrl.destroy);
 // router.patch('/:cam_id/restore', ctrl.restore); // optional
 
