@@ -27,6 +27,8 @@ import register from './register.routes';
 import alerts from './alerts.routes';
 import events from './events.routes';
 
+import { authenticateToken } from '../controllers/auth.controller';
+
 const router = Router();
 
 // Authentication routes
@@ -36,7 +38,7 @@ router.use('/auth', login);
 router.use('/register', register);
 
 // Camera routes
-router.use('/cameras', cameras);
+router.use('/cameras', authenticateToken, cameras);
 
 // Alerts routes
 router.use('/alerts', alerts);
