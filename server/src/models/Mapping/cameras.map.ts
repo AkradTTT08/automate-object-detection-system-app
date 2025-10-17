@@ -41,3 +41,35 @@ export function mapEventDetectionToSaveResponse(row: any): Model.ResponseEventDe
         detection_status: row.cds_status
     };
 }
+
+export function mapMaintenanceToSaveResponse(row: any): Model.ResponseMaintenance {
+
+    const maintenanceAt = splitDateTime(row.mnt_date);
+    const createAt = splitDateTime(row.mnt_created_at);
+
+    return {
+        maintenance_id: row.mnt_id,
+        camera_id: row.mnt_cam_id,
+        maintenance_date: maintenanceAt.date,
+        maintenance_type: row.mnt_type,
+        maintenance_technician: row.mnt_technician,
+        maintenance_note: row.mnt_note,
+        maintenance_created_date: createAt.date,
+        maintenance_created_time: createAt.time
+    }
+}
+
+export function mapPermissionToSaveResponse(row: any): Model.ResponsePermission {
+
+    const updateAt = splitDateTime(row.cap_updated_at);
+
+    return {
+        permission_id: row.cap_id,
+        camera_id: row.cap_cam_id,
+        permission_require_auth: row.cap_require_auth,
+        permission_restrict: row.cap_restrict,
+        permission_log: row.cap_log,
+        permission_updated_date: updateAt.date,
+        permission_updated_time: updateAt.time
+    }
+}

@@ -27,3 +27,24 @@ export interface ResponseEventDetection {
   detection_updated_time: string;
   detection_status: boolean;
 }
+
+export interface ResponseMaintenance {
+  maintenance_id: number;
+  camera_id: number;
+  maintenance_date: string;
+  maintenance_type: string;
+  maintenance_technician: string;
+  maintenance_note: string;
+  maintenance_created_date: string;
+  maintenance_created_time: string;
+}
+
+export interface ResponsePermission {
+  permission_id: number;
+  camera_id: number;
+  permission_require_auth: boolean;
+  permission_restrict: boolean;
+  permission_log: boolean;
+  permission_updated_date: string;
+  permission_updated_time: string;
+}

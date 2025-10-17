@@ -30,7 +30,7 @@
  *
  * @author Wanasart
  * @created 2025-08-16
- * @lastModified 2025-10-12
+ * @lastModified 2025-10-17
  */
 
 import { Router } from 'express';
@@ -40,52 +40,31 @@ const router = Router();
 
 /* ========================== Cameras ========================== */
 router.get('/', ctrl.getCameras); // ✅
-router.get('/:cam_id', ctrl.getCameraById); // ✅
 router.post('/', ctrl.createCamera); // ✅
-router.put('/:cam_id', ctrl.updateCamera); // ✅
-router.patch('/:cam_id', ctrl.softDeleteCamera); // ✅
 
 router.get('/summary', ctrl.getSummaryCameras); // ✅
 
+/* ========================== Performance ========================== */
+router.get('/performance', ctrl.getPerformance); // ✅
+router.get('/:cam_id/performance', ctrl.getPerformanceById); // ✅
+
 /* ========================== Event Detection ========================== */
-router.get('/:cam_id/event-detections', ctrl.getEventDetectionById);
-router.put('/event-detections/:cds_id', ctrl.updateEventDetection);
+router.put('/event-detections/:cds_id', ctrl.updateEventDetection); // ✅
+router.get('/:cam_id/event-detections', ctrl.getEventDetectionById); // ✅
 
-/* ======================= Utilities & Lookups ======================= */
-// Disabled     // router.get('/cards', ctrl.cardsSummary);
-// router.get('/status', ctrl.status);
-// Disabled     // router.get('/total', ctrl.count);
-// Disabled     // router.get('/total-inactive', ctrl.countInactive);
-// Disabled     // router.get('/search/:term', ctrl.search);
-router.get('/location', ctrl.location);
+/* ========================== Maintenance ========================== */
+router.get('/:cam_id/maintenance', ctrl.getMaintenanceByCameraId); // ✅
+router.post('/:cam_id/maintenance', ctrl.createMaintenance); // ✅
+router.put('/maintenance/:mnt_id', ctrl.updateMaintenance); // ✅
+router.patch('/maintenance/:mnt_id', ctrl.softDeleteMaintenance); // ✅
 
-/* ===================== Subresources: Access Control ===================== */
-router.get('/access-controls', ctrl.indexAccessControls);
-router.get('/:cam_id/access-control', ctrl.showAccessControl);
-// Bug          // router.patch('/:cam_id/access-control', ctrl.updateAccessControl);
+/* ========================== Access Control ========================== */
+router.get('/:cam_id/permission', ctrl.getPermissionByCameraId); // ✅
+router.put('/:cam_id/permission', ctrl.updatePermission); // ✅
 
-/* ===================== Subresources: Maintenances ===================== */
-router.get('/maintenances', ctrl.indexMaintenances);
-router.get('/:cam_id/maintenances', ctrl.indexCameraMaintenances);
-// Bug          // router.post('/:cam_id/maintenances', ctrl.storeCameraMaintenance);
-// Bug          // router.put('/:cam_id/maintenances/:mtn_id', ctrl.updateCameraMaintenance);
-// Bug          // router.patch('/:cam_id/maintenances/:mtn_id/soft-delete', ctrl.softDeleteCameraMaintenance);
-// router.get('/:cam_id/maintenances/:mtn_id', ctrl.showCameraMaintenance);                 // NEW
-// router.patch('/:cam_id/maintenances/:mtn_id/restore', ctrl.restoreCameraMaintenance);    // optional
-
-/* =================== Subresources: Event Detections =================== */
-router.get('/event-detections', ctrl.indexEventDetections);
-router.post('/event-detections', ctrl.storeEventDetection);
-router.patch('/event-detections/:cds_id/soft-delete', ctrl.softDeleteEventDetection);
-// router.get('/event-detections/:cds_id', ctrl.showEventDetection);                       // NEW
-// router.get('/:cam_id/event-detections', ctrl.indexCameraEventDetections);               // NEW
-// router.patch('/event-detections/:cds_id/restore', ctrl.restoreEventDetection);          // optional
-
-/* ============================== Item ============================== */
-// router.get('/:cam_id', ctrl.show);
-
-// router.patch('/:cam_id/activate', ctrl.activate);
-// router.delete('/:cam_id', ctrl.destroy);
-// router.patch('/:cam_id/restore', ctrl.restore); // optional
+/* ========================== Cameras (by id) ========================== */
+router.get('/:cam_id', ctrl.getCameraById); // ✅
+router.put('/:cam_id', ctrl.updateCamera); // ✅
+router.patch('/:cam_id', ctrl.softDeleteCamera); // ✅
 
 export default router;
