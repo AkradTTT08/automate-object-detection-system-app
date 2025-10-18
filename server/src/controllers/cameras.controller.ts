@@ -13,7 +13,6 @@ import { ffmpegService } from '../services/cameras/ffmpeg.service';
  * ดึงข้อมูลกล้องทั้งหมดในระบบ
  * ใช้สำหรับแสดงรายการกล้องทุกตัวในระบบ รวมถึงรายละเอียดพื้นฐาน เช่น ชื่อ ประเภท สถานะ แหล่งข้อมูล และตำแหน่งที่ตั้ง
  * 
- * @route GET /api/cameras
  * @param {Request} req - Request ที่ใช้เรียก API เพื่อดึงข้อมูลกล้องทั้งหมด
  * @param {Response} res - Response สำหรับส่งข้อมูลรายการกล้องกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -36,7 +35,6 @@ export async function getCameras(req: Request, res: Response, next: NextFunction
  * ดึงข้อมูลรายละเอียดของกล้องตามรหัสที่ระบุ
  * ใช้สำหรับแสดงข้อมูลกล้องเฉพาะตัว เช่น ชื่อ ประเภท สถานะ ตำแหน่ง และแหล่งที่มา
  * 
- * @route GET /api/cameras/:cam_id
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสกล้อง)
  * @param {Response} res - Response สำหรับส่งข้อมูลกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -61,7 +59,6 @@ export async function getCameraById(req: Request, res: Response, next: NextFunct
  * ดึงข้อมูลสรุปภาพรวมของกล้องทั้งหมดในระบบ
  * ใช้สำหรับแสดงข้อมูลเชิงสถิติ เช่น จำนวนกล้องที่เปิดใช้งาน ปิดใช้งาน หรือจำนวนทั้งหมด
  * 
- * @route GET /api/cameras/summary
  * @param {Request} req - Request ที่รับข้อมูลการเรียกใช้งาน
  * @param {Response} res - Response สำหรับส่งข้อมูลสรุปกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -84,7 +81,6 @@ export async function getSummaryCameras(req: Request, res: Response, next: NextF
  * เพิ่มข้อมูลกล้องใหม่เข้าสู่ระบบ
  * ใช้สำหรับสร้างรายการกล้องใหม่พร้อมรายละเอียด เช่น ประเภท สถานะ แหล่งข้อมูล และตำแหน่งที่ตั้ง
  * 
- * @route POST /api/cameras
  * @param {Request} req - Request ที่มีข้อมูลใน body (camera_name, camera_type, camera_status, source_type, source_value, location_id, description, creator_id)
  * @param {Response} res - Response สำหรับส่งข้อมูลกล้องที่ถูกสร้างใหม่กลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -127,7 +123,6 @@ export async function createCamera(req: Request, res: Response, next: NextFuncti
  * อัปเดตข้อมูลกล้องตามรหัสที่ระบุ
  * ใช้สำหรับแก้ไขรายละเอียดของกล้อง เช่น ชื่อ ประเภท สถานะ แหล่งข้อมูล ตำแหน่งที่ตั้ง และคำอธิบาย
  * 
- * @route PUT /api/cameras/:cam_id
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id และข้อมูลใน body (camera_name, camera_type, camera_status, source_type, source_value, location_id, description)
  * @param {Response} res - Response สำหรับส่งข้อมูลกล้องที่อัปเดตแล้วกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับจัดการ error หากเกิดข้อผิดพลาด
@@ -171,7 +166,6 @@ export async function updateCamera(req: Request, res: Response, next: NextFuncti
  * ลบข้อมูลกล้องแบบ Soft Delete ตามรหัสที่ระบุ
  * โดยจะเปลี่ยนสถานะ cam_is_use เป็น false และอัปเดตเวลาแก้ไขล่าสุด โดยไม่ลบข้อมูลจริงออกจากฐานข้อมูล
  * 
- * @route PATCH /api/cameras/:cam_id
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสของกล้อง)
  * @param {Response} res - Response สำหรับส่งผลการลบกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -198,7 +192,6 @@ export async function softDeleteCamera(req: Request, res: Response, next: NextFu
  * ดึงข้อมูลประวัติการบำรุงรักษาของกล้องตามรหัสที่ระบุ
  * ใช้สำหรับแสดงรายการบำรุงรักษาทั้งหมดของกล้องแต่ละตัว
  * 
- * @route GET /api/cameras/:cam_id/maintenance
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสกล้อง)
  * @param {Response} res - Response สำหรับส่งข้อมูลกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -223,7 +216,6 @@ export async function getMaintenanceByCameraId(req: Request, res: Response, next
  * เพิ่มข้อมูลประวัติการบำรุงรักษาใหม่ให้กับกล้องที่ระบุ
  * ใช้สำหรับบันทึกการซ่อม การตรวจเช็ก หรือการบำรุงรักษาในแต่ละครั้ง
  * 
- * @route POST /api/cameras/:cam_id/maintenance
  * @param {Request} req - Request ที่มีข้อมูลใน body (technician, type, date, note)
  * @param {Response} res - Response สำหรับส่งผลการสร้างกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -254,7 +246,6 @@ export async function createMaintenance(req: Request, res: Response, next: NextF
  * อัปเดตรายการบำรุงรักษาตามรหัสที่ระบุ
  * ใช้สำหรับแก้ไขข้อมูล เช่น วันที่ ประเภท ช่างเทคนิค หรือหมายเหตุของการบำรุงรักษา
  * 
- * @route PUT /api/cameras/maintenance/:mnt_id
  * @param {Request} req - Request ที่มีพารามิเตอร์ mnt_id และข้อมูลใน body (technician, type, date, note)
  * @param {Response} res - Response สำหรับส่งข้อมูลที่อัปเดตกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -285,7 +276,6 @@ export async function updateMaintenance(req: Request, res: Response, next: NextF
  * ลบข้อมูลการบำรุงรักษาแบบ Soft Delete ตามรหัสที่ระบุ
  * โดยจะตั้งค่า mnt_is_use เป็น false และอัปเดตเวลาแก้ไขล่าสุด โดยไม่ลบข้อมูลจริงออกจากฐานข้อมูล
  * 
- * @route PATCH /api/cameras/maintenance/:mnt_id
  * @param {Request} req - Request ที่มีพารามิเตอร์ mnt_id (รหัสรายการบำรุงรักษา)
  * @param {Response} res - Response สำหรับส่งผลการลบกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -312,7 +302,6 @@ export async function softDeleteMaintenance(req: Request, res: Response, next: N
  * ดึงข้อมูลการตั้งค่าการตรวจจับเหตุการณ์ (Event Detection) ของกล้องตามรหัสที่ระบุ
  * ใช้สำหรับแสดงรายละเอียดเหตุการณ์ที่กล้องสามารถตรวจจับได้ รวมถึงระดับความไว (sensitivity) ลำดับความสำคัญ (priority) และสถานะการทำงาน
  * 
- * @route GET /api/cameras/:cam_id/event-detections
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสกล้อง)
  * @param {Response} res - Response สำหรับส่งข้อมูลการตั้งค่าการตรวจจับเหตุการณ์กลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -337,7 +326,6 @@ export async function getEventDetectionById(req: Request, res: Response, next: N
  * อัปเดตการตั้งค่าการตรวจจับเหตุการณ์ (Event Detection) ตามรหัสที่ระบุ
  * ใช้สำหรับปรับค่าการตรวจจับ เช่น ความไว (sensitivity), ลำดับความสำคัญ (priority) และสถานะการทำงานของเหตุการณ์
  * 
- * @route PUT /api/cameras/event-detections/cds_id
  * @param {Request} req - Request ที่มีพารามิเตอร์ cds_id และข้อมูลใน body (detection_sensitivity, detection_priority, detection_status)
  * @param {Response} res - Response สำหรับส่งข้อมูลการตั้งค่าที่อัปเดตกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -374,7 +362,6 @@ export async function updateEventDetection(req: Request, res: Response, next: Ne
  * ดึงข้อมูลสิทธิ์การเข้าถึงของกล้องตามรหัสที่ระบุ
  * ใช้สำหรับตรวจสอบการตั้งค่าการเข้าถึงของกล้อง เช่น การยืนยันตัวตน การจำกัดสิทธิ์ และการบันทึกการเข้าถึง
  * 
- * @route GET /api/cameras/:cam_id/permission
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสของกล้อง)
  * @param {Response} res - Response สำหรับส่งข้อมูลสิทธิ์การเข้าถึงกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -399,7 +386,6 @@ export async function getPermissionByCameraId(req: Request, res: Response, next:
  * อัปเดตการตั้งค่าสิทธิ์การเข้าถึงของกล้องตามรหัสที่ระบุ
  * ใช้สำหรับแก้ไขการตั้งค่าการเข้าถึง เช่น การยืนยันตัวตน การจำกัดสิทธิ์การเข้าถึง และการบันทึกการเข้าถึงของผู้ใช้
  * 
- * @route PUT /api/cameras/:cam_id/permission
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id และข้อมูลใน body (require_auth, restrict, log)
  * @param {Response} res - Response สำหรับส่งข้อมูลสิทธิ์การเข้าถึงที่อัปเดตกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -431,7 +417,6 @@ export async function updatePermission(req: Request, res: Response, next: NextFu
  * ดึงข้อมูลประสิทธิภาพการทำงานของกล้องทั้งหมดประจำวัน
  * ใช้สำหรับแสดงสถิติการทำงานของกล้องทุกตัว เช่น เวลาทำงาน การเชื่อมต่อ และสถานะการทำงานปัจจุบัน
  * 
- * @route GET /api/cameras/performance
  * @param {Request} req - Request ที่รับการเรียกใช้งาน API
  * @param {Response} res - Response สำหรับส่งข้อมูลประสิทธิภาพของกล้องทั้งหมดกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -454,7 +439,6 @@ export async function getPerformance(req: Request, res: Response, next: NextFunc
  * ดึงข้อมูลประสิทธิภาพการทำงานของกล้องตามรหัสที่ระบุ
  * ใช้สำหรับตรวจสอบข้อมูลการทำงานเฉพาะของกล้อง เช่น เวลาการทำงาน การตอบสนอง และสถานะล่าสุดของกล้อง
  * 
- * @route GET /api/cameras/:cam_id/performance
  * @param {Request} req - Request ที่มีพารามิเตอร์ cam_id (รหัสของกล้อง)
  * @param {Response} res - Response สำหรับส่งข้อมูลประสิทธิภาพของกล้องกลับไปยัง client
  * @param {NextFunction} next - Middleware สำหรับส่งต่อ error หากเกิดข้อผิดพลาด
@@ -470,6 +454,55 @@ export async function getPerformanceById(req: Request, res: Response, next: Next
 
         const performance = await PerformanceService.getPerformanceById(camera_id);
         return res.status(200).json({ message: 'Fetched successfully', data: performance });
+    } catch (err) {
+        next(err)
+    }
+}
+
+/* ------------------------------ Location  ------------------------------ */
+
+export async function getLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+        const list = await LocationService.getLocation();
+        return res.status(200).json({ message: 'Fetched successfully', data: list });
+    } catch (err) {
+        next(err)
+    }
+}
+
+export async function createLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+        const {
+            location_name
+        } = req.body;
+
+        const create = await LocationService.insertLocation(location_name);
+        return res.status(201).json({ message: 'Created successfully', data: create });
+    } catch (err) {
+        next(err)
+    }
+}
+
+export async function updateLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+        const location_id = Number(req.params.loc_id);
+        const {
+            location_name
+        } = req.body;
+
+        const update = await LocationService.updateLocation(location_id, location_name);
+        return res.status(200).json({ message: 'Updated successfully', data: update });
+    } catch (err) {
+        next(err)
+    }
+}
+
+export async function softDeleteLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+        const location_id = Number(req.params.loc_id);
+
+        const softDelete = await LocationService.removeLocation(location_id);
+        return res.status(200).json({ message: 'Deleted successfully', data: softDelete });
     } catch (err) {
         next(err)
     }
