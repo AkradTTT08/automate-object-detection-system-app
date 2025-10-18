@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import CameraCard, { type Camera } from "./CameraCard";
+import CameraCard from "./CameraCard";
+import { Camera } from "@/app/models/cameras.model";
 
 // เหมือน table view
 function parseStatusParam(v: string | null): boolean | null {
@@ -19,7 +20,7 @@ export default function CameraGrid({ cameras }: { cameras: Camera[] }) {
 
   const filtered = useMemo(() => {
     if (want === null) return cameras;
-    return cameras.filter((c) => !!c.status === want); // boolean เทียบตรง ๆ
+    return cameras.filter((c) => !!c.camera_status === want); // boolean เทียบตรง ๆ
   }, [cameras, want]);
 
   if (!filtered.length) {
@@ -29,7 +30,7 @@ export default function CameraGrid({ cameras }: { cameras: Camera[] }) {
   return (
     <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
       {filtered.map((cam) => (
-        <CameraCard key={cam.id} cam={cam} />
+        <CameraCard key={cam.camera_id} cam={cam} />
       ))}
     </div>
   );

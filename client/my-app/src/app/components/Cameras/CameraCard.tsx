@@ -5,18 +5,7 @@ import { MapPin, Camera as CameraIcon, Move, Scan, Thermometer, Activity } from 
 import { useEffect, useState } from "react";
 import WhepPlayer from "../../components/WhepPlayer";
 import BottomCameraCard from "@/app/components/Utilities/ButtonCameraCard";
-
-export type Camera = {
-  id: number;
-  name: string;
-  address: string;       // rtsp://.../city-traffic
-  type: string;          // fixed | ptz | panoramic | thermal
-  status: boolean;       // true => Active, false => Inactive
-  health: number | string;
-  location: { id: number; name: string };
-  last_maintenance_date: string;
-  last_maintenance_time: string;
-};
+import { Camera } from "@/app/models/cameras.model";
 
 // ---------- helpers (เฉพาะที่ใช้งานจริง) ----------
 const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -75,22 +64,20 @@ function getHealthStyle(h: number | string | null | undefined) {
 
 // ---------- component ----------
 export default function CameraCard({ cam }: { cam: Camera }) {
-  const isOnline = !!cam.status;
+  const isOnline = !!cam.camera_status;
   const imageSrc = (cam as any).cam_image ?? (cam as any).image_url ?? (cam as any).thumbnail ?? "/library-room.jpg";
 
-  const camCode = `CAM${String(cam.id).padStart(3, "0")}`;
-  const locationName = cam.location?.name ?? "-";
-  const TypeIcon = getTypeIcon(cam.type);
-  const typeStyle = getTypeStyle(cam.type);
-  const healthStyle = getHealthStyle(cam.health);
-  const healthText = typeof cam.health === "number" ? `${cam.health}%` : String(cam.health ?? "-");
+  const camCode = `CAM${String(cam.camera_id).padStart(3, "0")}`;
+  const locationName = cam.location_name ?? "-";
+  const TypeIcon = getTypeIcon(cam.camera_type);
+  const typeStyle = getTypeStyle(cam.camera_type);
 
   const WHEP_BASE = process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889";
-  const isRtsp = typeof cam.address === "string" && cam.address.startsWith("rtsp://");
+  const isRtsp = typeof cam.source_value === "string" && cam.source_value.startsWith("rtsp://");
 
   const [webrtcFailed, setWebrtcFailed] = useState(false);
   useEffect(() => { setWebrtcFailed(false); }, []);
-  useEffect(() => setWebrtcFailed(false), [cam.id, cam.address]);
+  useEffect(() => setWebrtcFailed(false), [cam.camera_id, cam.source_value]);
 
   const camBorder   = isOnline ? "border-[var(--color-primary)]"     : "border-[var(--color-danger)]";
   const camHeaderBG = isOnline ? "bg-[var(--color-primary-bg)] border border-[var(--color-primary)]"
@@ -119,15 +106,15 @@ export default function CameraCard({ cam }: { cam: Camera }) {
           <div className="relative aspect-video">
             {isOnline && isRtsp && !webrtcFailed ? (
               <WhepPlayer
-                key={cam.id}
-                camAddressRtsp={cam.address}
+                key={cam.camera_id}
+                camAddressRtsp={cam.source_value}
                 webrtcBase={WHEP_BASE}
                 onFailure={() => setWebrtcFailed(true)}  // เงียบ ๆ แล้วเป็นรูปแทน
               />
             ) : isOnline ? (
               <Image
                 src={imageSrc}
-                alt={cam.name}
+                alt={cam.camera_name}
                 fill
                 className="absolute inset-0 h-full w-full object-cover rounded-md"
                 sizes="(min-width: 1024px) 400px, 100vw"
@@ -162,21 +149,16 @@ export default function CameraCard({ cam }: { cam: Camera }) {
 
         {/* Info */}
         <div className="mt-4">
-          <h3 className="text-base font-semibold text-[var(--color-primary)]">{cam.name}</h3>
+          <h3 className="text-base font-semibold text-[var(--color-primary)]">{cam.camera_name}</h3>
 
           <div className="mt-3 flex items-center justify-between">
             <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${typeStyle.badge}`}>
               <TypeIcon className={`h-4 w-4 ${typeStyle.icon}`} />
-              {cam.type || "Fixed"}
-            </span>
-
-            <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium ${healthStyle.badge}`}>
-              <Activity className="h-4 w-4" />
-              Health: {healthText}
+              {cam.camera_type || "Fixed"}
             </span>
           </div>
 
-          <BottomCameraCard camId={cam.id} camName={cam.name} iconSet="lucide" className="mt-4" />
+          <BottomCameraCard camId={cam.camera_id} camName={cam.camera_name} iconSet="lucide" className="mt-4" />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import CameraCard, { type Camera } from "./CameraCard";
+import CameraCard  from "./CameraCard";
+import { Camera } from "@/app/models/cameras.model";
 import CameraTable from "./CameraTable";
 import CameraGrid from "./CameraGrid";
 
@@ -21,18 +22,18 @@ function buildMatcher(search?: string) {
       if (!val) continue;
 
       if (key === "id") {
-        checks.push((c) => String(c.id).toLowerCase().includes(val));
+        checks.push((c) => String(c.camera_id).toLowerCase().includes(val));
       } else if (key === "name") {
-        checks.push((c) => (c.name ?? "").toLowerCase().includes(val));
+        checks.push((c) => (c.camera_name ?? "").toLowerCase().includes(val));
       } else if (key === "location") {
-        checks.push((c) => (c.location?.name ?? "").toLowerCase().includes(val));
+        checks.push((c) => (c.location_name ?? "").toLowerCase().includes(val));
       }
     } else {
       const val = t.toLowerCase();
       checks.push((c) => {
-        const idStr = String(c.id).toLowerCase();
-        const nm = (c.name ?? "").toLowerCase();
-        const loc = (c.location?.name ?? "").toLowerCase();
+        const idStr = String(c.camera_id).toLowerCase();
+        const nm = (c.camera_name ?? "").toLowerCase();
+        const loc = (c.location_name ?? "").toLowerCase();
         return idStr.includes(val) || nm.includes(val) || loc.includes(val);
       });
     }
@@ -53,7 +54,7 @@ export default async function CameraView({
   location?: string;
   type?: string;
 }) {
-  const res = await fetch(`${base}/api/cameras`, { cache: "no-store" });
+  const res = await fetch(`${base}/api/cameras`, { method: "GET" });
   if (!res.ok) throw new Error("Failed to load cameras");
   const cameras: Camera[] = await res.json();
 
@@ -64,14 +65,14 @@ export default async function CameraView({
   // 2) กรองสถานะ (boolean -> Active/Inactive)
   if (status === "Active" || status === "Inactive") {
     const want = status === "Active"; // true = Active
-    filtered = filtered.filter((c) => c.status === want);
+    filtered = filtered.filter((c) => c.camera_status === want);
   }
 
   // 3) กรอง location
   if (location && location !== "All") {
     const needle = location.toLowerCase();
     filtered = filtered.filter((c) =>
-      (c.location?.name ?? "").toLowerCase().includes(needle)
+      (c.location_name ?? "").toLowerCase().includes(needle)
     );
   }
 
@@ -79,7 +80,7 @@ export default async function CameraView({
   if (type && type !== "All") {
     const t = type.toLowerCase();
     filtered = filtered.filter((c) =>
-      (c.type ?? "").toLowerCase().includes(t)
+      (c.camera_type ?? "").toLowerCase().includes(t)
     );
   }
 
