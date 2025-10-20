@@ -6,12 +6,22 @@ const base = process.env.NEXT_PUBLIC_APP_URL!;
 export default async function Page({ params }: { params: Promise<{ cam_id: string }> }) {
   const { cam_id } = await params
 
-  const res = await fetch(`${base}/api/cameras/${cam_id}`, { cache: "no-store" });
+  const res = await fetch(`${base}/api/cameras/${cam_id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
   if (!res.ok) {
     throw new Error("Failed to load cameras");
   }
 
-  const camera: Camera = await res.json();
+  const json = await res.json();
+  const camera: Camera = json.data;
+
+  console.log(camera);
 
   return (
     <div className="rounded-lg bg-[var(--color-white)] shadow-md p-6">

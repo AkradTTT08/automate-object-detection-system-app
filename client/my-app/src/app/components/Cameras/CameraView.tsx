@@ -9,6 +9,7 @@ import ToggleViewButton from "@/app/components/Cameras/ToggleViewButton";
 import CreateCameraForm from "@/app/components/Forms/CreateCameraForm";
 import { Separator } from "@/components/ui/separator";
 import RefreshButton from "@/app/components/Utilities/RefreshButton";
+import { getToken } from "@/lib/TokenStore";
 
 type ViewMode = "grid" | "list";
 const base = process.env.NEXT_PUBLIC_APP_URL!;
@@ -61,10 +62,12 @@ export default async function CameraView({
   location?: string;
   type?: string;
 }) {
+  const token = getToken();
+  console.log("Token: ", token);
   const res = await fetch(`${base}/api/cameras`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     cache: "no-store",

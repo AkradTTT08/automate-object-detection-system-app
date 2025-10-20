@@ -17,9 +17,12 @@ import {
 import CreateAlertForm from "@/app/components/Forms/CreateAlertForm";
 import { SuccessModal } from "@/app/components/Utilities/AlertsPopup";
 import WhepPlayer from "../../components/WhepPlayer";
+import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
+import BadgeCameraType from "../Badges/BadgeCameraType"
+import BadgeError from "../Badges/BadgeError"
 
-export default function FullScreenView({ camera }: { camera: Camera }) {
-    const [currentCamera, setCurrentCamera] = useState(camera);
+export default function FullScreenView({ camera }: { camera: Camera | Camera[] }) {
+    const [currentCamera, setCurrentCamera] = useState<Camera>(() => Array.isArray(camera) ? camera[0] : camera);
     const [open, setOpen] = useState(false);
 
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -27,7 +30,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
     const imgRef = useRef<HTMLImageElement | null>(null);
 
     const imageSrc = "/library-room.jpg";
-    const camCode = `CAM${String(currentCamera.id).padStart(3, "0")}`;
+    const camCode = `CAM${String(currentCamera.camera_id).padStart(3, "0")}`;
 
     function onBack() {
         window.history.back();
@@ -61,7 +64,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
         const v = videoRef.current;
         const im = imgRef.current;
 
-        if (currentCamera.status && v && v.readyState >= 2) {
+        if (currentCamera.camera_status && v && v.readyState >= 2) {
             drawObjectCover(ctx, v, rect.width, rect.height);
         } else if (im && im.complete) {
             drawObjectCover(ctx, im, rect.width, rect.height);
@@ -87,7 +90,10 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
             a.remove();
             URL.revokeObjectURL(url);
         }, "image/png", 0.92);
-    }, [currentCamera.status, camCode]);
+    }, [currentCamera.camera_status, camCode]);
+
+    console.log(currentCamera.camera_id);
+    console.log(currentCamera);
 
     return (
         <div className="grid gap-1">
@@ -96,7 +102,7 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                     htmlFor="cameraName"
                     className="min-w-0 flex-1 font-bold text-lg text-[var(--color-primary)]"
                 >
-                    {currentCamera.name} ({camCode})
+                    {currentCamera.camera_name} ({camCode})
                 </label>
 
                 <div className="ml-auto flex gap-2">
@@ -118,10 +124,10 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                     ref={containerRef}
                     className="relative aspect-video mb-3 rounded-md"
                 >
-                    {currentCamera.status ? (
+                    {currentCamera.camera_status ? (
                         <WhepPlayer
                             ref={videoRef}   // ✅ forwardRef จาก WhepPlayer
-                            camAddressRtsp={currentCamera.address}
+                            camAddressRtsp={currentCamera.source_value}
                             webrtcBase={process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889"}
                             onFailure={() => console.error("WHEP connection failed")}
                         />
@@ -255,33 +261,32 @@ export default function FullScreenView({ camera }: { camera: Camera }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Location</TableHead>
-                            <TableHead>IP Address</TableHead>
                             <TableHead>Type</TableHead>
-                            <TableHead>Health</TableHead>
-                            <TableHead>Resolution</TableHead>
                             <TableHead>Last Maintenance</TableHead>
+                            {currentCamera.camera_status ? "" : (
+                                <TableHead>Cause</TableHead>
+                            )}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         <TableRow>
-                            <TableCell>{currentCamera.location.name}</TableCell>
-                            <TableCell>{currentCamera.address}</TableCell>
-                            <TableCell>{currentCamera.type}</TableCell>
-                            <TableCell>{currentCamera.health}</TableCell>
-                            <TableCell>{currentCamera.resolution}</TableCell>
+                            <TableCell>{currentCamera.location_name}</TableCell>
                             <TableCell>
-                                {(() => {
-                                    const date = currentCamera.last_maintenance_date as string | undefined;
-                                    const time = currentCamera.last_maintenance_time as string | undefined;
-                                    const combined = `${date ?? ""} ${time ?? ""}`.trim();
-                                    const showDash =
-                                        !combined ||
-                                        combined === "1970-01-01 07:00:00" ||
-                                        (date === "1970-01-01" && (!time || time.startsWith("07:00")));
-                                    const label = showDash ? "-" : combined;
-                                    return <span className="truncate max-w-[260px]">{label}</span>;
-                                })()}
+                                <BadgeCameraType type={currentCamera.camera_type} />
                             </TableCell>
+                            <TableCell>
+                                <MaintenanceTypeBadge name={currentCamera.maintenance_type} date={currentCamera.date_last_maintenance} />
+                            </TableCell>
+                            {currentCamera.camera_status ? "" : (
+                                <TableCell>
+                                    <BadgeError reason="Connection Timeout" />
+                                    {/* <BadgeError reason="Unknown" />
+                                    <BadgeError reason="Critical Failure" />
+                                    <BadgeError reason="Server Down" />
+                                    <BadgeError reason="Power Failure" />
+                                    <BadgeError reason="Network Error" /> */}
+                                </TableCell>
+                            )}
                         </TableRow>
                     </TableBody>
                 </Table>

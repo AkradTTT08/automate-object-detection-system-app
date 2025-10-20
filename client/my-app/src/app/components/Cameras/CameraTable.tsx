@@ -15,7 +15,8 @@ import * as Icons from "lucide-react";
 import EditCameraModal from "../Forms/EditCameraForm";
 import { DeleteConfirmModal } from "@/app/components/Utilities/AlertsPopup";
 import { Camera } from "@/app/models/cameras.model";
-import { MaintenanceTypeBadge } from "../Badges/MaintenanceTypeBadge"
+import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
+import BadgeCameraType from "../Badges/BadgeCameraType"
 
 type SortKey = "id" | "name" | "status" | "location" | "maintenance";
 type SortOrder = "asc" | "desc" | null;
@@ -30,65 +31,6 @@ type Props = {
   onDelete?: (id: number) => void;
 };
 
-// ---------- TYPE & HEALTH helpers ----------
-const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  fixed: CameraIcon,
-  ptz: Move,
-  panoramic: Scan,
-  thermal: Thermometer,
-};
-function getTypeIcon(typeKey?: string | null) {
-  const key = (typeKey ?? "").toLowerCase();
-  return TYPE_ICON[key] ?? CameraIcon;
-}
-
-const TYPE_STYLES: Record<string, { badge: string; icon: string }> = {
-  fixed: { badge: "border-blue-200 bg-blue-50 text-blue-700", icon: "text-blue-600" },
-  ptz: { badge: "border-amber-200 bg-amber-50 text-amber-700", icon: "text-amber-600" },
-  panoramic: { badge: "border-violet-200 bg-violet-50 text-violet-700", icon: "text-violet-600" },
-  thermal: { badge: "border-rose-200 bg-rose-50 text-rose-700", icon: "text-rose-600" },
-  default: { badge: "border-slate-200 bg-slate-50 text-slate-700", icon: "text-slate-600" },
-};
-function getTypeStyle(typeKey?: string | null) {
-  const k = (typeKey ?? "").toLowerCase();
-  return TYPE_STYLES[k] ?? TYPE_STYLES.default;
-}
-
-type HealthText = string | number | null | undefined;
-const HEALTH_STYLES = {
-  excellent: { badge: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-  good: { badge: "border-green-200 bg-green-50 text-green-700" },
-  fair: { badge: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  degraded: { badge: "border-orange-200 bg-orange-50 text-orange-700" },
-  poor: { badge: "border-amber-200 bg-amber-50 text-amber-700" },
-  critical: { badge: "border-red-200 bg-red-50 text-red-700" },
-  offline: { badge: "border-slate-200 bg-slate-100 text-slate-700" },
-  default: { badge: "border-slate-200 bg-slate-50 text-slate-700" },
-} as const;
-function getHealthStyle(health: HealthText) {
-  if (health === null || health === undefined || health === "") return HEALTH_STYLES.default;
-
-  const n = Number(health);
-  if (!Number.isNaN(n)) {
-    if (n >= 90) return HEALTH_STYLES.excellent;
-    if (n >= 80) return HEALTH_STYLES.good;
-    if (n >= 70) return HEALTH_STYLES.fair;
-    if (n >= 60) return HEALTH_STYLES.degraded;
-    if (n > 0) return HEALTH_STYLES.poor;
-    return HEALTH_STYLES.offline;
-  }
-
-  const key = String(health).toLowerCase();
-  if (["excellent", "very good", "ยอดเยี่ยม"].includes(key)) return HEALTH_STYLES.excellent;
-  if (["good", "healthy", "ดี"].includes(key)) return HEALTH_STYLES.good;
-  if (["fair", "moderate", "พอใช้"].includes(key)) return HEALTH_STYLES.fair;
-  if (["degraded", "warning", "เตือน"].includes(key)) return HEALTH_STYLES.degraded;
-  if (["poor", "bad", "แย่"].includes(key)) return HEALTH_STYLES.poor;
-  if (["critical", "วิกฤติ"].includes(key)) return HEALTH_STYLES.critical;
-  if (["offline", "down", "ออฟไลน์"].includes(key)) return HEALTH_STYLES.offline;
-
-  return HEALTH_STYLES.default;
-}
 // ------------------------------------------
 
 // แปลงค่าจาก query เป็น boolean | null
@@ -119,8 +61,8 @@ export default function CameraTable({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name?: string } | null>(null);
 
-  function openDelete(c: Camera) {
-    setDeleteTarget({ id: c.camera_id!, name: c.camera_name });
+  function openDelete(cam: Camera) {
+    setDeleteTarget({ id: cam.camera_id!, name: cam.camera_name });
     setDeleteOpen(true);
   }
 
@@ -167,25 +109,25 @@ export default function CameraTable({
     }
   };
 
-  // ✅ กรองตาม status จาก URL ก่อน (เทียบกับ c.status แบบ boolean)
+  // ✅ กรองตาม status จาก URL ก่อน (เทียบกับ cam.status แบบ boolean)
   const filtered = useMemo(() => {
     const want = parseStatusParam(statusParam);
     if (want === null) return cameras;
-    return cameras.filter((c) => !!c.camera_status === want);
+    return cameras.filter((cam) => !!cam.camera_status === want);
   }, [cameras, statusParam]);
 
-  const getVal = (c: Camera, key: SortKey) => {
+  const getVal = (cam: Camera, key: SortKey) => {
     switch (key) {
       case "id":
-        return c.camera_id ?? 0;
+        return cam.camera_id ?? 0;
       case "name":
-        return c.camera_name ?? "";
+        return cam.camera_name ?? "";
       case "status":
-        return c.camera_status ? 1 : 0;
+        return cam.camera_status ? 1 : 0;
       case "location":
-        return c.location_name ?? "";
+        return cam.location_name ?? "";
       case "maintenance":
-        return c.maintenance_type ?? "";
+        return cam.maintenance_type ?? "";
       default:
         return "";
     }
@@ -268,52 +210,40 @@ export default function CameraTable({
 
       <EditCameraModal camId={getVal(cameras[0], "id") as number} open={open} setOpen={setOpen} />
       <TableBody>
-        {sorted.map((c) => {
-          const camCode = `CAM${String(c.camera_id).padStart(3, "0")}`;
-          const statusLabel = c.camera_status ? "Active" : "Inactive";
-
-          // Badge สำหรับ Type
-          const TypeIcon = getTypeIcon(c.camera_type);
-          const typeStyle = getTypeStyle(c.camera_type);
-
-          // Badge สำหรับ Health
-          const healthStyle = getHealthStyle(c.maintenance_type);
+        {sorted.map((cam) => {
+          const camCode = `CAM${String(cam.camera_id).padStart(3, "0")}`;
+          const statusLabel = cam.camera_status ? "Active" : "Inactive";
 
           return (
-            <TableRow key={c.camera_id} className="border-b last:border-b-0">
+            <TableRow key={cam.camera_id} className="border-b last:border-b-0">
               <TableCell>{camCode}</TableCell>
 
               <TableCell className="font-medium truncate max-w-[320px]">
                 <div className="flex items-center gap-2">
                   <Icons.Camera className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
-                  <span>{c.camera_name}</span>
+                  <span>{cam.camera_name}</span>
                 </div>
               </TableCell>
 
               <TableCell>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
-                  <span className="truncate max-w-[260px]">{c.location_name ?? "-"}</span>
+                  <span className="truncate max-w-[260px]">{cam.location_name ?? "-"}</span>
                 </div>
               </TableCell>
 
               {/* TYPE: badge + icon + สี */}
               <TableCell>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${typeStyle.badge}`}
-                >
-                  <TypeIcon className={`w-3.5 h-3.5 ${typeStyle.icon}`} />
-                  <span className="capitalize">{c.camera_type || "fixed"}</span>
-                </span>
+                <BadgeCameraType type={cam.camera_type} />
               </TableCell>
 
               {/* STATUS: คงเดิม */}
               <TableCell>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${c.camera_status ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${cam.camera_status ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
                     }`}
                 >
-                  {c.camera_status ? (
+                  {cam.camera_status ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   ) : (
                     <XCircle className="w-3.5 h-3.5" />
@@ -324,14 +254,14 @@ export default function CameraTable({
 
               {/* Last Maintenance */}
               <TableCell>
-                <MaintenanceTypeBadge name={c.maintenance_type} date={c.date_last_maintenance} />
+                <MaintenanceTypeBadge name={cam.maintenance_type} date={cam.date_last_maintenance} />
               </TableCell>
 
               <TableCell className="min-w-[220px]">
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => (onView ? onView(c.camera_id) : router.push(`/cameras/${c.camera_id}`))}
+                    onClick={() => (onView ? onView(cam.camera_id) : router.push(`/cameras/${cam.camera_id}`))}
                     title="View"
                     aria-label="View"
                     className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
@@ -351,7 +281,7 @@ export default function CameraTable({
 
                   <button
                     type="button"
-                    onClick={() => (onDetails ? onDetails(c.camera_id) : router.push(`/cameras/${c.camera_id}/details`))}
+                    onClick={() => (onDetails ? onDetails(cam.camera_id) : router.push(`/cameras/${cam.camera_id}/details`))}
                     title="Details"
                     aria-label="Details"
                     className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
@@ -364,7 +294,7 @@ export default function CameraTable({
                     onClick={() => openDelete(c)}
                     title="Delete"
                     aria-label="Delete"
-                    disabled={busyId === c.camera_id}
+                    disabled={busyId === cam.camera_id}
                     className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-sm bg-white border border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger)] hover:border-[var(--color-danger)] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2"
                   >
                     <Trash2 className="h-4 w-4" />

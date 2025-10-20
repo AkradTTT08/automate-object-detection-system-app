@@ -6,63 +6,9 @@ import { useEffect, useState } from "react";
 import WhepPlayer from "../../components/WhepPlayer";
 import BottomCameraCard from "@/app/components/Utilities/ButtonCameraCard";
 import { Camera } from "@/app/models/cameras.model";
-import { MaintenanceTypeBadge } from "../Badges/MaintenanceTypeBadge"
+import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
 import BadgeError from "../Badges/BadgeError";
-
-// ---------- helpers (เฉพาะที่ใช้งานจริง) ----------
-const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  fixed: CameraIcon,
-  ptz: Move,
-  panoramic: Scan,
-  thermal: Thermometer,
-};
-const TYPE_STYLES: Record<string, { badge: string; icon: string }> = {
-  fixed: { badge: "border-blue-200 bg-blue-50 text-blue-700", icon: "text-blue-600" },
-  ptz: { badge: "border-amber-200 bg-amber-50 text-amber-700", icon: "text-amber-600" },
-  panoramic: { badge: "border-violet-200 bg-violet-50 text-violet-700", icon: "text-violet-600" },
-  thermal: { badge: "border-orange-200 bg-orange-50 text-orange-700", icon: "text-orange-600" },
-  default: { badge: "border-slate-200 bg-slate-50 text-slate-700", icon: "text-slate-600" },
-};
-const HEALTH_STYLES = {
-  excellent: { badge: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-  good: { badge: "border-green-200 bg-green-50 text-green-700" },
-  fair: { badge: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  degraded: { badge: "border-orange-200 bg-orange-50 text-orange-700" },
-  poor: { badge: "border-amber-200 bg-amber-50 text-amber-700" },
-  critical: { badge: "border-red-200 bg-red-50 text-red-700" },
-  offline: { badge: "border-slate-200 bg-slate-100 text-slate-700" },
-  default: { badge: "border-slate-200 bg-slate-50 text-slate-700" },
-} as const;
-
-function getTypeIcon(typeKey?: string | null) {
-  const k = (typeKey ?? "").toLowerCase();
-  return TYPE_ICON[k] ?? CameraIcon;
-}
-function getTypeStyle(typeKey?: string | null) {
-  const k = (typeKey ?? "").toLowerCase();
-  return TYPE_STYLES[k] ?? TYPE_STYLES.default;
-}
-function getHealthStyle(h: number | string | null | undefined) {
-  if (h === null || h === undefined || h === "") return HEALTH_STYLES.default;
-  const n = Number(h);
-  if (!Number.isNaN(n)) {
-    if (n >= 90) return HEALTH_STYLES.excellent;
-    if (n >= 80) return HEALTH_STYLES.good;
-    if (n >= 70) return HEALTH_STYLES.fair;
-    if (n >= 60) return HEALTH_STYLES.degraded;
-    if (n > 0) return HEALTH_STYLES.poor;
-    return HEALTH_STYLES.offline;
-  }
-  const key = String(h).toLowerCase();
-  if (["excellent", "very good", "ยอดเยี่ยม"].includes(key)) return HEALTH_STYLES.excellent;
-  if (["good", "healthy", "ดี"].includes(key)) return HEALTH_STYLES.good;
-  if (["fair", "moderate", "พอใช้"].includes(key)) return HEALTH_STYLES.fair;
-  if (["degraded", "warning", "เตือน"].includes(key)) return HEALTH_STYLES.degraded;
-  if (["poor", "bad", "แย่"].includes(key)) return HEALTH_STYLES.poor;
-  if (["critical", "วิกฤติ"].includes(key)) return HEALTH_STYLES.critical;
-  if (["offline", "down", "ออฟไลน์"].includes(key)) return HEALTH_STYLES.offline;
-  return HEALTH_STYLES.default;
-}
+import BadgeCameraType from "../Badges/BadgeCameraType"
 
 // ---------- component ----------
 export default function CameraCard({ cam }: { cam: Camera }) {
@@ -71,8 +17,6 @@ export default function CameraCard({ cam }: { cam: Camera }) {
 
   const camCode = `CAM${String(cam.camera_id).padStart(3, "0")}`;
   const locationName = cam.location_name ?? "-";
-  const TypeIcon = getTypeIcon(cam.camera_type);
-  const typeStyle = getTypeStyle(cam.camera_type);
 
   const WHEP_BASE = process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889";
   const isRtsp = typeof cam.source_value === "string" && cam.source_value.startsWith("rtsp://");
@@ -81,11 +25,11 @@ export default function CameraCard({ cam }: { cam: Camera }) {
   useEffect(() => { setWebrtcFailed(false); }, []);
   useEffect(() => setWebrtcFailed(false), [cam.camera_id, cam.source_value]);
 
-  const camBorder   = isOnline ? "border-[var(--color-primary)]"     : "border-[var(--color-danger)]";
+  const camBorder = isOnline ? "border-[var(--color-primary)]" : "border-[var(--color-danger)]";
   const camHeaderBG = isOnline ? "bg-[var(--color-primary-bg)] border border-[var(--color-primary)]"
-                               : "bg-[var(--color-danger-bg)] border border-[var(--color-danger)]";
-  const camIconRing = isOnline ? "border-[var(--color-primary)]"     : "border-[var(--color-danger)]";
-  const camIconBG   = isOnline ? "bg-[var(--color-primary)]"         : "bg-[var(--color-danger)]";
+    : "bg-[var(--color-danger-bg)] border border-[var(--color-danger)]";
+  const camIconRing = isOnline ? "border-[var(--color-primary)]" : "border-[var(--color-danger)]";
+  const camIconBG = isOnline ? "bg-[var(--color-primary)]" : "bg-[var(--color-danger)]";
 
   return (
     <div className="relative mt-12">
@@ -137,9 +81,8 @@ export default function CameraCard({ cam }: { cam: Camera }) {
             {camCode}
           </span>
 
-          <span className={`absolute right-3 top-3 rounded-full px-3 py-0.5 text-[11px] font-semibold shadow-sm border ${
-            isOnline ? "bg-emerald-50 text-emerald-700 border-emerald-700" : "bg-red-50 text-red-700 border-red-700"
-          }`}>
+          <span className={`absolute right-3 top-3 rounded-full px-3 py-0.5 text-[11px] font-semibold shadow-sm border ${isOnline ? "bg-emerald-50 text-emerald-700 border-emerald-700" : "bg-red-50 text-red-700 border-red-700"
+            }`}>
             {isOnline ? "Active" : "Inactive"}
           </span>
 
@@ -154,10 +97,7 @@ export default function CameraCard({ cam }: { cam: Camera }) {
           <h3 className="text-base font-semibold text-[var(--color-primary)]">{cam.camera_name}</h3>
 
           <div className="mt-3 flex items-center justify-between">
-              <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${typeStyle.badge}`}>
-                <TypeIcon className={`h-4 w-4 ${typeStyle.icon}`} />
-                {cam.camera_type || "Fixed"}
-              </span>
+            <BadgeCameraType type={cam.camera_type} />
 
             <MaintenanceTypeBadge name={cam.maintenance_type} date={cam.date_last_maintenance} />
           </div>
