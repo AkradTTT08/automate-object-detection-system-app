@@ -389,6 +389,12 @@ export default function
 
             {/* Footer ของ Modal ฟอร์ม */}
             <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={submitting}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                Cancel
+              </AlertDialogCancel>
               <Button
                 type="button"
                 onClick={handleOpenAuth}
@@ -397,12 +403,6 @@ export default function
               >
                 Add Camera
               </Button>
-              <AlertDialogCancel
-                disabled={submitting}
-                className="border-gray-300 hover:bg-gray-50"
-              >
-                Cancel
-              </AlertDialogCancel>
             </AlertDialogFooter>
           </form>
         </AlertDialogContent>

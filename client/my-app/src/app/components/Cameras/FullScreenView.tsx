@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Camera } from "@/app/Models/cameras.model";
+import { Camera } from "@/app/models/cameras.model";
 import { ArrowLeft, Camera as CameraIcon, Settings, TriangleAlert, MoreVertical } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,10 +20,12 @@ import WhepPlayer from "../../components/WhepPlayer";
 import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
 import BadgeCameraType from "../Badges/BadgeCameraType"
 import BadgeError from "../Badges/BadgeError"
+import EditCameraModal from "../Forms/EditCameraForm";
 
 export default function FullScreenView({ camera }: { camera: Camera | Camera[] }) {
     const [currentCamera, setCurrentCamera] = useState<Camera>(() => Array.isArray(camera) ? camera[0] : camera);
     const [open, setOpen] = useState(false);
+    const [openAlert, setOpenAlert] = useState(false);
 
     const containerRef = useRef<HTMLDivElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -32,12 +34,31 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
     const imageSrc = "/library-room.jpg";
     const camCode = `CAM${String(currentCamera.camera_id).padStart(3, "0")}`;
 
+    // ด้านบนไฟล์ (ใกล้ ๆ useState อื่น ๆ)
+    const [webrtcFailed, setWebrtcFailed] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
+
+    const isOnline = !!currentCamera.camera_status;
+    const isRtsp = (currentCamera.source_type || "").toLowerCase() === "rtsp";
+
+    // ถ้ากล้องเปลี่ยน ให้ reset สถานะ fail
+    // (กันเคสกล้องก่อนหน้าล้มแล้วค้าง)
+    useEffect(() => {
+        setWebrtcFailed(false);
+        setImageFailed(false);
+    }, [currentCamera?.camera_id]);
+
+
     function onBack() {
         window.history.back();
     }
 
     const goEdit = () => {
         setOpen(true);
+    };
+
+    const goAlert = () => {
+        setOpenAlert(true);
     };
 
     const handleCapture = useCallback(async () => {
@@ -76,8 +97,25 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
         ctx.restore();
 
         const ts = new Date();
-        const stamp = ts.toISOString().replace(/[:.]/g, "-");
-        const filename = `${camCode}_${stamp}.png`;
+
+        // ✅ แปลงเวลาให้อยู่ในโซน "Asia/Bangkok"
+        const bangkokDate = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Bangkok",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+        }).format(ts);
+        // จะได้ "2025-10-26, 14:45:32"
+        const [datePart, timePart] = bangkokDate.split(", ");
+
+        const safeLocation = (currentCamera.location_name || "Unknown")
+            .replace(/\s+/g, "")      // ตัดช่องว่างทั้งหมด
+            .replace(/[^A-Za-z0-9_-]/g, ""); // กันอักขระพิเศษที่ผิดกฎชื่อไฟล์
+        const filename = `${safeLocation}_${camCode}_${datePart}_${timePart.replace(/:/g, "-")}.png`;
 
         canvas.toBlob((blob) => {
             if (!blob) return;
@@ -122,14 +160,23 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                 {/* กรอบแสดงวิดีโอ/ภาพ */}
                 <div
                     ref={containerRef}
-                    className="relative aspect-video mb-3 rounded-md"
+                    className="relative aspect-video mb-3 rounded-md"  // ✅ ขนาด/อัตราส่วนเดิม
                 >
-                    {currentCamera.camera_status ? (
+                    {isOnline && isRtsp && !webrtcFailed ? (
                         <WhepPlayer
-                            ref={videoRef}   // ✅ forwardRef จาก WhepPlayer
+                            key={currentCamera.camera_id}
+                            ref={videoRef} // ✅ forwardRef จาก WhepPlayer
                             camAddressRtsp={currentCamera.source_value}
                             webrtcBase={process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889"}
-                            onFailure={() => console.error("WHEP connection failed")}
+                            onFailure={() => setWebrtcFailed(true)}
+                        />
+                    ) : isOnline ? (
+                        <img
+                            ref={imgRef}
+                            src={imageSrc} // e.g. "/library-room.jpg"
+                            alt={currentCamera.camera_name}
+                            className="absolute inset-0 h-full w-full object-cover rounded-md"
+                            onError={() => setImageFailed(true)}
                         />
                     ) : (
                         <img
@@ -184,7 +231,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                                         <TooltipTrigger asChild>
                                             <Button
                                                 type="button"
-                                                disabled
+                                                onClick={goEdit}
                                                 className="shrink-0 bg-white text-[var(--color-primary)] border
                                                   border-[var(--color-primary-bg)] hover:bg-[var(--color-primary-bg)]
                                                   px-3 py-2 rounded-md flex items-center gap-2"
@@ -202,7 +249,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                                         <TooltipTrigger asChild>
                                             <Button
                                                 type="button"
-                                                onClick={goEdit}
+                                                onClick={goAlert}
                                                 className="shrink-0 bg-[var(--color-danger)] text-white hover:bg-[var(--color-danger-hard)]
                                                   px-3 py-2 rounded-md flex items-center gap-2"
                                             >
@@ -232,12 +279,12 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                                             <CameraIcon className="mr-2 h-4 w-4" />
                                             <span>Snapshot</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem disabled>
+                                        <DropdownMenuItem onClick={goEdit}>
                                             <Settings className="mr-2 h-4 w-4" />
                                             <span>Settings</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                            onClick={goEdit}
+                                            onClick={goAlert}
                                             className="text-[var(--color-danger)] focus:text-[var(--color-danger)]"
                                         >
                                             <TriangleAlert className="mr-2 h-4 w-4" />
@@ -292,7 +339,8 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                 </Table>
             </div>
 
-            <CreateAlertForm camera={currentCamera} open={open} setOpen={setOpen} />
+            <CreateAlertForm camera={currentCamera} open={openAlert} setOpen={setOpenAlert} />
+            <EditCameraModal camId={currentCamera.camera_id} open={open} setOpen={setOpen} />
         </div>
     );
 }
