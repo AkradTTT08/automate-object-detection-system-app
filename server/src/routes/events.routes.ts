@@ -31,14 +31,21 @@ const router = Router();
 // router.get("/stats", ctrl.stats);
 
 /* ---------- Collection ---------- */
-router.get("/", ctrl.index);
-router.post("/", ctrl.store);
+router.get("/", ctrl.getEvents); // ✅
+router.post("/", ctrl.createEvent); // ✅
+router.get("/global", ctrl.getGlobalEvents); // ✅
+// router.post("/", ctrl.store);
 
 /* ---------- Item ---------- */
-router.get("/:evt_id", ctrl.show);
-router.patch("/:evt_id", ctrl.update);
-router.put("/:evt_id", ctrl.update);
-router.patch("/:evt_id/soft-delete", ctrl.softDelete);
+router.get("/:evt_id", ctrl.getEventById); // ✅
+router.put("/:evt_id", ctrl.updateEvent); // ✅
+router.patch("/:evt_id", ctrl.softDeleteEvent); // ✅
+router.get("/:evt_id/global", ctrl.getGlobalEventById); // ✅
+router.put("/:evt_id/global", ctrl.updateGlobalEvent); // ✅
+
+// router.patch("/:evt_id", ctrl.update);
+// router.put("/:evt_id", ctrl.update);
+// router.patch("/:evt_id/soft-delete", ctrl.softDelete);
 // router.patch("/:evt_id/restore", ctrl.restore);
 // router.delete("/:evt_id", ctrl.destroy);
 

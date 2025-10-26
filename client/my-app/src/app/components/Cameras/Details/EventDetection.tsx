@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Camera } from "@/app/models/cameras.model";
+import DynamicLucideIcon from "@/app/components/Utilities/DynamicLucide";
 
 /* =============== Severity styles (no icons) =============== */
 const SEVERITY_STYLES = {
@@ -237,7 +238,7 @@ export default function EventDetectionTable({ camera }: { camera: Camera }) {
                 <TableCell>
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="shrink-0 grid place-items-center h-9 w-9 rounded-full border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5">
-                      <LucideByName name={ev.evt_icon} className="w-4 h-4 text-[var(--color-primary)]" />
+                      <DynamicLucideIcon name={ev.evt_icon} className="w-4 h-4 text-[var(--color-primary)]" />
                     </span>
                     <span className="text-sm text-slate-800 truncate">{ev.name}</span>
                   </div>

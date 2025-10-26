@@ -100,6 +100,8 @@ export default function BottomCameraCard({
   const activeRed =
     "text-[var(--color-danger)] shadow-[inset_0_0_0_2px_var(--color-danger)]";
 
+  const camCode = `CAM${String(camId).padStart(3, "0")}`;
+
   return (
     <div className={wrap} role="group" aria-label="Camera actions">
       {/* View */}
@@ -146,8 +148,8 @@ export default function BottomCameraCard({
 
       {/* Delete */}
       <DeleteConfirmModal
-        title="Delete Camera?"
-        description={`This will remove ${camName || `camera ID: ${camId}`}. This action cannot be undone.`}
+        title={`Delete Camera – ${camName} (#${camCode})`}
+        description={`This will remove this camera from the system. This action cannot be undone.`}
         confirmWord={camName || undefined}
         confirmText={busyDelete ? "Deleting..." : "Delete"}
         onConfirm={async () => {
@@ -155,7 +157,7 @@ export default function BottomCameraCard({
         }}
         trigger={
           <button
-            type="button"
+            type="button" 
             disabled={busyDelete}
             className={`${btnTrash} ${hoverRed} ${active === "delete" ? activeRed : ""}`}
             title="Delete"

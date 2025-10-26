@@ -234,7 +234,7 @@ export default function
             className="bg-[#0077FF] text-white hover:bg-[#0063d6]"
           >
             <Cctv size={16} />
-            Add Camera
+            Add New Camera
           </Button>
         </AlertDialogTrigger>
 
@@ -401,7 +401,7 @@ export default function
                 disabled={submitting}
                 className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-secondary)] px-4 py-2 rounded-md disabled:opacity-50"
               >
-                Add Camera
+                Add New
               </Button>
             </AlertDialogFooter>
           </form>

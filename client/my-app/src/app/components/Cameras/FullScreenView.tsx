@@ -232,15 +232,14 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                                             <Button
                                                 type="button"
                                                 onClick={goEdit}
-                                                className="shrink-0 bg-white text-[var(--color-primary)] border
-                                                  border-[var(--color-primary-bg)] hover:bg-[var(--color-primary-bg)]
+                                                className="shrink-0 bg-[var(--color-primary)] text-white hover:bg-[var(--color-secondary)]
                                                   px-3 py-2 rounded-md flex items-center gap-2"
                                             >
                                                 <Settings className="w-4 h-4" />
                                                 <span>Settings</span>
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent side="bottom">Configure camera (coming soon)</TooltipContent>
+                                        <TooltipContent side="bottom">Settings camera</TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
 
@@ -293,6 +292,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
+
                         </div>
                     </div>
                 </div>

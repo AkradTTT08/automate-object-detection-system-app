@@ -259,16 +259,18 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
     }
   }
 
+  const camCode = `CAM${String(camId).padStart(3, "0")}`;
+
   /* --------------------------------- UI --------------------------------- */
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent className="!top-[40%] !-translate-y-[40%] max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[var(--color-primary)]">
-            Edit Camera #{camId}
+            Settings – {form.camera_name} (#{camCode})
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Fill in the details and click Save.
+            Adjust camera configurations and click Save.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
