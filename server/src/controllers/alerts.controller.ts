@@ -14,6 +14,18 @@ export async function getAlerts(req: Request, res: Response, next: NextFunction)
 }
 
 // ✅
+export async function getAlertById(req: Request, res: Response, next: NextFunction) {
+    try {
+        const alert_id = Number(req.params.alr_id);
+        const list = await AlertService.getAlertById(alert_id);
+        
+        return res.status(200).json({ message: 'Fetched successfully', data: list });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
 export async function createAlert(req: Request, res: Response, next: NextFunction) {
     try {
         const { 

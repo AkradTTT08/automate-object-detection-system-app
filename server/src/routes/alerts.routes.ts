@@ -72,6 +72,8 @@ router.get("/:alr_id/logs", ctrl.indexLogs);
 router.get("/", ctrl.getAlerts); // ✅
 router.post("/", ctrl.createAlert); // ✅
 
+router.get("/:alr_id", ctrl.getAlertById); // ✅
+
 /* ---------- Item ---------- */
 // router.get("/:alr_id", ctrl.show);
 router.patch("/:alr_id", ctrl.update);

@@ -9,8 +9,19 @@ export async function getAlerts() {
         ORDER BY created_at DESC;
     `);
 
-    return rows
+    return rows;
 }
+
+// ✅
+export async function getAlertById(alr_id: number) {
+    const { rows } = await pool.query(`
+        SELECT * FROM v_alerts_overview
+        WHERE alert_id = $1;
+    `, [alr_id]);
+
+    return rows[0];
+}
+
 
 // ✅
 export async function insertAlert(

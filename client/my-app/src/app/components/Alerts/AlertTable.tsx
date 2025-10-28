@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -216,6 +217,16 @@ type SortOrder = "asc" | "desc" | null;
 export default function AlertTable({ alerts }: { alerts: Alert[] }) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
+  const router = useRouter();
+
+  const viewAlert = (id: number) =>
+    router.push(`/alerts/${encodeURIComponent(String(id))}/details`);
+
+  const resolveAlert = (id: number) =>
+    router.push(`/alerts/${encodeURIComponent(String(id))}/resolve`);
+
+  const dismissAlert = (id: number) =>
+    router.push(`/alerts/${encodeURIComponent(String(id))}/dismiss`);
 
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
@@ -328,9 +339,9 @@ export default function AlertTable({ alerts }: { alerts: Alert[] }) {
               <TableCell className="whitespace-nowrap">
                 <ActionBar
                   status={alr.status}
-                  onView={() => console.log("view", alr.id)}
-                  onResolve={() => console.log("resolve", alr.id)}
-                  onDismiss={() => console.log("dismiss", alr.id)}
+                  onView={() => viewAlert(alr.id)}
+                  onResolve={() => resolveAlert(alr.id)}
+                  onDismiss={() => dismissAlert(alr.id)}
                 />
               </TableCell>
             </TableRow>
