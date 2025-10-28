@@ -24,7 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type SortKey = "id" | "name" | "status" | "location" | "maintenance";
+type SortKey = "id" | "name" | "status" | "location" | "type" | "maintenance";
 type SortOrder = "asc" | "desc" | null;
 
 type ActionActive = "view" | "edit" | "details" | "delete";
@@ -56,17 +56,17 @@ function IconAction({
   const palette =
     variant === "danger"
       ? {
-          border: "border-[var(--color-danger)]",
-          text: "text-[var(--color-danger)]",
-          hoverBg: "hover:bg-[var(--color-danger)]",
-          focusRing: "focus:ring-[var(--color-danger)]",
-        }
+        border: "border-[var(--color-danger)]",
+        text: "text-[var(--color-danger)]",
+        hoverBg: "hover:bg-[var(--color-danger)]",
+        focusRing: "focus:ring-[var(--color-danger)]",
+      }
       : {
-          border: "border-[var(--color-primary)]",
-          text: "text-[var(--color-primary)]",
-          hoverBg: "hover:bg-[var(--color-primary)]",
-          focusRing: "focus:ring-[var(--color-primary)]",
-        };
+        border: "border-[var(--color-primary)]",
+        text: "text-[var(--color-primary)]",
+        hoverBg: "hover:bg-[var(--color-primary)]",
+        focusRing: "focus:ring-[var(--color-primary)]",
+      };
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -199,8 +199,13 @@ export default function CameraTable({
       case "name": return cam.camera_name ?? "";
       case "status": return cam.camera_status ? 1 : 0;
       case "location": return cam.location_name ?? "";
-      case "maintenance": return cam.maintenance_type ?? "";
-      default: return "";
+      case "type": return cam.camera_type ?? "";
+      case "maintenance":
+        return cam.date_last_maintenance
+          ? new Date(cam.date_last_maintenance).getTime()
+          : 0;
+      default:
+        return "";
     }
   };
 
@@ -256,9 +261,13 @@ export default function CameraTable({
             </div>
           </TableHead>
 
-          <TableHead className="text-[var(--color-primary)]">
+          <TableHead
+            onClick={() => handleSort("type")}
+            className="cursor-pointer select-none text-[var(--color-primary)]"
+          >
             <div className="flex items-center justify-between pr-3 border-r border-[var(--color-primary)] w-full">
               <span>Type</span>
+              {renderSortIcon("type")}
             </div>
           </TableHead>
 
@@ -311,9 +320,8 @@ export default function CameraTable({
 
               <TableCell>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    cam.camera_status ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-                  }`}
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${cam.camera_status ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+                    }`}
                 >
                   {cam.camera_status ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />

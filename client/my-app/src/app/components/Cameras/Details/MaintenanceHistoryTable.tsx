@@ -43,7 +43,7 @@ type Row = {
   notes: string;
 };
 
-type SortKey = "id" | "date" | "type" | "technician";
+type SortKey = "id" | "date" | "type" | "technician" | "notes";
 type SortOrder = "asc" | "desc" | null;
 
 /* =========================================================
@@ -617,8 +617,14 @@ export default function CameraMaintenance({ camera }: { camera: Camera }) {
                   {renderSortIcon("technician")}
                 </div>
               </TableHead>
-              <TableHead className="text-[var(--color-primary)] text-[12px] text-left font-medium">
-                Notes
+              <TableHead
+                onClick={() => handleSort("notes")}
+                className="cursor-pointer select-none text-[var(--color-primary)] w-[24rem]"
+              >
+                <div className="flex items-center justify-between pr-3 border-r border-[var(--color-primary)] w-full">
+                  <span>Notes</span>
+                  {renderSortIcon("notes")}
+                </div>
               </TableHead>
               <TableHead className="w-[96px] text-[var(--color-primary)] text-left font-medium">Actions</TableHead>
             </TableRow>
@@ -651,8 +657,8 @@ export default function CameraMaintenance({ camera }: { camera: Camera }) {
                       <span>{rec.technician}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-2 py-3 whitespace-pre-wrap break-words align-top text-left">
-                    {rec.notes}
+                  <TableCell className="px-2 py-3 align-top text-left whitespace-pre-wrap break-words max-w-[24rem] leading-snug">
+                    {rec.notes || "-"}
                   </TableCell>
 
                   <TableCell className="px-2 py-3 align-top text-left">
