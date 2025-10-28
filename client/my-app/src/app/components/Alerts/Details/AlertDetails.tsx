@@ -9,6 +9,9 @@ import { ArrowLeft } from "lucide-react";
 // ⬇️ ใช้คอมโพเนนต์ที่แยกไว้
 import AlertFootageCard from "@/app/components/Alerts/Details/AlertFootageCard";
 import AlertMetaCard from "@/app/components/Alerts/Details/AlertMetaCard";
+import EventTimeline from "@/app/components/Alerts/Details/EventTimeline";
+import RelatedAlerts from "@/app/components/Alerts/Details/RelatedAlerts";
+import Notes from "./Notes";
 
 export default function AlertDetails({ alert }: { alert: Alert }) {
   const [currentAlert] = useState(alert);
@@ -81,13 +84,13 @@ export default function AlertDetails({ alert }: { alert: Alert }) {
           </div>
 
           <TabsContent value="timeline" className="px-4 py-2 text-sm text-gray-600">
-            No timeline yet.
+            <EventTimeline alrId={currentAlert.alert_id} />
           </TabsContent>
           <TabsContent value="related" className="px-4 py-2 text-sm text-gray-600">
-            No related alerts.
+            <RelatedAlerts alrId={currentAlert.alert_id} />
           </TabsContent>
           <TabsContent value="notes" className="px-4 py-2 text-sm text-gray-600">
-            No notes yet.
+            <Notes alrId={currentAlert.alert_id} />
           </TabsContent>
         </Tabs>
       </div>

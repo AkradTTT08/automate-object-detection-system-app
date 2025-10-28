@@ -27,6 +27,7 @@ import register from './register.routes';
 import alerts from './alerts.routes';
 import events from './events.routes';
 import locations from './location.route';
+import users from './users.route';
 
 import { authenticateToken } from '../controllers/auth.controller';
 
@@ -49,5 +50,7 @@ router.use('/events', events);
 
 // Others routes
 router.use('/locations', locations);
+router.use('/users', users);
+
 
 export default router;

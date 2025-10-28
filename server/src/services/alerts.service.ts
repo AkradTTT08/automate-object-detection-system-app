@@ -13,13 +13,129 @@ export async function getAlerts() {
 }
 
 // ✅
-export async function getAlertById(alr_id: number) {
+export async function getAlertById(alert_id: number) {
     const { rows } = await pool.query(`
         SELECT * FROM v_alerts_overview
         WHERE alert_id = $1;
-    `, [alr_id]);
+    `, [alert_id]);
 
     return rows[0];
+}
+
+// ✅
+export async function getAlertLogs(alert_id: number) {
+    const { rows } = await pool.query(`
+        SELECT
+            alg_id, 
+            alg_usr_id,
+            usr_username,
+            usr_name,
+            rol_name,
+            alg_alr_id, 
+            alg_action, 
+            alg_created_at
+        FROM alert_logs
+        JOIN users ON alg_usr_id = usr_id
+        JOIN roles ON usr_rol_id = rol_id
+        WHERE alg_alr_id = $1;
+    `, [alert_id]);
+
+    return rows.map(Mapping.mapLogsToSaveResponse);
+}
+
+// ✅
+export async function getAlertRelated(alert_id: number) {
+    const event_name_result = await pool.query(`
+        SELECT event_name 
+        FROM v_alerts_overview
+        WHERE alert_id = $1;
+    `, [alert_id]);
+
+    const { rows } = await pool.query(`
+        SELECT * FROM v_alerts_overview
+        WHERE event_name = $1
+        ORDER BY created_at DESC;
+    `, [event_name_result.rows[0].event_name]);
+
+    return rows;
+}
+
+// ✅
+export async function getAlertNotes(alert_id: number) {
+    const { rows } = await pool.query(`
+        SELECT
+            anh_id, 
+            anh_usr_id,
+            usr_username,
+            usr_name,
+            rol_name,
+            anh_alr_id, 
+            anh_note, 
+            anh_created_at, 
+            anh_updated_at
+        FROM alert_note_history
+        JOIN users ON anh_usr_id = usr_id
+        JOIN roles ON usr_rol_id = rol_id
+        WHERE anh_alr_id = $1
+        AND anh_is_use = true
+        ORDER BY anh_created_at DESC;
+    `, [alert_id]);
+
+    return rows.map(Mapping.mapNotesToSaveResponse);
+}
+
+// ✅
+export async function insertAlertNote(
+    user_id: number, 
+    alert_id: number, 
+    note: string
+){
+    const { rows } = await pool.query(`
+        INSERT INTO alert_note_history(
+            anh_usr_id,
+            anh_alr_id,
+            anh_note,
+            anh_created_at,
+            anh_updated_at
+        ) VALUES($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING *;
+    `, [user_id, alert_id, note]);
+
+    return Mapping.mapNotesToSaveResponse(rows[0]);
+}
+
+// ✅
+export async function updateAlertNote(
+    user_id: number,
+    note_id: number, 
+    note: string
+){
+    const { rows } = await pool.query(`
+        UPDATE alert_note_history
+        SET 
+            anh_note = $1,
+            anh_updated_at = CURRENT_TIMESTAMP
+        WHERE anh_id = $2
+        RETURNING *;
+    `, [note, note_id]);
+
+    return Mapping.mapNotesToSaveResponse(rows[0]);
+}
+
+// ✅
+export async function removeAlertNote(
+    note_id: number
+){
+    const { rows } = await pool.query(`
+        UPDATE alert_note_history
+        SET
+            anh_is_use = false,
+            anh_updated_at = CURRENT_TIMESTAMP
+        WHERE anh_id = $1
+        RETURNING *;
+    `, [note_id]);
+
+    return Mapping.mapNotesToSaveResponse(rows[0]);
 }
 
 
@@ -50,6 +166,20 @@ export async function insertAlert(
         severity, 
         description
     ]);
+
+    const log = await pool.query(`
+      INSERT INTO alert_logs(
+        alg_usr_id, 
+        alg_alr_id, 
+        alg_action, 
+        alg_created_at
+      )
+      VALUES($1, $2, $3, CURRENT_TIMESTAMP);
+    `,[
+        user_id,
+        rows[0].alr_id,
+        'CREATE',
+      ]);
 
     return Mapping.mapAlertToSaveResponse(rows[0]);
 }
@@ -120,17 +250,17 @@ export async function countStatusAlerts(): Promise<Model.AlertStatus> {
  * 
  * @author Wanasart
  */
-export async function getAlertLogs(alr_id: number): Promise<Model.Log> {
-    const { rows } = await pool.query(
-        `SELECT loa_id, loa_event_name, loa_create_date, loa_user_id
-       FROM log_alerts
-       WHERE loa_alert_id = $1
-       ORDER BY loa_create_date DESC`,
-        [alr_id]
-    );
+// export async function getAlertLogs(alr_id: number): Promise<Model.Log> {
+//     const { rows } = await pool.query(
+//         `SELECT loa_id, loa_event_name, loa_create_date, loa_user_id
+//        FROM log_alerts
+//        WHERE loa_alert_id = $1
+//        ORDER BY loa_create_date DESC`,
+//         [alr_id]
+//     );
 
-    return { alert_id: alr_id, log: rows.map(Mapping.mapRowToLogItem) };
-}
+//     return { alert_id: alr_id, log: rows.map(Mapping.mapRowToLogItem) };
+// }
 
 /**
  * ดึงรายการ Alert ที่เกี่ยวข้องกับ Event ตามรหัส evt_id ที่กำหนด
@@ -140,16 +270,16 @@ export async function getAlertLogs(alr_id: number): Promise<Model.Log> {
  * 
  * @author Wanasart
  */
-export async function getAlertRelated(evt_id: number): Promise<Model.Related> {
-    const { rows } = await pool.query(`
-        SELECT * FROM alerts
-        WHERE alr_event_id = $1 
-        AND alr_is_use = true 
-        AND alr_status != 'Active'
-    `, [evt_id]);
+// export async function getAlertRelated(evt_id: number): Promise<Model.Related> {
+//     const { rows } = await pool.query(`
+//         SELECT * FROM alerts
+//         WHERE alr_event_id = $1 
+//         AND alr_is_use = true 
+//         AND alr_status != 'Active'
+//     `, [evt_id]);
 
-    return { event_id: evt_id, alert: rows.map(Mapping.mapRowToAlertItem) };
-}
+//     return { event_id: evt_id, alert: rows.map(Mapping.mapRowToAlertItem) };
+// }
 
 /**
  * ดึงหมายเหตุของ Alert ตามรหัส alr_id ที่กำหนด
@@ -159,15 +289,15 @@ export async function getAlertRelated(evt_id: number): Promise<Model.Related> {
  * 
  * @author Wanasart
  */
-export async function getAlertNotes(alr_id: number): Promise<Model.Note> {
-    const { rows } = await pool.query(`
-        SELECT * FROM alert_note_history
-        WHERE anh_alert_id = $1
-        AND anh_is_use = true
-    `, [alr_id]);
+// export async function getAlertNotes(alr_id: number): Promise<Model.Note> {
+//     const { rows } = await pool.query(`
+//         SELECT * FROM alert_note_history
+//         WHERE anh_alert_id = $1
+//         AND anh_is_use = true
+//     `, [alr_id]);
 
-    return { alert_id: alr_id, notes: rows.map(Mapping.mapRowToNoteItem) };
-}
+//     return { alert_id: alr_id, notes: rows.map(Mapping.mapRowToNoteItem) };
+// }
 
 /**
  * ดึงแนวโน้มของ Alert ตามวันที่และความรุนแรงในช่วงวันที่ที่กำหนด

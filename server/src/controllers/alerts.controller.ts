@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as AlertService from "../services/alerts.service";
+import { stringify } from "querystring";
 
 
 // ✅
@@ -20,6 +21,94 @@ export async function getAlertById(req: Request, res: Response, next: NextFuncti
         const list = await AlertService.getAlertById(alert_id);
         
         return res.status(200).json({ message: 'Fetched successfully', data: list });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
+export async function getAlertLogs(req: Request, res: Response, next: NextFunction) {
+    try {
+        const alert_id = Number(req.params.alr_id);
+        const logs = await AlertService.getAlertLogs(alert_id);
+        
+        return res.status(200).json({ message: 'Fetched successfully', data: logs });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
+export async function getAlertRelated(req: Request, res: Response, next: NextFunction) {
+    try {
+        const alert_id = Number(req.params.alr_id);
+        const related = await AlertService.getAlertRelated(alert_id);
+        
+        return res.status(200).json({ message: 'Fetched successfully', data: related });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
+export async function getAlertNotes(req: Request, res: Response, next: NextFunction) {
+    try {
+        const alert_id = Number(req.params.alr_id);
+        const notes = await AlertService.getAlertNotes(alert_id);
+        
+        return res.status(200).json({ message: 'Fetched successfully', data: notes });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
+export async function createAlertNote(req: Request, res: Response, next: NextFunction) {
+    try {
+        const alert_id = Number(req.params.alr_id);
+        const { 
+            user_id, 
+            note 
+        } = req.body;
+
+        const newNote = await AlertService.insertAlertNote(
+            user_id, 
+            alert_id, note
+        );
+        
+        return res.status(201).json({ message: 'Created successfully', data: newNote });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
+export async function updateAlertNote(req: Request, res: Response, next: NextFunction) {
+    try {
+        const note_id = Number(req.params.anh_id);
+        const { 
+            user_id, 
+            note 
+        } = req.body;
+
+        const newNote = await AlertService.updateAlertNote( 
+            user_id, 
+            note_id, note
+        );
+
+        return res.status(200).json({ message: 'Updated successfully', data: newNote });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// ✅
+export async function softDeleteAlertNote(req: Request, res: Response, next: NextFunction) {
+    try {
+        const note_id = Number(req.params.anh_id);
+        const newNote = await AlertService.removeAlertNote(note_id);
+
+        return res.status(200).json({ message: 'Deleted successfully', data: newNote });
     } catch (err) {
         next(err);
     }
@@ -103,18 +192,18 @@ export async function status(req: Request, res: Response, next: NextFunction) {
  *
  * @author Wanasart
  */
-export async function indexLogs(req: Request, res: Response, next: NextFunction) {
-    try {
-        const alr_id = Number(req.params.alr_id);
-        if (isNaN(alr_id)) {
-            return res.status(400).json({ error: "Invalid alert ID" });
-        }
-        const logAlerts = await AlertService.getAlertLogs(alr_id);
-        res.json(logAlerts);
-    } catch (err) {
-        next(err);
-    }
-}
+// export async function indexLogs(req: Request, res: Response, next: NextFunction) {
+//     try {
+//         const alr_id = Number(req.params.alr_id);
+//         if (isNaN(alr_id)) {
+//             return res.status(400).json({ error: "Invalid alert ID" });
+//         }
+//         const logAlerts = await AlertService.getAlertLogs(alr_id);
+//         res.json(logAlerts);
+//     } catch (err) {
+//         next(err);
+//     }
+// }
 
 /**
  * Controller: ดึง alerts ที่เกี่ยวข้องกับ Event ที่กำหนด

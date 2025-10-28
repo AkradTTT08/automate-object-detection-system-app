@@ -59,25 +59,31 @@ router.get("/analytics/distribution", ctrl.distributionAnalytics);
 router.get("/by-event/:evt_id", ctrl.indexByEvent);               // ชั่วคราว; แนะนำย้ายไป /api/events/:evt_id/alerts
 
 /* ---------- Notes (subresource) ---------- */
-router.get("/:alr_id/notes", ctrl.indexNotes);
+router.get("/:alr_id/notes", ctrl.getAlertNotes); // ✅
 // router.post("/:alr_id/notes", ctrl.storeNote);
 // router.patch("/:alr_id/notes/:note_id", ctrl.updateNote);
 // router.patch("/:alr_id/notes/:note_id/soft-delete", ctrl.softDeleteNote);
 // router.patch("/:alr_id/notes/:note_id/restore", ctrl.restoreNote);
 
 /* ---------- Logs (subresource: read-only) ---------- */
-router.get("/:alr_id/logs", ctrl.indexLogs);
+// router.get("/:alr_id/logs", ctrl.indexLogs);
 
 /* ---------- Collection ---------- */
 router.get("/", ctrl.getAlerts); // ✅
 router.post("/", ctrl.createAlert); // ✅
 
 router.get("/:alr_id", ctrl.getAlertById); // ✅
+router.get("/:alr_id/logs", ctrl.getAlertLogs); // ✅
+router.get("/:alr_id/related", ctrl.getAlertRelated); // ✅
+
+router.post("/:alr_id/notes", ctrl.createAlertNote); // ✅
+router.put("/notes/:anh_id", ctrl.updateAlertNote); // ✅
+router.patch("/notes/:anh_id", ctrl.softDeleteAlertNote); // ✅
 
 /* ---------- Item ---------- */
 // router.get("/:alr_id", ctrl.show);
-router.patch("/:alr_id", ctrl.update);
-router.patch("/:alr_id/soft-delete", ctrl.softDelete);
+// router.patch("/:alr_id", ctrl.update);
+// router.patch("/:alr_id/soft-delete", ctrl.softDelete);
 // router.patch("/:alr_id/restore", ctrl.restore);
 // router.delete("/:alr_id", ctrl.destroy); // optional
 
