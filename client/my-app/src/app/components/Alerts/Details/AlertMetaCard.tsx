@@ -1,7 +1,7 @@
 "use client";
 
 import { Camera, MapPin, Clock3, User, FileVideo } from "lucide-react";
-import DynamicLucideIcon from "@/app/components/Utilities/DynamicLucide"; // ← ปรับ path ให้ตรงโปรเจกต์คุณ
+import DynamicLucideIcon from "@/app/components/Utilities/DynamicLucide"; // ปรับพาธให้ตรงโปรเจกต์คุณ
 import { TriangleAlert, CircleAlert, Minus, ArrowDown } from "lucide-react";
 
 type Props = {
@@ -26,9 +26,9 @@ function SeverityBadge({ value }: { value?: string }) {
   const v = (value ?? "").toLowerCase();
   const map: Record<string, { cls: string; Icon: any; label: string }> = {
     critical: { cls: "bg-rose-50 text-rose-700 ring-rose-200", Icon: TriangleAlert, label: "Critical" },
-    high:     { cls: "bg-orange-50 text-orange-700 ring-orange-200", Icon: CircleAlert, label: "High" },
-    medium:   { cls: "bg-yellow-50 text-yellow-700 ring-yellow-200", Icon: Minus, label: "Medium" },
-    low:      { cls: "bg-emerald-50 text-emerald-700 ring-emerald-200", Icon: ArrowDown, label: "Low" },
+    high:     { cls: "bg-orange-50 text-orange-700 ring-orange-200", Icon: CircleAlert,   label: "High" },
+    medium:   { cls: "bg-yellow-50 text-yellow-700 ring-yellow-200", Icon: Minus,          label: "Medium" },
+    low:      { cls: "bg-emerald-50 text-emerald-700 ring-emerald-200", Icon: ArrowDown,   label: "Low" },
   };
   const { cls, Icon, label } = map[v] ?? { cls: "bg-slate-50 text-slate-700 ring-slate-200", Icon: CircleAlert, label: value ?? "Unknown" };
   return (
@@ -54,24 +54,28 @@ function StatusBadge({ value }: { value?: string }) {
 
 /* ---------- component ---------- */
 export default function AlertMetaCard({ alert, title = "Alert Details" }: Props) {
-  const alertId = Number(alert?.alert_id ?? alert?.id ?? 0);
-  const altCode = `ALT${String(alertId).padStart(3, "0")}`;
-  const fgtCode = `FGT${String(alert?.footage_id).padStart(3, "0")}`;
+  const alertId      = Number(alert?.alert_id ?? alert?.id ?? 0);
+  const altCode      = `ALT${String(alertId).padStart(3, "0")}`;
+  const fgtCode      = alert?.footage_id != null ? `FGT${String(alert?.footage_id).padStart(3, "0")}` : "-";
 
-  const createdAt = alert?.created_at;
-  const status    = alert?.alert_status;
-  const severity  = alert?.severity;
-  const camName   = alert?.camera_name;
-  const locName   = alert?.location_name;
-  const eventName = alert?.event_name;
-  const eventIcon = alert?.event_icon;   // เช่น "motion"
+  const createdAt    = alert?.created_at;
+  const status       = alert?.alert_status;
+  const severity     = alert?.severity;
+  const description  = alert?.alert_description;
+  const reason       = alert?.alert_reason;
+  const camName      = alert?.camera_name;
+  const locName      = alert?.location_name;
+  const eventName    = alert?.event_name;
+  const eventIcon    = alert?.event_icon;   // เช่น "motion"
+
+  const isActive = String(status ?? "").toLowerCase() === "active";
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-lg border bg-white border-[var(--color-primary-bg)] overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-gray-200 bg-[var(--color-primary-bg)]/40">
+      <div className="px-5 py-4 border-b border-[var(--color-primary-bg)]">
         <div className="flex items-center justify-between gap-3">
-          {/* ซ้าย: Event icon + Event name (ชิดซ้าย) */}
+          {/* ซ้าย: Event icon + Event name */}
           <div className="flex items-center gap-2 min-w-0">
             <DynamicLucideIcon
               name={eventIcon || eventName}
@@ -95,7 +99,7 @@ export default function AlertMetaCard({ alert, title = "Alert Details" }: Props)
         </div>
       </div>
 
-      {/* Body: แบ่ง 2 ฝั่ง / ข้อความชิดซ้าย */}
+      {/* Body: แบ่ง 2 ฝั่ง */}
       <div className="p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
           {/* Left column */}
@@ -123,6 +127,16 @@ export default function AlertMetaCard({ alert, title = "Alert Details" }: Props)
                 <span className="break-words">{locName ?? "-"}</span>
               </div>
             </div>
+
+            {/* Description (หากมี) */}
+            {description ? (
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Description</div>
+                <div className="font-medium text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
+                  {description}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* Right column */}
@@ -151,9 +165,19 @@ export default function AlertMetaCard({ alert, title = "Alert Details" }: Props)
               <div className="text-xs text-gray-500 mb-1">Footage ID</div>
               <div className="font-medium text-gray-800 flex items-center gap-1">
                 <FileVideo className="w-4 h-4 text-[var(--color-primary)]" />
-                {fgtCode ?? "-"}
+                {fgtCode}
               </div>
             </div>
+
+            {/* Reason (แสดงเฉพาะเมื่อ status != Active และมี reason) */}
+            {!isActive && reason ? (
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Reason</div>
+                <div className="font-medium text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
+                  {reason}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

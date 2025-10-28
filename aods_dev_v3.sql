@@ -755,6 +755,8 @@ SELECT
   e.evt_name              AS event_name,
   l.loc_name              AS location_name,
   a.alr_status            AS alert_status,
+  a.alr_description       AS alert_description,
+  a.alr_reason            AS alert_reason,
   f.fgt_id                AS footage_id,
   f.fgt_path              AS footage_path,
   COALESCE(u.usr_name, u.usr_username, 'System') AS created_by

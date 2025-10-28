@@ -8,6 +8,8 @@ export interface Alert {
     event_name: string;
     location_name: string;
     alert_status: string;
+    alert_description: string;
+    alert_reason: string;
     footage_id: number; 
     footage_path: string;
     created_by: string;
