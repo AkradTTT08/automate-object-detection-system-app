@@ -81,12 +81,14 @@ export default function BottomCameraCard({
     className;
 
   const btnBase =
-    "group relative flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 " +
+    "group relative flex-1 inline-flex items-center justify-center gap-2 " +
+    "h-11 px-3 whitespace-nowrap " +
     "text-sm text-[var(--color-black)] transition-colors focus:outline-none " +
     "rounded-none first:rounded-l-xl last:rounded-r-xl";
 
   const btnTrash =
-    "group relative flex-1 inline-flex items-center justify-center gap-2 px-1 py-2 " +
+    "group relative flex-1 inline-flex items-center justify-center gap-2 " +
+    "h-11 px-3 min-w-[44px] whitespace-nowrap " +
     "text-sm text-[var(--color-black)] transition-colors focus:outline-none " +
     "rounded-none first:rounded-l-xl last:rounded-r-xl";
 
@@ -157,7 +159,7 @@ export default function BottomCameraCard({
         }}
         trigger={
           <button
-            type="button" 
+            type="button"
             disabled={busyDelete}
             className={`${btnTrash} ${hoverRed} ${active === "delete" ? activeRed : ""}`}
             title="Delete"
