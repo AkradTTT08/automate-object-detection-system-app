@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Camera } from "@/app/models/cameras.model";
-import { ArrowLeft, Camera as CameraIcon, Settings, TriangleAlert, MoreVertical } from "lucide-react";
+import { ArrowLeft, Camera as CameraIcon, Settings, TriangleAlert, MoreVertical, Maximize2, Minimize2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
     Tooltip, TooltipTrigger, TooltipContent, TooltipProvider,
@@ -15,7 +15,6 @@ import {
     DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import CreateAlertForm from "@/app/components/Forms/CreateAlertForm";
-import { SuccessModal } from "@/app/components/Utilities/AlertsPopup";
 import WhepPlayer from "../../components/WhepPlayer";
 import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
 import BadgeCameraType from "../Badges/BadgeCameraType"
@@ -40,6 +39,36 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
 
     const isOnline = !!currentCamera.camera_status;
     const isRtsp = (currentCamera.source_type || "").toLowerCase() === "rtsp";
+
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    const enterFullscreen = useCallback(() => {
+        const el = containerRef.current as any;
+        if (!el) return;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+    }, []);
+
+    const exitFullscreen = useCallback(() => {
+        const d = document as any;
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (d.webkitExitFullscreen) d.webkitExitFullscreen();
+        else if (d.msExitFullscreen) d.msExitFullscreen();
+    }, []);
+
+    const toggleFullscreen = useCallback(() => {
+        if (document.fullscreenElement === containerRef.current) exitFullscreen();
+        else enterFullscreen();
+    }, [enterFullscreen, exitFullscreen]);
+
+    useEffect(() => {
+        const onChange = () => {
+            setIsFullscreen(document.fullscreenElement === containerRef.current);
+        };
+        document.addEventListener("fullscreenchange", onChange);
+        return () => document.removeEventListener("fullscreenchange", onChange);
+    }, []);
 
     // ถ้ากล้องเปลี่ยน ให้ reset สถานะ fail
     // (กันเคสกล้องก่อนหน้าล้มแล้วค้าง)
@@ -151,7 +180,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                           px-4 py-2 rounded-md flex items-center gap-2"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        <span className="hidden sm:inline">Exit Fullscreen</span>
+                        <span className="hidden sm:inline">Back</span>
                     </Button>
                 </div>
             </div>
@@ -160,12 +189,37 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                 {/* กรอบแสดงวิดีโอ/ภาพ */}
                 <div
                     ref={containerRef}
-                    className="relative aspect-video mb-3 rounded-md"  // ✅ ขนาด/อัตราส่วนเดิม
+                    className="
+    relative w-full mx-auto mb-3 rounded-md bg-black
+    [&>video]:absolute [&>video]:inset-0 [&>video]:w-full [&>video]:h-full
+    [&>video]:object-cover [&>video]:rounded-md
+  "
+                    style={{
+                        // สูงพอดีจอ laptop ไม่ต้องเลื่อน (เผื่อ header/toolbar ~220px)
+                        height: "min(calc(100vh - 220px), calc((100vw - 48px) * 9 / 16))",
+                        maxHeight: "calc(100vh - 220px)",
+                        maxWidth: "min(100%, 1600px)",
+                    }}
                 >
+                    {/* ปุ่ม Fullscreen มุมขวาบน */}
+                    <button
+                        type="button"
+                        onClick={toggleFullscreen}
+                        className="
+      absolute right-2 top-2 z-20 inline-flex items-center gap-1
+      rounded-md border border-white/20 bg-black/40 px-2 py-1 text-white
+      backdrop-blur hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/40
+    "
+                        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    >
+                        {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                        <span className="hidden sm:inline">{isFullscreen ? "Exit" : "Fullscreen"}</span>
+                    </button>
+
                     {isOnline && isRtsp && !webrtcFailed ? (
                         <WhepPlayer
                             key={currentCamera.camera_id}
-                            ref={videoRef} // ✅ forwardRef จาก WhepPlayer
+                            ref={videoRef} // forwardRef ของ <video>
                             camAddressRtsp={currentCamera.source_value}
                             webrtcBase={process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889"}
                             onFailure={() => setWebrtcFailed(true)}
@@ -173,7 +227,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                     ) : isOnline ? (
                         <img
                             ref={imgRef}
-                            src={imageSrc} // e.g. "/library-room.jpg"
+                            src={imageSrc}
                             alt={currentCamera.camera_name}
                             className="absolute inset-0 h-full w-full object-cover rounded-md"
                             onError={() => setImageFailed(true)}

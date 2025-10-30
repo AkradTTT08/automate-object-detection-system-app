@@ -58,6 +58,8 @@ function toUserSafe(row: any): UserSafe {
   return {
     usr_id: row.usr_id,
     usr_username: row.usr_username,
+    usr_name: row.usr_name,
+    usr_phone: row.usr_phone,
     usr_email: row.usr_email,
     usr_role: row.rol_name,
   };
@@ -169,8 +171,10 @@ export async function getUserSafeById(id: number): Promise<UserSafe | null> {
         SELECT 
             usr_id,
             usr_username,
+            usr_name,
+            usr_phone,
             usr_email,
-            rol_name 
+            rol_name
         FROM users 
         JOIN roles ON usr_rol_id = rol_id 
         WHERE 

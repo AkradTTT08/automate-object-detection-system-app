@@ -25,7 +25,7 @@ const cookieBase = {
   secure: isProd,
   sameSite: COOKIE_SAMESITE,
   path: '/',
-  domain: COOKIE_DOMAIN,
+  // domain: COOKIE_DOMAIN,
 } as const;
 
 /**
@@ -156,6 +156,8 @@ export async function me(req: Request, res: Response, next: NextFunction) {
     return res.json({
       usr_id: user.usr_id,
       usr_username: user.usr_username,
+      usr_name: user.usr_name,
+      usr_phone: user.usr_phone,
       usr_email: user.usr_email,
       usr_role: user.usr_role,
     });

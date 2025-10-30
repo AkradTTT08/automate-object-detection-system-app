@@ -26,6 +26,8 @@ export interface UserRow {
 export interface UserSafe {
     usr_id: number;
     usr_username: string;   
+    usr_name: string;   
+    usr_phone: string;   
     usr_email: string;
     usr_role: string;
 }
