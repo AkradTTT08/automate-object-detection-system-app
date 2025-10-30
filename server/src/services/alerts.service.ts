@@ -2,7 +2,16 @@ import { pool } from '../config/db';
 import * as Model from '../models/alerts.model'
 import * as Mapping from '../models/Mapping/alerts.map'
 
-// ✅ 2025-10-27
+/**
+ * ดึงรายการ Alerts ล่าสุดทั้งหมดจากมุมมอง v_alerts_overview
+ * ใช้สำหรับหน้า List/Overview โดยเรียงจากรายการที่สร้างล่าสุดมาก่อน
+ *
+ * @returns {Promise<Array<any>>} รายการ Alert overview ทั้งหมดเรียงตาม created_at DESC
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-27
+ */
 export async function getAlerts() {
     const { rows } = await pool.query(`
         SELECT * FROM v_alerts_overview
@@ -12,7 +21,17 @@ export async function getAlerts() {
     return rows;
 }
 
-// ✅ 2025-10-27
+/**
+ * ดึงรายละเอียด Alert รายการเดียวจาก v_alerts_overview ตามรหัสที่ระบุ
+ * เหมาะสำหรับหน้า Alert Detail
+ *
+ * @param {number} alert_id - รหัส Alert ที่ต้องการค้นหา
+ * @returns {Promise<any>} ข้อมูล Alert overview ของรายการที่พบ (หรือ undefined หากไม่พบ)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-27
+ */
 export async function getAlertById(alert_id: number) {
     const { rows } = await pool.query(`
         SELECT * FROM v_alerts_overview
@@ -22,7 +41,17 @@ export async function getAlertById(alert_id: number) {
     return rows[0];
 }
 
-// ✅ 2025-10-28
+/**
+ * ดึงประวัติการทำรายการ (Logs) ของ Alert ตามรหัสที่ระบุ
+ * รวมข้อมูลผู้ใช้งานและบทบาท เพื่อการติดตามการเปลี่ยนแปลง
+ *
+ * @param {number} alert_id - รหัส Alert ที่ต้องการดูประวัติการทำรายการ
+ * @returns {Promise<Array<any>>} รายการ Log ที่ถูกแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function getAlertLogs(alert_id: number) {
     const { rows } = await pool.query(`
         SELECT
@@ -43,7 +72,17 @@ export async function getAlertLogs(alert_id: number) {
     return rows.map(Mapping.mapLogsToSaveResponse);
 }
 
-// ✅ 2025-10-28
+/**
+ * ดึงรายการ Alert ที่เกี่ยวข้อง (Related) โดยอ้างอิงจาก event_name ของ Alert เป้าหมาย
+ * ใช้สำหรับแสดง Alert ที่เป็นเหตุการณ์ชนิดเดียวกัน เรียงตามเวลาที่สร้างล่าสุด
+ *
+ * @param {number} alert_id - รหัส Alert อ้างอิงเพื่อค้นหา event_name
+ * @returns {Promise<Array<any>>} รายการ Alert ที่มี event_name เดียวกัน เรียงตาม created_at DESC
+ * @throws {Error} หากไม่พบ event_name ของ Alert เป้าหมาย หรือเกิดข้อผิดพลาดระหว่างการดึงข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function getAlertRelated(alert_id: number) {
     const event_name_result = await pool.query(`
         SELECT event_name 
@@ -60,7 +99,17 @@ export async function getAlertRelated(alert_id: number) {
     return rows;
 }
 
-// ✅ 2025-10-28
+/**
+ * ดึงบันทึกข้อความ (Notes) ของ Alert ตามรหัสที่ระบุ
+ * รวมผู้เขียนบันทึก บทบาท เวลาสร้าง/แก้ไข และคัดเฉพาะรายการที่ยังใช้งาน (anh_is_use = true)
+ *
+ * @param {number} alert_id - รหัส Alert ที่ต้องการดึงบันทึก
+ * @returns {Promise<Array<any>>} รายการบันทึกที่ถูกแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function getAlertNotes(alert_id: number) {
     const { rows } = await pool.query(`
         SELECT
@@ -84,7 +133,16 @@ export async function getAlertNotes(alert_id: number) {
     return rows.map(Mapping.mapNotesToSaveResponse);
 }
 
-// ✅ 2025-10-29
+/**
+ * ดึงรายการกล้องที่มีการเกิด Alert ภายใน 24 ชั่วโมงล่าสุด
+ * อ้างอิงจากมุมมอง v_cameras_latest_alert
+ *
+ * @returns {Promise<Array<any>>} รายการกล้องพร้อมเวลาที่เกิด Alert ล่าสุดภายในช่วงเวลา 24 ชั่วโมง
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-29
+ */
 export async function getRecentCameraAlert() {
     const { rows } = await pool.query(`
         SELECT * FROM v_cameras_latest_alert
@@ -94,7 +152,19 @@ export async function getRecentCameraAlert() {
     return rows;
 }
 
-// ✅ 2025-10-28
+/**
+ * เพิ่มบันทึกข้อความ (Note) ให้กับ Alert ที่ระบุ
+ * ระบบจะกำหนดเวลาสร้างและแก้ไขล่าสุดเป็นเวลาปัจจุบันอัตโนมัติ
+ *
+ * @param {number} user_id - รหัสผู้ใช้งานที่ทำการบันทึกข้อความ
+ * @param {number} alert_id - รหัส Alert ที่ต้องการเพิ่มบันทึก
+ * @param {string} note - เนื้อหาบันทึกข้อความ
+ * @returns {Promise<any>} บันทึกข้อความที่ถูกสร้างใหม่หลังจากแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากไม่สามารถเพิ่มบันทึกได้หรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function insertAlertNote(
     user_id: number, 
     alert_id: number, 
@@ -114,7 +184,19 @@ export async function insertAlertNote(
     return Mapping.mapNotesToSaveResponse(rows[0]);
 }
 
-// ✅ 2025-10-28
+/**
+ * แก้ไขบันทึกข้อความ (Note) ของ Alert ตามรหัสบันทึกที่ระบุ
+ * ระบบจะอัปเดตเวลาแก้ไขล่าสุดเป็นเวลาปัจจุบันอัตโนมัติ
+ *
+ * @param {number} user_id - รหัสผู้ใช้งานที่ทำการแก้ไขบันทึก (เพื่อบันทึกประวัติ/ตรวจสอบ)
+ * @param {number} note_id - รหัสบันทึกข้อความที่ต้องการแก้ไข
+ * @param {string} note - เนื้อหาบันทึกข้อความฉบับแก้ไข
+ * @returns {Promise<any>} บันทึกข้อความที่ถูกแก้ไขหลังจากแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากไม่พบบันทึกที่ต้องการแก้ไขหรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function updateAlertNote(
     user_id: number,
     note_id: number, 
@@ -132,7 +214,17 @@ export async function updateAlertNote(
     return Mapping.mapNotesToSaveResponse(rows[0]);
 }
 
-// ✅ 2025-10-28
+/**
+ * ลบบันทึกข้อความ (Note) แบบ Soft Delete โดยตั้งค่า anh_is_use = false
+ * เหมาะสำหรับซ่อนบันทึกออกจากมุมมองโดยไม่ลบข้อมูลจริง
+ *
+ * @param {number} note_id - รหัสบันทึกข้อความที่ต้องการลบ (ปิดการใช้งาน)
+ * @returns {Promise<any>} บันทึกที่ถูกปิดการใช้งานหลังจากแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากไม่พบบันทึกที่ต้องการลบหรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function removeAlertNote(
     note_id: number
 ){
@@ -149,7 +241,22 @@ export async function removeAlertNote(
 }
 
 
-// ✅ 2025-10-27
+/**
+ * สร้าง Alert ใหม่พร้อมบันทึก Log การสร้าง
+ * รองรับการอ้างอิงผู้สร้าง กล้อง ไฟล์ฟุตเทจ และเหตุการณ์ พร้อมระบุความรุนแรงและคำอธิบาย
+ *
+ * @param {number} user_id - รหัสผู้ใช้งานผู้สร้าง Alert
+ * @param {number} camera_id - รหัสกล้องที่เกี่ยวข้อง
+ * @param {number} footage_id - รหัสฟุตเทจที่เกี่ยวข้อง
+ * @param {number} event_id - รหัสเหตุการณ์ (event) ที่ตรวจจับได้
+ * @param {string} severity - ระดับความรุนแรงของ Alert (เช่น critical, high, medium, low)
+ * @param {string} description - คำอธิบาย/รายละเอียดเพิ่มเติมของ Alert
+ * @returns {Promise<any>} ข้อมูล Alert ที่ถูกสร้างหลังจากแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากไม่สามารถสร้าง Alert ได้หรือเกิดข้อผิดพลาดในฐานข้อมูล/การบันทึก Log
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-27
+ */
 export async function insertAlert(
     user_id: number, 
     camera_id: number, 
@@ -194,7 +301,20 @@ export async function insertAlert(
     return Mapping.mapAlertToSaveResponse(rows[0]);
 }
 
-// ✅ 2025-10-29
+/**
+ * อัปเดตสถานะ (status) และสาเหตุ (reason) ของ Alert พร้อมบันทึก Log การเปลี่ยนแปลง
+ * ใช้สำหรับเปลี่ยนสถานะเป็น resolved/dismissed/อื่น ๆ ตามธุรกิจ และบันทึกเหตุผลประกอบ
+ *
+ * @param {number} alert_id - รหัส Alert ที่ต้องการอัปเดต
+ * @param {string} status - สถานะใหม่ของ Alert (เช่น resolved, dismissed, active)
+ * @param {string} reason - เหตุผลหรือคำอธิบายประกอบการเปลี่ยนสถานะ
+ * @param {number} user_id - รหัสผู้ใช้งานที่ทำการอัปเดต (เพื่อบันทึกลง Log)
+ * @returns {Promise<any>} ข้อมูล Alert หลังอัปเดตที่ถูกแมปเป็นรูปแบบตอบกลับของระบบ
+ * @throws {Error} หากไม่พบ Alert ที่ต้องการอัปเดตหรือเกิดข้อผิดพลาดในฐานข้อมูล/การบันทึก Log
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-29
+ */
 export async function updateAlertStatus(alert_id: number, status: string, reason: string, user_id: number) {
     const { rows } = await pool.query(`
         UPDATE alerts
@@ -221,303 +341,3 @@ export async function updateAlertStatus(alert_id: number, status: string, reason
 
     return Mapping.mapAlertToSaveResponse(rows[0]);
 }
-
-/**
- * ดึงรายการ Alert ทั้งหมดที่ใช้งานอยู่
- *
- * @returns {Promise<Alert[]>} รายการ Alert ที่ถูกใช้งานอยู่ทั้งหมด
- * @description ดึงข้อมูล Alert จากฐานข้อมูลโดย join กับตาราง cameras, footages, และ events
- * 
- * @author Wanasart
- */
-export async function getAlertList() {
-    const result = await pool.query<Model.Alert>(`
-        SELECT * FROM alerts
-        JOIN cameras ON cam_id = alr_camera_id
-        JOIN locations ON loc_id = cam_location_id
-        JOIN footages ON fgt_id = alr_footage_id
-        JOIN events ON evt_id = alr_event_id
-        WHERE alr_is_use = true
-        ORDER BY alr_create_date DESC
-    `);
-
-    // return result.rows.map(mapToAlert);
-    return result.rows.map(Mapping.mapToAlert);
-}
-
-/**
- * นับจำนวน Alert ตามสถานะต่าง ๆ
- *
- * @returns {Promise<Model.AlertStatus>} สถานะของ Alert ที่ถูกนับ
- * @description ดึงข้อมูล Alert จากฐานข้อมูลและนับจำนวนตามสถานะต่าง ๆ เช่น Active, Resolved, Critical
- * 
- * @author Wanasart
- */
-export async function countStatusAlerts(): Promise<Model.AlertStatus> {
-    const { rows } = await pool.query(`
-      SELECT 
-        COUNT(*) FILTER (WHERE alr_is_use = true) AS total,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_status = 'Active') AS active,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_status = 'Resolved') AS resolved,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_status = 'Dismissed') AS dismissed,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_severity = 'Critical') AS critical,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_severity = 'High') AS high,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_severity = 'Medium') AS medium,
-        COUNT(*) FILTER (WHERE alr_is_use = true AND alr_severity = 'Low') AS low
-      FROM alerts
-    `);
-  
-    const r = rows[0];
-    return {
-      total: Number(r.total),
-      active: Number(r.active),
-      resolved: Number(r.resolved),
-      dismissed: Number(r.dismissed),
-      critical: Number(r.critical),
-      high: Number(r.high),
-      medium: Number(r.medium),
-      low: Number(r.low),
-    };
-  }
-
-/**
- * ดึง log ของ Alert ตามรหัส alr_id ที่กำหนด
- *
- * @param {number} alr_id - รหัสของ Alert ที่ต้องการดู log
- * @returns {Promise<Log>} รายการ log ของ Alert ที่เจอ
- * 
- * @author Wanasart
- */
-// export async function getAlertLogs(alr_id: number): Promise<Model.Log> {
-//     const { rows } = await pool.query(
-//         `SELECT loa_id, loa_event_name, loa_create_date, loa_user_id
-//        FROM log_alerts
-//        WHERE loa_alert_id = $1
-//        ORDER BY loa_create_date DESC`,
-//         [alr_id]
-//     );
-
-//     return { alert_id: alr_id, log: rows.map(Mapping.mapRowToLogItem) };
-// }
-
-/**
- * ดึงรายการ Alert ที่เกี่ยวข้องกับ Event ตามรหัส evt_id ที่กำหนด
- *
- * @param {number} evt_id - รหัสของ Event ที่ต้องการดู Alert ที่เกี่ยวข้อง
- * @returns {Promise<Related>} รายการ Alert ที่เกี่ยวข้องกับ Event ที่เจอ
- * 
- * @author Wanasart
- */
-// export async function getAlertRelated(evt_id: number): Promise<Model.Related> {
-//     const { rows } = await pool.query(`
-//         SELECT * FROM alerts
-//         WHERE alr_event_id = $1 
-//         AND alr_is_use = true 
-//         AND alr_status != 'Active'
-//     `, [evt_id]);
-
-//     return { event_id: evt_id, alert: rows.map(Mapping.mapRowToAlertItem) };
-// }
-
-/**
- * ดึงหมายเหตุของ Alert ตามรหัส alr_id ที่กำหนด
- *
- * @param {number} alr_id - รหัสของ Alert ที่ต้องการดูหมายเหตุ
- * @returns {Promise<Note>} รายการหมายเหตุของ Alert ที่เจอ
- * 
- * @author Wanasart
- */
-// export async function getAlertNotes(alr_id: number): Promise<Model.Note> {
-//     const { rows } = await pool.query(`
-//         SELECT * FROM alert_note_history
-//         WHERE anh_alert_id = $1
-//         AND anh_is_use = true
-//     `, [alr_id]);
-
-//     return { alert_id: alr_id, notes: rows.map(Mapping.mapRowToNoteItem) };
-// }
-
-/**
- * ดึงแนวโน้มของ Alert ตามวันที่และความรุนแรงในช่วงวันที่ที่กำหนด
- *
- * @param {number} daysBack - จำนวนวันที่ต้องการดึงข้อมูลย้อนหลัง (ค่าเริ่มต้นคือ 7 วัน)
- * @returns {Promise<Trend[]>} รายการแนวโน้มของ Alert ที่ถูกจัดกลุ่มตามวันที่และความรุนแรง
- * 
- * @author Wanasart
- */
-export async function getAlertTrend(daysBack = 7): Promise<Model.Trend[]> {
-    const { rows } = await pool.query<{
-        alert_date: string | Date;
-        alr_severity: string;
-        count: number | string;
-    }>(
-        `
-      SELECT
-      ((alr_create_date AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok')::date AS alert_date,
-      alr_severity,
-      COUNT(*)::int AS count
-      FROM alerts
-      WHERE alr_is_use = true
-      GROUP BY alert_date, alr_severity
-      ORDER BY alert_date ASC, alr_severity ASC
-      `);
-    // }>(
-    //   `
-    //   SELECT
-    //     date_trunc('day', alr_create_date)::date AS alert_date,
-    //     alr_severity,
-    //     COUNT(*)::int AS count
-    //   FROM alerts
-    //   WHERE alr_create_date >= CURRENT_DATE - ($1::int - 1)
-    //     AND alr_create_date <  CURRENT_DATE + INTERVAL '1 day'
-    //   GROUP BY alert_date, alr_severity
-    //   ORDER BY alert_date ASC, alr_severity ASC
-    //   `,
-    //   [daysBack]
-    // );
-
-    // group by date (string 'YYYY-MM-DD')
-    const grouped = new Map<string, Model.TrendAlertItem[]>();
-
-    for (const row of rows) {
-        const dateOnly =
-            row.alert_date instanceof Date
-                ? row.alert_date.toISOString().slice(0, 10)
-                : String(row.alert_date);
-
-        if (!grouped.has(dateOnly)) grouped.set(dateOnly, []);
-        grouped.get(dateOnly)!.push(Mapping.mapRowToTrendItem(row));
-    }
-
-    return Array.from(grouped.entries())
-        .map(([date, trend]) => ({ date, trend }))
-        .sort((a, b) => a.date.localeCompare(b.date));
-}
-
-/**
- * ดึงรายการ Alert ตามประเภท Event ที่ใช้งานอยู่
- *
- * @returns {Promise<any[]>} รายการ Alert ที่ถูกจัดกลุ่มตาม evt_name
- * 
- * @author Wanasart
- */
-export async function getAlertByEventType() {
-    const result = await pool.query(`
-        SELECT evt_name, COUNT(*)
-        FROM alerts
-        JOIN events ON evt_id = alr_event_id
-        WHERE alr_is_use = true
-        GROUP BY evt_name
-    `);
-
-    return result.rows;
-}
-
-/**
- * สร้าง Alert ใหม่ในฐานข้อมูล
- *
- * @param {string} severity - ความรุนแรงของ Alert (เช่น 'High', 'Medium', 'Low')
- * @param {number} camera_id - รหัสกล้องที่เกี่ยวข้องกับ Alert
- * @param {number} footage_id - รหัส Footage ที่เกี่ยวข้องกับ Alert
- * @param {number} event_id - รหัส Event ที่เกี่ยวข้องกับ Alert
- * @param {string} description - คำอธิบายของ Alert
- * @returns {Promise<Alert>} Alert object ที่ถูกสร้างขึ้นใหม่
- * @throws {Error} ถ้ากล้องไม่ออนไลน์หรือไม่ใช้งาน, หรือถ้าไม่สามารถสร้าง Alert ได้
- * 
- * @author Wanasart
- */
-export async function createAlert(severity: string, camera_id: number, footage_id: number, event_id: number, description: string) {
-    const cameraExists = await pool.query(`
-        SELECT cam_id FROM cameras 
-        WHERE cam_id = $1 
-        AND cam_is_use = true
-        AND cam_status = true
-    `, [camera_id]);
-
-    if (cameraExists.rows.length === 0) {
-        throw new Error('Camera offline or not in use');
-    }
-    
-    const { rows } = await pool.query(`
-        INSERT INTO alerts(
-	    alr_severity, alr_camera_id, alr_footage_id, alr_event_id, alr_description)
-	    VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
-    `, [severity, camera_id, footage_id, event_id, description]);
-
-    if (rows.length === 0) {
-        throw new Error('Failed to create alert');
-    }
-
-    return rows[0];
-}
-
-/**
- * อัปเดตสถานะของ Alert ตามรหัสที่กำหนด
- *
- * @param {number} id - รหัสของ Alert ที่ต้องการอัปเดต
- * @param {string} status - สถานะใหม่ที่ต้องการตั้งให้กับ Alert (เช่น 'Resolved', 'Dismissed')
- * @returns {Promise<Alert>} Alert object ที่ถูกอัปเดต
- * @throws {Error} ถ้าไม่พบ Alert หรือไม่สามารถอัปเดตได้
- * 
- * @author Wanasart
- */
-export async function updateAlert(id: number, status: string) {
-    const alertExists = await pool.query(`
-        SELECT alr_id FROM alerts 
-        WHERE alr_id = $1
-        AND alr_is_use = true
-        AND alr_status = 'Active'
-    `, [id]);
-
-    if (alertExists.rows.length === 0) {
-        throw new Error('Alert not found or already resolved/dismissed');
-    }
-    const { rows } = await pool.query(`
-        UPDATE alerts
-        SET alr_status = $2
-        WHERE alr_id = $1
-        RETURNING *
-    `, [id, status]);
-
-    if (rows.length === 0) {
-        throw new Error('Failed to update alert');
-    }
-
-    return rows[0];
-}
-
-/**
- * ลบ Alert ตามรหัสที่กำหนดโดยการอัปเดตสถานะเป็น false
- *
- * @param {number} id - รหัสของ Alert ที่ต้องการลบ
- * @returns {Promise<Alert>} Alert object ที่ถูกลบ
- * @throws {Error} ถ้าไม่พบ Alert หรือไม่สามารถลบได้
- * 
- * @author Wanasart
- */
-export async function deleteAlert(id: number): Promise<Model.AlertSafeDelete> {
-    const alertExists = await pool.query(`
-        SELECT alr_id FROM alerts 
-        WHERE alr_id = $1
-        AND alr_is_use = true
-    `, [id]);
-
-    if (alertExists.rows.length === 0) {
-        throw new Error('Alert not found');
-    }
-
-    const { rows } = await pool.query(`
-        UPDATE alerts
-        SET alr_is_use = false
-        WHERE alr_id = $1
-        RETURNING *
-    `, [id]);
-
-    if (rows.length === 0) {
-        throw new Error('Failed to delete alert');
-    }
-
-    return Mapping.mapRowToAlertItemDelete(rows[0]);
-}
-

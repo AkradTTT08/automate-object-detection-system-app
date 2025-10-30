@@ -2,8 +2,19 @@ import { Request, Response, NextFunction } from "express";
 import * as AlertService from "../services/alerts.service";
 import { stringify } from "querystring";
 
-
-// ✅
+/**
+ * ดึงรายการ Alerts ล่าสุดทั้งหมดจากระบบ
+ * ใช้สำหรับหน้า Overview / List โดยเรียงจากรายการที่สร้างล่าสุดมาก่อน
+ *
+ * @param {Request} req - อ็อบเจ็กต์คำขอจาก Express
+ * @param {Response} res - อ็อบเจ็กต์ตอบกลับจาก Express
+ * @param {NextFunction} next - ฟังก์ชันส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} รายการ Alert overview ทั้งหมด
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-27
+ */
 export async function getAlerts(req: Request, res: Response, next: NextFunction) {
     try {
         const list = await AlertService.getAlerts();
@@ -14,7 +25,19 @@ export async function getAlerts(req: Request, res: Response, next: NextFunction)
     }
 }
 
-// ✅
+/**
+ * ดึงรายละเอียด Alert รายการเดียวตามรหัสที่ระบุ
+ * เหมาะสำหรับหน้า Alert Detail
+ *
+ * @param {Request} req - Express Request ที่มีพารามิเตอร์ alr_id
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} ข้อมูล Alert ที่พบ (หรือ null/undefined หากไม่พบ)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการค้นหาในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-27
+ */
 export async function getAlertById(req: Request, res: Response, next: NextFunction) {
     try {
         const alert_id = Number(req.params.alr_id);
@@ -26,7 +49,19 @@ export async function getAlertById(req: Request, res: Response, next: NextFuncti
     }
 }
 
-// ✅
+/**
+ * ดึงประวัติการทำรายการ (Logs) ของ Alert ตามรหัสที่ระบุ
+ * รวมข้อมูลผู้ใช้งานและบทบาท เพื่อการติดตามการเปลี่ยนแปลงย้อนหลัง
+ *
+ * @param {Request} req - Express Request ที่มีพารามิเตอร์ alr_id
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} รายการ Logs ที่เกี่ยวข้องกับ Alert
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function getAlertLogs(req: Request, res: Response, next: NextFunction) {
     try {
         const alert_id = Number(req.params.alr_id);
@@ -38,7 +73,19 @@ export async function getAlertLogs(req: Request, res: Response, next: NextFuncti
     }
 }
 
-// ✅
+/**
+ * ดึงรายการ Alert ที่เกี่ยวข้อง (Related) โดยอ้างอิงจากเหตุการณ์เดียวกัน (event_name)
+ * ใช้แสดง Alert ที่มีลักษณะเหตุการณ์เดียวกัน เรียงตามเวลาที่สร้างล่าสุด
+ *
+ * @param {Request} req - Express Request ที่มีพารามิเตอร์ alr_id (ใช้ค้นหา event อ้างอิง)
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} รายการ Alert ที่เกี่ยวข้องตาม event เดียวกัน
+ * @throws {Error} หากไม่พบ event อ้างอิงหรือเกิดข้อผิดพลาดระหว่างการดึงข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function getAlertRelated(req: Request, res: Response, next: NextFunction) {
     try {
         const alert_id = Number(req.params.alr_id);
@@ -50,7 +97,19 @@ export async function getAlertRelated(req: Request, res: Response, next: NextFun
     }
 }
 
-// ✅
+/**
+ * ดึงบันทึกข้อความ (Notes) ของ Alert ตามรหัสที่ระบุ
+ * คัดเฉพาะรายการที่ยังใช้งานอยู่ และเรียงตามเวลาที่สร้างล่าสุด
+ *
+ * @param {Request} req - Express Request ที่มีพารามิเตอร์ alr_id
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} รายการบันทึกข้อความของ Alert
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function getAlertNotes(req: Request, res: Response, next: NextFunction) {
     try {
         const alert_id = Number(req.params.alr_id);
@@ -62,7 +121,19 @@ export async function getAlertNotes(req: Request, res: Response, next: NextFunct
     }
 }
 
-// ✅
+/**
+ * ดึงรายการกล้องที่มี Alert ภายใน 24 ชั่วโมงล่าสุด
+ * อ้างอิงจากมุมมอง v_cameras_latest_alert
+ *
+ * @param {Request} req - Express Request
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} รายการกล้องพร้อมเวลา Alert ล่าสุดในช่วง 24 ชั่วโมง
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-29
+ */
 export async function getRecentCameraAlert(req: Request, res: Response, next: NextFunction) {
     try {
         const list = await AlertService.getRecentCameraAlert();
@@ -73,7 +144,19 @@ export async function getRecentCameraAlert(req: Request, res: Response, next: Ne
     }
 }
 
-// ✅
+/**
+ * เพิ่มบันทึกข้อความ (Note) ให้กับ Alert ที่ระบุ
+ * ระบบจะกำหนดเวลา created/updated เป็นปัจจุบันโดยอัตโนมัติ
+ *
+ * @param {Request} req - Express Request ที่มี alr_id ใน params และ { user_id, note } ใน body
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} บันทึกข้อความที่ถูกสร้างใหม่
+ * @throws {Error} หากไม่สามารถสร้างบันทึกได้หรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function createAlertNote(req: Request, res: Response, next: NextFunction) {
     try {
         const alert_id = Number(req.params.alr_id);
@@ -93,7 +176,19 @@ export async function createAlertNote(req: Request, res: Response, next: NextFun
     }
 }
 
-// ✅
+/**
+ * แก้ไขบันทึกข้อความ (Note) ของ Alert ตามรหัสบันทึกที่ระบุ
+ * ระบบจะอัปเดตเวลาแก้ไขล่าสุดเป็นปัจจุบันโดยอัตโนมัติ
+ *
+ * @param {Request} req - Express Request ที่มี anh_id ใน params และ { user_id, note } ใน body
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} บันทึกข้อความที่ถูกอัปเดตแล้ว
+ * @throws {Error} หากไม่พบบันทึกที่ต้องการอัปเดตหรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function updateAlertNote(req: Request, res: Response, next: NextFunction) {
     try {
         const note_id = Number(req.params.anh_id);
@@ -113,7 +208,18 @@ export async function updateAlertNote(req: Request, res: Response, next: NextFun
     }
 }
 
-// ✅
+/**
+ * ลบบันทึกข้อความ (Note) แบบ Soft Delete โดยตั้งค่าให้ไม่ใช้งาน
+ *
+ * @param {Request} req - Express Request ที่มี anh_id ใน params
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} บันทึกข้อความที่ถูกปิดการใช้งานแล้ว
+ * @throws {Error} หากไม่พบบันทึกที่ต้องการลบหรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-28
+ */
 export async function softDeleteAlertNote(req: Request, res: Response, next: NextFunction) {
     try {
         const note_id = Number(req.params.anh_id);
@@ -125,7 +231,19 @@ export async function softDeleteAlertNote(req: Request, res: Response, next: Nex
     }
 }
 
-// ✅
+/**
+ * สร้าง Alert ใหม่และส่งคืนข้อมูลที่ถูกบันทึก
+ * ใช้เมื่อเกิดเหตุการณ์ที่ต้องแจ้งเตือน พร้อมผูกกับผู้ใช้/กล้อง/ฟุตเทจ/เหตุการณ์
+ *
+ * @param {Request} req - Express Request ที่มี { user_id, camera_id, footage_id, event_id, severity, description } ใน body
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} ข้อมูล Alert ที่ถูกสร้างสำเร็จ
+ * @throws {Error} หากไม่สามารถสร้าง Alert ได้หรือเกิดข้อผิดพลาดในฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-27
+ */
 export async function createAlert(req: Request, res: Response, next: NextFunction) {
     try {
         const { 
@@ -152,7 +270,20 @@ export async function createAlert(req: Request, res: Response, next: NextFunctio
     }
 }
 
-// ✅
+/**
+ * อัปเดตสถานะ (status) และสาเหตุ (reason) ของ Alert ที่ระบุ
+ * เหมาะสำหรับกรณีเปลี่ยนเป็น resolved/dismissed หรือสถานะอื่นตามธุรกิจ พร้อมบันทึกเหตุผล
+ *
+ * @param {Request} req - Express Request ที่มี alr_id ใน params และ { status, reason, user_id } ใน body
+ * @param {Response} res - Express Response
+ * @param {NextFunction} next - ส่งต่อ error ให้ middleware ถัดไป
+ * @returns {Promise<Response>} ข้อมูล Alert หลังอัปเดตสำเร็จ
+ * @throws {Error} หากไม่พบ Alert ที่ต้องการอัปเดตหรือเกิดข้อผิดพลาดระหว่างอัปเดตฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-10-29
+ */
+
 export async function updateAlertStatus(req: Request, res: Response, next: NextFunction) {
     try {
         const alert_id = Number(req.params.alr_id);
@@ -161,247 +292,6 @@ export async function updateAlertStatus(req: Request, res: Response, next: NextF
         const updatedAlert = await AlertService.updateAlertStatus(alert_id, status, reason, user_id);
 
         return res.status(200).json({ message: 'Updated successfully', data: updatedAlert });
-    } catch (err) {
-        next(err);
-    }
-}
-
-
-
-
-/**
- * Controller: ดึงรายการ Alerts ทั้งหมดที่ถูกใช้งาน
- *
- * @route GET /api/alerts
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับรายการ alerts เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของรายการ alerts
- *
- * @author Wanasart
- */
-export async function index(req: Request, res: Response, next: NextFunction) {
-    try {
-        const alerts = await AlertService.getAlertList();
-        res.json(alerts);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: ดึงสถานะของ Alerts ทั้งหมด
- *
- * @route GET /api/alerts/status
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับสถานะ alerts เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของสถานะ alerts
- *
- * @author Wanasart
- */
-export async function status(req: Request, res: Response, next: NextFunction) {
-    try {
-        const cameras = await AlertService.countStatusAlerts();
-        res.json(cameras);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: ดึง log ของ Alert ตาม alert ID ที่ส่งมา
- *
- * @route GET /api/alerts/:alr_id/logs
- * @param {Request} req - Express request object (ต้องมี params.alr_id)
- * @param {Response} res - Express response object (ส่งกลับ log ของ alert เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ log alerts
- *
- * @author Wanasart
- */
-// export async function indexLogs(req: Request, res: Response, next: NextFunction) {
-//     try {
-//         const alr_id = Number(req.params.alr_id);
-//         if (isNaN(alr_id)) {
-//             return res.status(400).json({ error: "Invalid alert ID" });
-//         }
-//         const logAlerts = await AlertService.getAlertLogs(alr_id);
-//         res.json(logAlerts);
-//     } catch (err) {
-//         next(err);
-//     }
-// }
-
-/**
- * Controller: ดึง alerts ที่เกี่ยวข้องกับ Event ที่กำหนด
- *
- * @route GET /api/events/:evt_id/alerts
- * @param {Request} req - Express request object (ต้องมี params.evt_id)
- * @param {Response} res - Express response object (ส่งกลับ related alerts เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ related alerts
- *
- * @author Wanasart
- */
-export async function indexByEvent(req: Request, res: Response, next: NextFunction) {
-    try {
-        const evt_id = Number(req.params.evt_id);
-        if (isNaN(evt_id)) {
-            return res.status(400).json({ error: "Invalid event ID" });
-        }
-        const relatedAlerts = await AlertService.getAlertRelated(evt_id);
-        res.json(relatedAlerts);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: ดึงรายการ Note ของ Alert ตาม alert ID ที่ส่งมา
- *
- * @route GET /api/alerts/:alr_id/notes
- * @param {Request} req - Express request object (ต้องมี params.alr_id)
- * @param {Response} res - Express response object (ส่งกลับ notes ของ alert เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ alert notes
- *
- * @author Wanasart
- */
-export async function indexNotes(req: Request, res: Response, next: NextFunction) {
-    try {
-        const alr_id = Number(req.params.alr_id);
-        if (isNaN(alr_id)) {
-            return res.status(400).json({ error: "Invalid alert ID" });
-        }
-        const notes = await AlertService.getAlertNotes(alr_id);
-        res.json(notes);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: ดึงข้อมูลแนวโน้มของ Alert ในช่วงวันที่กำหนด
- *
- * @route GET /api/alerts/:days_back/trend
- * @param {Request} req - Express request object (ต้องมี query parameter days_back)
- * @param {Response} res - Express response object (ส่งกลับข้อมูลแนวโน้มเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของแนวโน้ม alert
- *
- * @author Wanasart
- */
-export async function trendAnalytics(req: Request, res: Response, next: NextFunction) {
-    try {
-        // const days_back = Number(req.params.days_back);
-        // if (isNaN(days_back)) {
-        //     return res.status(400).json({ error: "Missing days_back query parameter" });
-        // }
-
-        const trendData = await AlertService.getAlertTrend();
-        res.json(trendData);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: ดึงข้อมูลการกระจายของ Alert ตามประเภทเหตุการณ์
- *
- * @route GET /api/alerts/distribution
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object (ส่งกลับข้อมูลการกระจายเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของการกระจาย alert
- *
- * @author Wanasart
- */
-export async function distributionAnalytics(req: Request, res: Response, next: NextFunction) {
-    try {
-        const distributionData = await AlertService.getAlertByEventType();
-        return res.json(distributionData);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: สร้าง Alert ใหม่
- *
- * @route POST /api/alerts
- * @param {Request} req - Express request object (body: { severity, camera_id, footage_id, event_id, description })
- * @param {Response} res - Express response object (ส่งกลับ Alert ที่สร้างใหม่เป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ Alert ที่สร้างใหม่
- *
- * @author Wanasart
- */
-export async function store(req: Request, res: Response, next: NextFunction) {
-    try {
-        const { severity, camera_id, footage_id, event_id, description } = req.body;
-        if (!severity || !camera_id || !footage_id || !event_id ) {
-            return res.status(400).json({ error: "Missing required fields" });
-        }
-
-        const newAlert = await AlertService.createAlert(severity, camera_id, footage_id, event_id, description);
-        res.status(201).json(newAlert);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: อัปเดตสถานะของ Alert
- *
- * @route POST /api/alerts/:alr_id/update
- * @param {Request} req - Express request object (params: { alr_id }, body: { status })
- * @param {Response} res - Express response object (ส่งกลับ Alert ที่อัปเดตเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ Alert ที่อัปเดต
- *
- * @author Wanasart
- */
-export async function update(req: Request, res: Response, next: NextFunction) {
-    try {
-        const { alr_id } = req.params;
-        const { status } = req.body;
-
-        if (!alr_id || isNaN(Number(alr_id))) {
-            return res.status(400).json({ error: "Invalid alert ID" });
-        }
-
-        if (!status || !['Resolved', 'Dismissed'].includes(status)) {
-            return res.status(400).json({ error: "Invalid status. Must be 'Resolved' or 'Dismissed'" });
-        }
-
-        const updatedAlert = await AlertService.updateAlert(Number(alr_id), status);
-        res.json(updatedAlert);
-    } catch (err) {
-        next(err);
-    }
-}
-
-/**
- * Controller: ลบ Alert โดยการอัปเดตสถานะเป็น false
- *
- * @route DELETE /api/alerts/:alr_id
- * @param {Request} req - Express request object (params: { alr_id })
- * @param {Response} res - Express response object (ส่งกลับ Alert ที่ถูกลบเป็น JSON)
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response ของ Alert ที่ถูกลบ
- *
- * @author Wanasart
- */
-export async function softDelete(req: Request, res: Response, next: NextFunction){
-    try {
-        const { alr_id } = req.params;
-        if (!alr_id || isNaN(Number(alr_id))) {
-            return res.status(400).json({ error: "Invalid alert ID" });
-        }
-
-        const deletedAlert = await AlertService.deleteAlert(Number(alr_id));
-        res.json(deletedAlert);
     } catch (err) {
         next(err);
     }
