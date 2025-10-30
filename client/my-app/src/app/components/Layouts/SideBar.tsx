@@ -9,6 +9,7 @@ import {
   Bell,
   BarChart3,
   FileText,
+  ClockFading,
   Settings as Cog,
   type LucideIcon,
 } from "lucide-react";
@@ -37,6 +38,7 @@ const ITEMS: Item[] = [
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Reports", href: "/reports", icon: FileText },
   { label: "Settings", href: "/settings", icon: Cog },
+  { label: "History", href: "/history", icon: ClockFading },
 ];
 
 export default function Sidebar() {
@@ -61,7 +63,7 @@ export default function Sidebar() {
     ? // มือถือเปิด: overlay ทับ content ทั้งหมด (ไม่ทับ header สูง ~56px)
       "fixed inset-x-0 top-14 bottom-0 z-50 w-full shadow-xl"
     : // ปกติ/เดสก์ท็อป: แปะใต้ header และเลื่อนตามหน้า
-      "sticky top-14 md:top-16 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] " + desktopW;
+      "sticky top-14 md:top-16 z-40 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] " + desktopW;
 
   // ถ้ามือถือและพับอยู่ → ไม่ต้องแสดงเลย
   if (isMobile && collapsed) return null;
@@ -140,7 +142,7 @@ export default function Sidebar() {
                 {/* Tooltip ใช้เฉพาะ desktop โหมดพับ */}
                 {!isMobile && collapsed && (
                   <span
-                    className="pointer-events-none absolute left-[60px] top-1/2 -translate-y-1/2 rounded-md bg-black px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100"
+                    className="pointer-events-none absolute left-[60px] top-1/2 -translate-y-1/2 z-[60] whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100"
                     role="tooltip"
                   >
                     {item.label}
