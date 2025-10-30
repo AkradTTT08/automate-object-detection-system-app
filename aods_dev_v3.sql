@@ -1078,7 +1078,7 @@ EXECUTE FUNCTION aods_dev_v3.fn_sync_cds_is_use();
 INSERT INTO roles (rol_name, rol_access_level) VALUES
   ('system', 4),
   ('admin', 3),
-  ('security officer', 2),
+  ('security team', 2),
   ('staff', 1);
 
 -- Users (ใส่ user system เป็นค่า default)
