@@ -36,6 +36,9 @@ import * as ctrl from "../controllers/alerts.controller";
 
 const router = Router();
 
+/* ========================== Recent ========================== */
+router.get("/recent", ctrl.getRecentCameraAlert);
+
 /* ========================== Alerts ========================== */
 router.get("/", ctrl.getAlerts);
 router.post("/", ctrl.createAlert);
@@ -51,9 +54,5 @@ router.patch("/notes/:anh_id", ctrl.softDeleteAlertNote);
 
 /* ========================== Logs ========================== */
 router.get("/:alr_id/logs", ctrl.getAlertLogs);
-
-/* ========================== Recent ========================== */
-router.get("/recent", ctrl.getRecentCameraAlert);
-
 
 export default router;
