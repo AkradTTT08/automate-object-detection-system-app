@@ -39,7 +39,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
     const [imageFailed, setImageFailed] = useState(false);
 
     const isOnline = !!currentCamera.camera_status;
-    const isRtsp = (currentCamera.source_type || "").toLowerCase() === "rtsp";
+    const isRtsp = typeof currentCamera.source_value === "string" && currentCamera.source_value.startsWith("rtsp://");
 
     // ถ้ากล้องเปลี่ยน ให้ reset สถานะ fail
     // (กันเคสกล้องก่อนหน้าล้มแล้วค้าง)
@@ -165,7 +165,6 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                     {isOnline && isRtsp && !webrtcFailed ? (
                         <WhepPlayer
                             key={currentCamera.camera_id}
-                            ref={videoRef} // ✅ forwardRef จาก WhepPlayer
                             camAddressRtsp={currentCamera.source_value}
                             webrtcBase={process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889"}
                             onFailure={() => setWebrtcFailed(true)}
