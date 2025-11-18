@@ -14,7 +14,7 @@ import * as Mapping from '../../models/Mapping/cameras.map';
  */
 export async function getCameras() {
   const { rows } = await pool.query(`
-        SELECT * FROM aods_dev_v3.v_cameras_overview;
+        SELECT * FROM v_cameras_overview;
     `);
 
   return rows;
