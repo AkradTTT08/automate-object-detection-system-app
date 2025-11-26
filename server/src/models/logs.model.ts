@@ -18,3 +18,12 @@ export interface Alert {
     log_action: string;
     log_created_at: string;
 }
+
+export interface User {
+    log_id: number;
+    user_id: number;
+    user_username: string;
+    role: string
+    log_action: string;
+    log_created_at: string;
+}

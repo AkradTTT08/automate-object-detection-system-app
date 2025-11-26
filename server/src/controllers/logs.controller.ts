@@ -3,7 +3,6 @@ import * as LogService from '../services/logs.service';
 
 /**
  * ดึงรายการบันทึกกล้อง (Camera Logs) ทั้งหมด
- * ใช้สำหรับหน้า Camera Logs / Audit Trail / Activity Monitor
  *
  * @param {Request} req - อ็อบเจ็กต์คำขอจาก Express
  * @param {Response} res - อ็อบเจ็กต์ตอบกลับจาก Express
@@ -25,7 +24,6 @@ export async function getCameraLogs(req: Request, res: Response, next: NextFunct
 
 /**
  * ดึงรายการบันทึกกล้อง (Camera Logs) ทั้งหมด
- * ใช้สำหรับหน้า Camera Logs / Audit Trail / Activity Monitor
  *
  * @param {Request} req - อ็อบเจ็กต์คำขอจาก Express
  * @param {Response} res - อ็อบเจ็กต์ตอบกลับจาก Express
@@ -47,17 +45,12 @@ export async function getAlertLogs(req: Request, res: Response, next: NextFuncti
 
 /**
  * ดึงรายการบันทึกการทำงานของผู้ใช้ (User Activity Logs)
- * ใช้สำหรับหน้า User Logs / Audit Trail / Activity Monitor
- *
+ * 
  * @param {Request} req - อ็อบเจ็กต์คำขอจาก Express
  * @param {Response} res - อ็อบเจ็กต์ตอบกลับจาก Express
  * @param {NextFunction} next - ฟังก์ชันส่งต่อข้อผิดพลาดให้ middleware ถัดไป
- *
- * @returns {Promise<Response>}
- * ส่งคืนรายการบันทึกการทำงานของผู้ใช้ เรียงตามเวลาล่าสุดก่อน
- *
- * @throws {Error}
- * หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจาก Service ชั้นล่าง
+ * @returns {Promise<Response>} ส่งคืนรายการบันทึกการทำงานของผู้ใช้ เรียงตามเวลาล่าสุดก่อน
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจาก Service ชั้นล่าง
  *
  * @author Wanasart
  * @lastModified 2025-11-26

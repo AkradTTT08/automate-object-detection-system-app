@@ -31,3 +31,17 @@ export const mapAlertLogsToSaveResponse = (row: any): Model.Alert => {
         log_created_at: createdAt.date + ' ' + createdAt.time
     }
 };
+
+export const mapUserLogsToSaveResponse = (row: any): Model.User => {
+
+    const createdAt = splitDateTime(row.aal_created_at);
+
+    return {
+        log_id: row.aal_id,
+        user_id: row.aal_usr_id,
+        user_username: row.usr_username,
+        role: row.rol_name,
+        log_action: row.aal_action,
+        log_created_at: createdAt.date + ' ' + createdAt.time
+    }
+};
