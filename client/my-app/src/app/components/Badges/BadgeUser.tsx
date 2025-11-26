@@ -71,7 +71,7 @@ export default function UserBadge({
       ].join(" ")}
     >
       {palette.Icon}
-      <span className="capitalize">{name}</span>
+      <span>{name}</span>
     </span>
   );
 }

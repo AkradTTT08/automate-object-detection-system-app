@@ -7,6 +7,8 @@ import { Alert } from "@/app/models/alerts.model";
 import { ArrowLeft } from "lucide-react";
 
 import CameraLogs from "./CameraLogs";
+import AlertLogs from "./AlertLogs";
+import UserLogs from "./UserLogs";
 
 export default function HistoryMenu() {
 
@@ -43,10 +45,10 @@ export default function HistoryMenu() {
                 <CameraLogs />
           </TabsContent>
           <TabsContent value="alert" className="py-2 text-sm text-gray-600">
-
+                <AlertLogs />
           </TabsContent>
           <TabsContent value="user" className="py-2 text-sm text-gray-600">
-
+                <UserLogs />
           </TabsContent>
         </Tabs>
       </div>
