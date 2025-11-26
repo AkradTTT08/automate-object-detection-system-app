@@ -41,7 +41,7 @@ export default function LoginPage() {
     }
   }
 
-  console.log('Token: ', localStorage.getItem("access_token"));
+  // console.log('Token: ', localStorage.getItem("access_token"));
 
   return (
     <main
