@@ -63,7 +63,6 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
     }
 
     const cams = Array.from(cameraMap.values());
-
     const names = cams.map((c) => c.name);
     const counts = cams.map((c) => c.count);
 
@@ -78,18 +77,17 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
   };
 
   useEffect(() => {
-    // ถ้ามี alerts ส่งเข้ามา → ใช้ props ไม่ต้อง fetch
+    // Use passed props if available
     if (alerts && alerts.length > 0) {
       buildFromAlerts(alerts);
       setLoading(false);
       return;
     }
 
-    // ถ้าไม่มี → fetch API
+    // Otherwise fetch API
     const fetchCameras = async () => {
       try {
         const res = await fetch("/api/cameras");
-
         if (!res.ok) {
           setCategories(MOCK_CAMERAS.map((c) => c.name));
           setValues(MOCK_CAMERAS.map((c) => c.alerts));
@@ -121,6 +119,12 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
     fetchCameras();
   }, [alerts]);
 
+  /* ========================= Dynamic Chart Width ========================= */
+  const chartWidth =
+    categories.length > 12 ? categories.length * 80 : "100%";
+
+  /* ========================= Apex Options ========================= */
+
   const options: ApexOptions = {
     chart: {
       type: "bar",
@@ -147,9 +151,6 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
       },
     },
     yaxis: {
-      min: 0,
-      max: 80,
-      tickAmount: 4,
       labels: {
         style: {
           colors: "#6B7280",
@@ -168,7 +169,7 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
     tooltip: {
       y: { formatter: (val) => `${val} alerts` },
     },
-    colors: ["#3B82F6"],
+    colors: ["#8979FF"],
     grid: {
       strokeDashArray: 4,
       borderColor: "#E5E7EB",
@@ -185,19 +186,24 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
   return (
     <div className="w-full">
       <h2 className="text-md font-semibold mb-2 text-[var(--color-primary,#111827)]">
-        Alert Distribution Across Cameras
+        Alert Distribution across Cameras
       </h2>
 
       {loading && (
         <p className="mb-2 text-xs text-gray-400">Loading camera alerts...</p>
       )}
 
-      <ReactApexChart
-        options={options}
-        series={series}
-        type="bar"
-        height={360}
-      />
+      {/* Scroll wrapper */}
+      <div className="overflow-x-auto">
+        <div style={{ width: chartWidth }}>
+          <ReactApexChart
+            options={options}
+            series={series}
+            type="bar"
+            height={360}
+          />
+        </div>
+      </div>
     </div>
   );
 }
