@@ -7,94 +7,119 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Download } from "lucide-react";
 
 export default function GenerateReportForm() {
   return (
-     <Dialog open>
-  <DialogContent className="!w-[880px] !max-w-none !p-8 h-[649px] rounded-xl overflow-hidden flex flex-col">
+    <Dialog open>
+      <DialogContent className="w-full max-w-[95vw] md:!w-[880px] !max-w-none !p-6 md:!p-8 h-auto md:h-[649px] rounded-xl overflow-hidden flex flex-col font-[var(--font-poppin)]">
+        {/* -------- Body -------- */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6 md:gap-8 mt-4 flex-1">
+          {/* Left — Preview Box */}
+          <div className="bg-[var(--color-gray)] w-full h-[200px] md:h-full rounded-md" />
 
-    {/* -------- Body -------- */}
-    <div className="grid grid-cols-2 gap-8 mt-4 flex-1">
+          {/* Right — Form */}
+          <div className="space-y-4 overflow-auto pr-1">
+            {/* -------- Header Right-------- */}
+            <DialogHeader className="pb-3">
+              <DialogTitle className="text-[var(--color-primary)] text-lg font-medium">
+                Document preview — General
+              </DialogTitle>
+            </DialogHeader>
 
-      {/* Left — Preview Box */}
-      <div className="bg-gray-200 w-full h-full rounded-md" />
+            {/* Report Name */}
+            <div className="grid gap-2 ">
+              <Label htmlFor="report_name">Report Name</Label>
+              <Input
+                id="report_name"
+                placeholder="Enter your report name"
+                className="border-[var(--color-gray)]"
+              />
+            </div>
 
-      {/* Right — Form */}
-      <div className="space-y-4 overflow-hidden">
-        
-    {/* -------- Header Right-------- */}
-    <DialogHeader className="pb-3">
-      <DialogTitle className="text-[var(--color-primary)] text-lg font-medium">
-        Document preview — General
-      </DialogTitle>
-    </DialogHeader>
+            {/* Type + Date Range */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Type */}
+              <div className="grid gap-2 ">
+                <Label>Report Type</Label>
+                {/* <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="PDF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                  </SelectContent>
+                </Select> */}
+                <div className="rounded-md border border-[var(--color-gray)] px-2 py-1.5 text-sm">
+                  PDF
+                </div>
+              </div>
 
-        {/* Report Name */}
-        <div className="grid gap-2">
-          <Label htmlFor="report_name">Report Name</Label>
-          <Input id="report_name" placeholder="Enter your report name" />
-        </div>
+              {/* Date */}
+              <div className="grid gap-2">
+                <Label>Date Range</Label>
+                {/* <div className="grid grid-cols-2 gap-2">
+                  <Input type="date" />
+                  <Input type="date" />
+                </div> */}
+                <div className="w-full">
+                  <div className="grid grid-cols-[1fr_16px_1fr] items-center gap-2 rounded-md border border-[var(--color-primary)] px-2 py-1.5">
+                    {/* Start date */}
+                    <input
+                      type="text"
+                      onFocus={(e) => (e.currentTarget.type = "date")}
+                      onBlur={(e) => {
+                        if (!e.currentTarget.value)
+                          e.currentTarget.type = "text";
+                      }}
+                      className="w-full bg-transparent outline-none text-xs sm:text-sm"
+                      placeholder="Start date"
+                    />
 
-        {/* Type + Date Range */}
-        <div className="grid grid-cols-2 gap-4">
+                    <span className="text-[var(--color-primary)] text-sm md:text-center mr-3">
+                      →
+                    </span>
 
-          {/* Type */}
-          <div className="grid gap-2">
-            <Label>Report Type</Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="PDF" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="xlsx">Excel (.xlsx)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date */}
-          <div className="grid gap-2">
-            <Label>Data Range</Label>
-            <div className="grid grid-cols-2 gap-2">
-              <Input type="date" />
-              <Input type="date" />
+                    {/* End date */}
+                    <input
+                      type="text"
+                      onFocus={(e) => (e.currentTarget.type = "date")}
+                      onBlur={(e) => {
+                        if (!e.currentTarget.value)
+                          e.currentTarget.type = "text";
+                      }}
+                      className="w-full bg-transparent outline-none text-xs sm:text-sm text-right md:text-left"
+                      placeholder="End date"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
-      </div>
-    </div>
 
-    {/* -------- Footer -------- */}
-    <div className="flex justify-end gap-3 mt-6 pt-4">
+        {/* -------- Footer -------- */}
+        <div className="flex justify-end gap-3 mt-2 pt-2 ">
+          <Button
+            variant="outline"
+            className="text-[var(--color-primary)] flex items-center"
+          >
+            <Download className="fi fi-br-download mr-2" />
+            Download
+          </Button>
 
-      <Button variant="outline">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-4 h-4 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-          />
-        </svg>
-        Download
-      </Button>
-
-      <Button variant="outline">Close</Button>
-    </div>
-
-  </DialogContent>
-</Dialog>
-
-
+          <Button variant="outline">Close</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
