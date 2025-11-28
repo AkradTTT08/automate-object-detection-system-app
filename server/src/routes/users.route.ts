@@ -35,5 +35,8 @@ router.patch("/:usr_id/password", ctrl.updatePassword);
 
 /* ========================== Users ========================== */
 router.get("/", ctrl.getUserById);
+/* ========================== Generate User ========================== */
+router.get("/next-username", ctrl.getNextUsername);
 
 export default router;
+

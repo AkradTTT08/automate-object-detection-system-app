@@ -80,3 +80,13 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
         next(err);
     }
 }
+
+
+export async function getNextUsername(req : Request, res: Response, next: NextFunction) {
+  try {
+    const username = await UserService.generateUniqueUsername();
+    return res.json({ username });
+  } catch (err) {
+    next(err);
+  }
+}
