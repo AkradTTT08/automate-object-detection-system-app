@@ -1,4 +1,5 @@
 import GeneratePDFReports from "@/app/components/Forms/GeneratePDFReports";
+import GenerateScheduleReports from "@/app/components/Forms/GenerateScheduleReports";
 export default function Reports() {
     return (
         <div className="rounded-lg bg-[var(--color-white)] shadow-md p-6">
@@ -6,7 +7,7 @@ export default function Reports() {
                 <h1 className="text-2xl font-bold">
                     
                     Reports
-                    <GeneratePDFReports/>
+                    <GenerateScheduleReports/>
                     
                     </h1>
             </div>
