@@ -4,27 +4,12 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-});
-
-/* ========================= Types ========================= */
+const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface ApiAlertItem {
-  severity: string;
-  alert_id: number;
-  created_at: string;
   camera_id: number;
   camera_name: string;
-  event_icon: string;
-  event_name: string;
-  location_name: string;
-  alert_status: string;
-  alert_description: string | null;
-  alert_reason: string | null;
-  footage_id: number;
-  footage_path: string;
-  created_by: string;
+  alert_id: number;
 }
 
 interface Props {
@@ -32,34 +17,36 @@ interface Props {
 }
 
 /* ========================= Mock Data ========================= */
-
 const MOCK_CAMERAS = [
   { name: "Gate Entrance Cam 01", alerts: 5 },
   { name: "Lobby Cam 01", alerts: 3 },
   { name: "Parking Cam 01", alerts: 7 },
+  { name: "Hallway Cam 01", alerts: 4 },
+  { name: "Hallway Cam 02", alerts: 6 },
+  { name: "Conference Room Cam 01", alerts: 2 },
+  { name: "Staircase Cam 01", alerts: 5 },
+  { name: "Staircase Cam 02", alerts: 3 },
+  { name: "Elevator Cam 01", alerts: 4 },
+  { name: "Elevator Cam 02", alerts: 1 },
+  { name: "Server Room Cam 01", alerts: 8 },
+  { name: "Cafeteria Cam 01", alerts: 2 },
+  { name: "Parking Cam 02", alerts: 6 },
 ];
 
 /* ========================= Component ========================= */
-
 export default function CameraAlertsBarChart({ alerts }: Props) {
   const [categories, setCategories] = useState<string[]>([]);
   const [values, setValues] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // group alerts by camera
   const buildFromAlerts = (data: ApiAlertItem[], allowFallback = true) => {
     const cameraMap = new Map<number, { name: string; count: number }>();
-
     for (const alert of data) {
       const camId = alert.camera_id;
       const camName = alert.camera_name || `Camera #${camId}`;
-
       const exist = cameraMap.get(camId);
-      if (exist) {
-        exist.count += 1;
-      } else {
-        cameraMap.set(camId, { name: camName, count: 1 });
-      }
+      if (exist) exist.count += 1;
+      else cameraMap.set(camId, { name: camName, count: 1 });
     }
 
     const cams = Array.from(cameraMap.values());
@@ -77,38 +64,19 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
   };
 
   useEffect(() => {
-    // Use passed props if available
     if (alerts && alerts.length > 0) {
       buildFromAlerts(alerts);
       setLoading(false);
       return;
     }
 
-    // Otherwise fetch API
     const fetchCameras = async () => {
       try {
         const res = await fetch("/api/cameras");
-        if (!res.ok) {
-          setCategories(MOCK_CAMERAS.map((c) => c.name));
-          setValues(MOCK_CAMERAS.map((c) => c.alerts));
-          return;
-        }
-
-        const json = await res.json();
-        const data: ApiAlertItem[] = Array.isArray(json)
-          ? json
-          : Array.isArray(json?.data)
-          ? json.data
-          : [];
-
-        if (!data.length) {
-          setCategories(MOCK_CAMERAS.map((c) => c.name));
-          setValues(MOCK_CAMERAS.map((c) => c.alerts));
-          return;
-        }
-
+        if (!res.ok) throw new Error("Failed to fetch cameras");
+        const data: ApiAlertItem[] = Array.isArray(await res.json()) ? await res.json() : [];
         buildFromAlerts(data);
-      } catch (err) {
+      } catch {
         setCategories(MOCK_CAMERAS.map((c) => c.name));
         setValues(MOCK_CAMERAS.map((c) => c.alerts));
       } finally {
@@ -119,69 +87,62 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
     fetchCameras();
   }, [alerts]);
 
-  /* ========================= Dynamic Chart Width ========================= */
-  const chartWidth =
-    categories.length > 12 ? categories.length * 80 : "100%";
+  // Dynamic scroll width
+  const minBarWidth = 120;
+  const chartWidth = categories.length > 10 ? categories.length * minBarWidth : "100%";
 
-  /* ========================= Apex Options ========================= */
+  // หา max value เพื่อกำหนด Y axis
+  const maxY = Math.max(...values, 1);
 
   const options: ApexOptions = {
     chart: {
       type: "bar",
-      height: 360,
-      toolbar: { show: false },
+      height: 480,
+      toolbar: { show: false }
     },
     plotOptions: {
       bar: {
         columnWidth: "55%",
-        borderRadius: 4,
-      },
+        borderRadius: 4
+      }
     },
     xaxis: {
-      categories,
+      categories: categories,
       labels: {
-        rotate: 0,
-        trim: true,
-        maxHeight: 60,
+        rotate: -45,
+        rotateAlways: true,
         style: {
           colors: "#6B7280",
-          fontSize: "12px",
-          fontWeight: 500,
+          fontSize: "11px"
         },
+        offsetY: 0,
+        maxHeight: 120,
       },
     },
     yaxis: {
+      min: 0,
+      max: maxY,
+      tickAmount: maxY,
       labels: {
-        style: {
-          colors: "#6B7280",
-          fontSize: "12px",
-        },
+        formatter: (val) => Math.round(Number(val)).toString(),
+        style: { colors: "#6B7280", fontSize: "12px" },
       },
-      title: {
-        text: "Alert Count",
-        style: {
-          color: "#4B5563",
-          fontSize: "12px",
-        },
+      title: { text: "Alert Count", style: { color: "#4B5563", fontSize: "12px" } },
+      forceNiceScale: false,
+    },
+    tooltip: {
+      custom: ({ seriesIndex, dataPointIndex, w }) => {
+        const fullName = categories[dataPointIndex]; // ชื่อเต็ม
+        const value = w.globals.series[seriesIndex][dataPointIndex];
+        return `<div style="padding:5px">${fullName}: ${value} alerts</div>`;
       },
     },
     dataLabels: { enabled: false },
-    tooltip: {
-      y: { formatter: (val) => `${val} alerts` },
-    },
     colors: ["#8979FF"],
-    grid: {
-      strokeDashArray: 4,
-      borderColor: "#E5E7EB",
-    },
+    grid: { strokeDashArray: 4, borderColor: "#E5E7EB" },
   };
 
-  const series = [
-    {
-      name: "Alerts",
-      data: values,
-    },
-  ];
+  const series = [{ name: "Alerts", data: values }];
 
   return (
     <div className="w-full">
@@ -189,19 +150,11 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
         Alert Distribution across Cameras
       </h2>
 
-      {loading && (
-        <p className="mb-2 text-xs text-gray-400">Loading camera alerts...</p>
-      )}
+      {loading && <p className="mb-2 text-xs text-gray-400">Loading camera alerts...</p>}
 
-      {/* Scroll wrapper */}
       <div className="overflow-x-auto">
-        <div style={{ width: chartWidth }}>
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="bar"
-            height={360}
-          />
+        <div style={{ minWidth: chartWidth }}>
+          <ReactApexChart options={options} series={series} type="bar" height={360} />
         </div>
       </div>
     </div>
