@@ -34,6 +34,9 @@ router.patch("/:usr_id/profile", ctrl.updateProfile);
 router.patch("/:usr_id/password", ctrl.updatePassword);
 
 /* ========================== Users ========================== */
-router.get("/", ctrl.getUserById);
+router.get('/', ctrl.users);
+router.get("/:usr_id", ctrl.getUserById);
+
+
 
 export default router;

@@ -129,3 +129,23 @@ export async function updatePassword(
       message: "Password updated successfully",
     };
 }
+
+export async function users() {
+    const query = `
+        SELECT 
+            usr_id,
+            usr_username,
+            usr_email,
+            usr_name,
+            usr_phone,
+            usr_rol_id,
+            usr_is_use,
+            rol_name AS usr_role
+        FROM users
+        LEFT JOIN roles ON usr_rol_id = rol_id
+        ORDER BY usr_id ASC
+    `;
+
+    const result = await pool.query(query);
+    return result.rows;
+}

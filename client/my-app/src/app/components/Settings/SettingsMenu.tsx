@@ -7,6 +7,7 @@ import { Alert } from "@/app/models/alerts.model";
 import { ArrowLeft } from "lucide-react";
 
 import AccountSettings from "./Account";
+import UserManageMents from "./UserManagements";
 
 export default function SettingsMenu() {
 
@@ -50,7 +51,7 @@ export default function SettingsMenu() {
 
           </TabsContent>
           <TabsContent value="user" className="py-2 text-sm text-gray-600">
-
+            <UserManageMents/>
           </TabsContent>
         </Tabs>
       </div>

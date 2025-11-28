@@ -80,3 +80,12 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
         next(err);
     }
 }
+
+export async function users(req: Request, res: Response, next: NextFunction) {
+    try {
+        const users = await UserService.users();
+        return res.status(200).json({message: 'Fetched successfully',data: users});
+    } catch (err) {
+        next(err);
+    }
+}
