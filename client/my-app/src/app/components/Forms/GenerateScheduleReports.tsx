@@ -71,7 +71,9 @@ export default function GenerateScheduleReports() {
                     <SelectItem value="monthly">Monthly</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div>   
+
+              
 
               <div className="grid gap-2">
                 <Label>Time</Label>
