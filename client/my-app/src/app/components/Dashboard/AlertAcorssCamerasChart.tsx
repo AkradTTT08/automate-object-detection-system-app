@@ -109,14 +109,16 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
     xaxis: {
       categories: categories,
       labels: {
-        rotate: -45,
-        rotateAlways: true,
+        rotate: 0,          // ⬅️ ไม่เอียงแล้ว
+        rotateAlways: false, // ⬅️ ไม่บังคับเอียง
         style: {
           colors: "#6B7280",
           fontSize: "11px"
         },
-        offsetY: 0,
-        maxHeight: 120,
+        offsetY: 4,          // ⬅️ ขยับลงนิดหน่อยให้ไม่ชนแกน
+        maxHeight: 80,       // ⬅️ สูงพอประมาณ
+        trim: true,          // ⬅️ ถ้ายาวมากให้ตัดด้วย ...
+        hideOverlappingLabels: true, // ⬅️ ซ่อนตัวที่ชนกัน
       },
     },
     yaxis: {
@@ -132,7 +134,7 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
     },
     tooltip: {
       custom: ({ seriesIndex, dataPointIndex, w }) => {
-        const fullName = categories[dataPointIndex]; // ชื่อเต็ม
+        const fullName = categories[dataPointIndex];
         const value = w.globals.series[seriesIndex][dataPointIndex];
         return `<div style="padding:5px">${fullName}: ${value} alerts</div>`;
       },
@@ -146,7 +148,7 @@ export default function CameraAlertsBarChart({ alerts }: Props) {
 
   return (
     <div className="w-full">
-      <h2 className="text-md font-semibold mb-2 text-[var(--color-primary,#111827)]">
+      <h2 className="text-lg font-bold mb-2 text-[var(--color-primary,#111827)]">
         Alert Distribution across Cameras
       </h2>
 
