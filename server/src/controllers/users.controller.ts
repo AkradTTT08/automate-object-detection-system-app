@@ -81,9 +81,22 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function users(req: Request, res: Response, next: NextFunction) {
+/**
+ * ดึงรายการผู้ใช้งานทั้งหมดจาก API
+ * เหมาะสำหรับใช้ใน endpoint เช่น `/api/users/`
+ *
+ * @param {Request} req - Express Request
+ * @param {Response} res - Express Response สำหรับส่งข้อมูลกลับไป
+ * @param {NextFunction} next - ฟังก์ชันส่งต่อข้อผิดพลาดให้ middleware ถัดไป
+ * @returns {Promise<Response>} ข้อมูลผู้ใช้งานทั้งหมดและข้อความยืนยันการดึงข้อมูลสำเร็จ
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการเรียก service
+ *
+ * @author Wongsakon
+ * @lastModified 2025-11-28
+ */
+export async function getUsers(req: Request, res: Response, next: NextFunction) {
     try {
-        const users = await UserService.users();
+        const users = await UserService.getUsers();
         return res.status(200).json({message: 'Fetched successfully',data: users});
     } catch (err) {
         next(err);

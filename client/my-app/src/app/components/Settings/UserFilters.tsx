@@ -1,3 +1,4 @@
+// app/components/Setting/UserFilters.tsx
 "use client";
 
 import { useMemo } from "react";
@@ -8,6 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
+//useQueryParam อ่านและอัพเดต query parameter ใน URL ของหน้า user management
 function useQueryParam() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -32,6 +34,7 @@ function useQueryParam() {
   return { searchParams, setParam, setMany };
 }
 
+// Component: UserFilters
 export default function UserFilters() {
   const { searchParams, setParam, setMany } = useQueryParam();
   const roleValue = searchParams.get("role");
@@ -41,6 +44,8 @@ export default function UserFilters() {
 
   return (
     <div className="max-w-150 mb-3 grid grid-cols-[1fr_auto] gap-2 items-center">
+      
+      {/* Dropdown เลือก role */}
       <div className="grid gap-1 w-full">
         <Select value={roleValue ?? "All"} onValueChange={(v) => setParam("role", v === "All" ? null : v)}>
           <SelectTrigger
@@ -60,6 +65,7 @@ export default function UserFilters() {
         </Select>
       </div>
 
+      {/* Reset Filters */}
       <Button
         type="button"
         variant="ghost"

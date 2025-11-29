@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -22,6 +21,7 @@ const ROLE_STYLES = {
   default: "bg-slate-50 text-slate-700 ring-slate-200",
 } as const;
 
+/* RoleBadge */
 function RoleBadge({ value }: { value?: string }) {
   const key = (value ?? "").trim().toLowerCase() as keyof typeof ROLE_STYLES;
   const pill = ROLE_STYLES[key] ?? ROLE_STYLES.default;
@@ -35,7 +35,7 @@ function RoleBadge({ value }: { value?: string }) {
   );
 }
 
-/* ----------------------------- ICON BUTTON -------------------------------- */
+/* ----------------------------- ICON ACTION -------------------------------- */
 function IconAction({
   label,
   children,
@@ -121,12 +121,15 @@ export default function UserTable({ users }: { users: User[] }) {
   const [rows, setRows] = useState<User[]>(users);
   useEffect(() => setRows(users), [users]);
 
+  // Pagination
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
 
+  // Sorting
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
 
+  // จัดการ sort เมื่อ click column header
   const handleSort = (key: SortKey) => {
     if (sortKey !== key) {
       setSortKey(key);
@@ -138,6 +141,7 @@ export default function UserTable({ users }: { users: User[] }) {
     }
   };
 
+  // Memoized sorted users
   const sortedUsers = useMemo(() => {
     if (!sortKey || !sortOrder) return rows;
 
@@ -151,11 +155,11 @@ export default function UserTable({ users }: { users: User[] }) {
     });
   }, [rows, sortKey, sortOrder]);
 
+  // Pagination calculations
   const total = sortedUsers.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const start = (page - 1) * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, total);
-
   const pagedUsers = sortedUsers.slice(start, end);
 
   /* ----------------------------- RESET PASSWORD ----------------------------- */
@@ -201,11 +205,18 @@ export default function UserTable({ users }: { users: User[] }) {
     setConfirmOpen(true);
   };
 
+  // ฟังก์ชันสำหรับปุ่ม Action พร้อมให้เชื่อมต่อ logic จริง เช่น แก้ไขหรือ ลบผู้ใช้
   const onEdit = (id: number) => console.log("Edit user:", id);
   const onDelete = (id: number) => console.log("Delete user:", id);
 
+  if (!pagedUsers.length) {
+    return <div className="text-sm text-gray-500">No users to display.</div>;
+  }
+
   return (
     <div className="w-full">
+
+      {/* ตารางผู้ใช้ */}
       <Table className="table-auto w-full">
         <TableHeader>
           <TableRow className="border-b border-[var(--color-primary)]">
@@ -229,20 +240,23 @@ export default function UserTable({ users }: { users: User[] }) {
               </TableHead>
             ))}
 
+            {/* Actions column */}
             <TableHead className="text-[var(--color-primary)]">Actions</TableHead>
           </TableRow>
         </TableHeader>
 
+        {/* Rows */}
         <TableBody>
           {pagedUsers.map((usr) => (
             <TableRow key={usr.usr_id}>
               <TableCell>{`USR${String(usr.usr_id).padStart(4, "0")}`}</TableCell>
-              <TableCell>{usr.usr_name || "-"}</TableCell>
-              <TableCell><RoleBadge value={usr.usr_role || "-"} /></TableCell>
-              <TableCell>{usr.usr_username || "-"}</TableCell>
-              <TableCell>{usr.usr_email || "-"}</TableCell>
-              <TableCell>{usr.usr_phone || "-"}</TableCell>
-              
+              <TableCell>{usr.usr_name}</TableCell>
+              <TableCell><RoleBadge value={usr.usr_role} /></TableCell>
+              <TableCell>{usr.usr_username}</TableCell>
+              <TableCell>{usr.usr_email}</TableCell>
+              <TableCell>{usr.usr_phone}</TableCell>
+
+              {/* Action buttons */}
               <TableCell className="whitespace-nowrap">
                 <div className="flex items-center gap-1.5">
                   <IconAction
@@ -288,8 +302,8 @@ export default function UserTable({ users }: { users: User[] }) {
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
             className={`px-3 py-1 rounded-md border text-sm ${page <= 1
-                ? "text-gray-400 border-gray-200"
-                : "text-gray-700 border-gray-300 hover:bg-gray-50"
+              ? "text-gray-400 border-gray-200"
+              : "text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
           >
             Previous
@@ -301,8 +315,8 @@ export default function UserTable({ users }: { users: User[] }) {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className={`px-3 py-1 rounded-md border text-sm ${page >= totalPages
-                ? "text-gray-400 border-gray-200"
-                : "text-gray-700 border-gray-300 hover:bg-gray-50"
+              ? "text-gray-400 border-gray-200"
+              : "text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
           >
             Next
@@ -319,6 +333,7 @@ export default function UserTable({ users }: { users: User[] }) {
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         onConfirm={handleConfirmReset}
+        icon={<KeyRound className="h-7 w-7 text-blue-600" />}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+// app/components/Setting/UserManagements.tsx
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -28,9 +29,9 @@ function normalizeToTableUser(u: ApiUser): UserRow {
     usr_id: u.usr_id,
     usr_username: u.usr_username,
     usr_email: u.usr_email,
-    usr_role: u.usr_role ?? "",
-    usr_name: u.usr_name ?? "",
-    usr_phone: u.usr_phone ?? "",
+    usr_role: u.usr_role ?? "-",
+    usr_name: u.usr_name ?? "-",
+    usr_phone: u.usr_phone ?? "-",
   };
 }
 
@@ -38,11 +39,13 @@ function normalizeToTableUser(u: ApiUser): UserRow {
 export default function UserManagements() {
   const searchParams = useSearchParams();
 
+  // state สำหรับเก็บข้อมูล users, loading และ error
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [reloadTick, setReloadTick] = useState(0);
 
+  // ฟังก์ชันเรียก fetch ใหม่ (increment reloadTick)
   const refetch = useCallback(() => setReloadTick((x) => x + 1), []);
 
   // === Fetch users ===
@@ -77,7 +80,7 @@ export default function UserManagements() {
   const q = searchParams.get("q")?.toLowerCase() ?? "";
   const roleParam = searchParams.get("role")?.toLowerCase() ?? "";
 
-  // === Filtering ===
+  // === Filtering users ตาม search และ role ===
   const filtered = useMemo(() => {
     const tokens = q.split(/\s+/).filter(Boolean);
 
@@ -103,11 +106,13 @@ export default function UserManagements() {
         <label className="font-bold text-lg text-[var(--color-primary)]">User Management</label>
       </div>
 
-      {/* Search And Filters */}
+      {/* Search และ Filters */}
       <div className="mb-3 flex flex-col gap-2">
         <SearchUsersInput />
         <UserFilters />
       </div>
+      
+      {/* ตารางผู้ใช้ */}
       <UserTable users={filtered} />
     </div>
   
