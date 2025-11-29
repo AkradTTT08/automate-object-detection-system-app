@@ -165,7 +165,7 @@ export default function EventSeverityChart({ events }: Props) {
 
   return (
     <div className="w-full">
-      <h2 className="text-md font-semibold mb-2 text-[var(--color-primary)]">
+      <h2 className="text-lg font-bold mb-2 text-[var(--color-primary)]">
         Event Severity by Event Type
       </h2>
 
