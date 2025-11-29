@@ -9,6 +9,7 @@ interface AnalyticsRangeSelectorProps {
   onChange: (value: RangeType, start: string, end: string) => void;
 }
 
+/* ---------------- Date utils ---------------- */
 function formatDate(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -30,48 +31,61 @@ function computeRange(r: RangeType) {
   };
 }
 
+/* ---------------- Component ---------------- */
+const OPTIONS: { key: RangeType; label: string }[] = [
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "year", label: "Year" },
+];
+
 const AnalyticsRangeSelector: React.FC<AnalyticsRangeSelectorProps> = ({
   range,
   onChange,
 }) => {
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
+  const [localStart, setLocalStart] = useState("");
+  const [localEnd, setLocalEnd] = useState("");
 
+  /* sync เมื่อ range เปลี่ยนจาก parent */
   useEffect(() => {
     const { start, end } = computeRange(range);
-    setStart(start);
-    setEnd(end);
+    setLocalStart(start);
+    setLocalEnd(end);
     onChange(range, start, end);
   }, [range]);
 
-  const options: RangeType[] = ["week", "month", "year"];
-
   return (
-    <div className="w-full sm:w-auto flex-1">
-      <div className="flex flex-wrap items-center gap-2">
-        {options.map((item) => (
-          <button
-            key={item}
-            onClick={() => {
-              const { start, end } = computeRange(item);
-              setStart(start);
-              setEnd(end);
-              onChange(item, start, end);
-            }}
-            className={`
-              rounded-full border px-3 py-1 text-sm transition
-              block w-full sm:w-auto text-center
-              self-center
-              ${
-                range === item
-                  ? "bg-[var(--color-primary)] text-[var(--color-white)] border-transparent"
-                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-              }
-            `}
-          >
-            {item.toUpperCase()}
-          </button>
-        ))}
+    <div className="flex items-center">
+      {/* ===== Segmented control background ===== */}
+      <div className="inline-flex items-center rounded-full bg-sky-50 border border-sky-100 p-1">
+        {OPTIONS.map((item) => {
+          const active = range === item.key;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => {
+                const { start, end } = computeRange(item.key);
+                setLocalStart(start);
+                setLocalEnd(end);
+                onChange(item.key, start, end);
+              }}
+              className={`
+                px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full
+                transition-all duration-150
+                whitespace-nowrap
+
+                ${
+                  active
+                    ? "bg-[var(--color-primary,#1D8CFF)] text-white shadow"
+                    : "text-[#1D8CFF] hover:bg-white/70"
+                }
+              `}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

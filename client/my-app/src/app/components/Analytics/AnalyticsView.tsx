@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import AnalyticsCard from "./AnalyticsCard";
 import AnalyticsRangeSelector, { RangeType } from "./AnalyticsRangeSelector";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, FileChartColumn } from "lucide-react";
 
 /* ============================================
    FORMAT DATE
@@ -45,6 +45,16 @@ function getRangeDates(range: RangeType) {
 }
 
 /* ============================================
+   FORMAT NUMBER (ไม่แสดง .00 ถ้าเป็นจำนวนเต็ม)
+============================================ */
+function formatNumber(value: number, suffix = "") {
+  if (Number.isInteger(value)) {
+    return `${value}${suffix}`;
+  }
+  return `${value}${suffix}`;
+}
+
+/* ============================================
    SUMMARY
 ============================================ */
 function summarizeAnalytics(alerts: any[], cameras: any[], from: Date, to: Date) {
@@ -60,8 +70,11 @@ function summarizeAnalytics(alerts: any[], cameras: any[], from: Date, to: Date)
     return cam.camera_is_use && cam.camera_status && createdAt <= to.getTime();
   }).length;
 
+  // ⭐ Alert Rate = จำนวน Alert ต่อกล้อง (แปลงเป็น %)
+  //    ถ้า 100% = โดยเฉลี่ย 1 กล้องมี 1 Alert ในช่วงเวลาที่เลือก
+  //    ถ้า > 100% = เกิด Alert ถี่ (มากกว่า 1 ครั้งต่อกล้อง)
   const alertRate =
-    totalAlerts === 0 ? 0 : (activeCameras / totalAlerts) * 100;
+    activeCameras === 0 ? 0 : (totalAlerts / activeCameras) * 100;
 
   return {
     totalAlerts,
@@ -72,6 +85,38 @@ function summarizeAnalytics(alerts: any[], cameras: any[], from: Date, to: Date)
     eventResolutionRate,
     aiAccuracy: 95.45,
   };
+}
+
+/* ============================================
+   Mapping Alert Rate → Badge (โอกาสเกิดสูง/ต่ำ)
+============================================ */
+/**
+ * แบ่งระดับความถี่ของ Alert ต่อกล้อง (Alert Rate %)
+ *
+ *  - 0%           → No Alerts      (โอกาสเกิดเหตุแทบไม่มีในช่วงเวลา)
+ *  - 0–30%        → Low            (เกิดน้อยมาก บางกล้องพอมีเหตุ)
+ *  - 30–80%       → Moderate       (เริ่มเจอเหตุบ้าง แต่ยังไม่ถี่)
+ *  - 80–150%      → High           (ส่วนใหญ่ของกล้องเริ่มเจอเหตุอย่างน้อย 1 ครั้ง)
+ *  - >150%        → Very High      (เกิดเหตุถี่มาก กล้องเจอหลายครั้ง)
+ */
+function getAlertRateBadge(rate: number): {
+  label: string;
+  tone: "low" | "moderate" | "high" | "critical";
+} {
+  if (rate === 0) {
+    return { label: "No Alerts", tone: "low" };
+  }
+  if (rate > 0 && rate < 30) {
+    return { label: "Low", tone: "low" };
+  }
+  if (rate >= 30 && rate < 80) {
+    return { label: "Moderate", tone: "moderate" };
+  }
+  if (rate >= 80 && rate < 150) {
+    return { label: "High", tone: "high" };
+  }
+  // 150% ขึ้นไป = Critical (โอกาส/ความถี่สูงมาก)
+  return { label: "Very High", tone: "critical" };
 }
 
 /* ============================================
@@ -128,6 +173,9 @@ const AnalyticsView: React.FC = () => {
   }, [filteredAlerts, cameras, from, to]);
 
   if (!summary) return <div>Loading analytics…</div>;
+
+  // ⭐ ตีความ Alert Rate → Badge สำหรับแสดงใน Card
+  const alertRateBadge = getAlertRateBadge(summary.alertRate);
 
   /* ============================================
      REFRESH
@@ -191,6 +239,23 @@ const AnalyticsView: React.FC = () => {
           />
         </div>
 
+        {/* EXPORT REPORT BTN */}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {}}
+          className="text-[var(--color-primary)]
+          border border-[var(--color-primary)]
+          px-3 py-2 text-sm
+          hover:bg-[var(--color-primary)] hover:text-white 
+          flex items-center justify-center gap-2
+          w-full sm:w-auto
+          order-last sm:order-none"
+        >
+          <FileChartColumn className="w-4 h-4" />
+          Export Report
+        </Button>
+
         {/* REFRESH BTN */}
         <Button
           type="button"
@@ -211,22 +276,30 @@ const AnalyticsView: React.FC = () => {
 
       {/* SUMMARY CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <AnalyticsCard title="Total Alerts" icon="alert-triangle" color="red" value={summary.totalAlerts} subtitleLeft="Alerts" />
+        <AnalyticsCard
+          title="Total Alerts"
+          icon="alert-triangle"
+          color="red"
+          value={summary.totalAlerts}
+        />
 
         <AnalyticsCard
           title="Alert Rate"
           icon="gauge"
           color="orange"
-          value={summary.alertRate.toFixed(2) + "%"}
+          value={formatNumber(summary.alertRate, "%")}
           subtitleLeft={`Cameras: ${summary.activeCameras}`}
           subtitleRight={`Alert: ${summary.totalAlerts}`}
+          // ⭐ Badge บอกระดับความถี่ของ Alert ต่อกล้อง
+          badgeLabel={alertRateBadge.label}
+          badgeTone={alertRateBadge.tone}
         />
 
         <AnalyticsCard
           title="AI Accuracy"
           icon="check-circle"
           color="yellow"
-          value={`${summary.aiAccuracy}%`}
+          value={formatNumber(summary.aiAccuracy, "%")}
           subtitleLeft="AI Alert: 100"
           subtitleRight="Correct: 95"
         />
@@ -235,7 +308,7 @@ const AnalyticsView: React.FC = () => {
           title="Event Resolution Rate"
           icon="shield-check"
           color="green"
-          value={summary.eventResolutionRate.toFixed(2) + "%"}
+          value={formatNumber(summary.eventResolutionRate, "%")}
           subtitleLeft={`Alert: ${summary.totalAlerts}`}
           subtitleRight={`Closed: ${summary.resolved + summary.dismissed}`}
         />
