@@ -25,7 +25,7 @@ export default function RegisterUserDialog() {
   const [role, setRole] = useState<string | undefined>("staff");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const defaultPassword = process.env.DEFAULT_PASSWORD || "";
+  const defaultPassword = process.env.NEXT_PUBLIC_DEFAULT_PASSWORD || "aods2025";
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
