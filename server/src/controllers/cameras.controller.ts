@@ -5,6 +5,7 @@ import * as EventDetectionService from '../services/cameras/eventDetections.serv
 import * as AccessControlService from '../services/cameras/accessControl.service';
 import * as LocationService from '../services/cameras/location.service';
 import * as PerformanceService from '../services/cameras/performance.service';
+import * as CameraAnalyticsService from "../services/cameras/cameras.service";
 import { ffmpegService } from '../services/cameras/ffmpeg.service';
 
 /* ------------------------------ Cameras ------------------------------ */
@@ -30,6 +31,24 @@ export async function getCameras(req: Request, res: Response, next: NextFunction
         next(err);
     }
 };
+
+
+
+
+export async function getCamerasForAnalytics(req: Request,  res: Response, next: NextFunction) {
+  try {
+    const list = await CameraAnalyticsService.getCamerasForAnalytics();
+    return res.status(200).json({
+      message: "Fetched camera analytics data",
+      data: list,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+
+
 
 /**
  * ดึงข้อมูลรายละเอียดของกล้องตามรหัสที่ระบุ

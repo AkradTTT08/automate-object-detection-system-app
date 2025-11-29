@@ -20,6 +20,22 @@ export async function getCameras() {
   return rows;
 }
 
+
+export async function getCamerasForAnalytics() {
+  const { rows } = await pool.query(`
+    SELECT
+      cam_id AS camera_id,
+      cam_status AS camera_status,
+      cam_is_use AS camera_is_use,
+      cam_created_at AS camera_created_at
+    FROM cameras
+    ORDER BY cam_id ASC;
+  `);
+
+  return rows;
+}
+
+
 export async function getCameraById(camera_id: number) {
   const { rows } = await pool.query(`
     SELECT * FROM v_cameras_overview
