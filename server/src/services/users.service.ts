@@ -133,11 +133,9 @@ export async function updatePassword(
 
 /**
  * สร้าง User อัตโนมัติ
- *
- *
  * @async
  * @function generateUniqueUsername
- * @returns `${USERNAME_PREFIX}${padded}` UserName ล่าสุด
+ * @returns `${USERNAME_PREFIX}${padded}` UserName Admin2025ล่าสุด
  *
  * @author Premsirikun
  * @lastModified 2025-11-28
@@ -147,9 +145,7 @@ process.env.DEFAULT_USERNAME || `user_${new Date().getFullYear()}`;
 
 export async function generateUniqueUsername() {
   const res = await pool.query(
-    `
-    SELECT usr_username
-    FROM users
+    `SELECT usr_username FROM users
     WHERE usr_username LIKE $1
     ORDER BY usr_username DESC
     LIMIT 1
