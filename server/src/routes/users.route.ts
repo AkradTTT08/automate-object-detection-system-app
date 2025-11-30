@@ -36,4 +36,8 @@ router.patch("/:usr_id/password", ctrl.updatePassword);
 /* ========================== Users ========================== */
 router.get("/", ctrl.getUserById);
 
+/* ========================== Update ========================== */
+router.put("/:id", ctrl.updateUser);
+/* ========================== Delete ========================== */
+router.patch("/:id/deactivate", ctrl.softDeleteUser);
 export default router;
