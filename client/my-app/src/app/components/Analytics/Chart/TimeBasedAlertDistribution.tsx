@@ -22,21 +22,26 @@ const AXIS_LABEL_STYLE = {
   fontSize: "12px",
 };
 
-const ALERT_SERIES_DATA = [63, 26, 74, 81, 49, 61, 50, 43, 84, 96, 74, 24];
-
+// ===== MOCK DATA 24 HOURS =====
 const TIME_CATEGORIES = [
-  "00:00",
-  "02:00",
-  "04:00",
-  "06:00",
-  "08:00",
-  "10:00",
-  "12:00",
-  "14:00",
-  "16:00",
-  "18:00",
-  "20:00",
-  "22:00",
+  "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+  "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+];
+
+/**
+ * Mock Alert Data (more realistic & volatile)
+ * - ไม่เป็น smooth wave
+ * - มี spike/dip กระจายเหมือน production
+ */
+const ALERT_SERIES_DATA = [
+  6, 128, 4, 9, 12, 7,     // 00 - 05 (night + random spike)
+  22, 48, 31, 76,         // 06 - 09 (morning volatile)
+  92, 57, 101, 84,        // 10 - 13 (peak zone w/ dips)
+  119, 63, 108, 79,       // 14 - 17 (double peak + drop)
+  51, 86, 34, 58,         // 18 - 21 (evening uneven)
+  17, 44                  // 22 - 23 (late spikes)
 ];
 
 // ===== CONFIG (ตั้งค่าชาร์ต) =====
@@ -45,17 +50,20 @@ const chartOptions: ApexOptions = {
     type: "area",
     zoom: { enabled: false },
     toolbar: { show: false },
-    background: "#ffffff", // พื้นหลัง plot area
+    background: "#ffffff",
 
     // 💜 เอฟเฟกต์ "เส้นเรืองแสงม่วง"
     dropShadow: {
       enabled: true,
-      color: "#6705c9", // สีแสงเรือง (ม่วง)
+      color: "#6705c9",
       top: 0,
       left: 0,
       blur: 14,
       opacity: 0.55,
     },
+
+    // ช่วยให้ responsive ใน card ที่มี padding
+    parentHeightOffset: 0,
   },
 
   // เส้นกราฟ
@@ -68,11 +76,11 @@ const chartOptions: ApexOptions = {
   dataLabels: {
     enabled: true,
     offsetY: -10,
-    background: { enabled: false }, // ไม่มีกรอบหลังตัวเลข
+    background: { enabled: false },
     style: {
       fontSize: "12px",
       fontWeight: "500",
-      colors: ["#5d6470"], // สีตัวเลขบนกราฟ
+      colors: ["#5d6470"],
     },
   },
 
@@ -82,8 +90,8 @@ const chartOptions: ApexOptions = {
   // จุดวงกลมบนเส้นกราฟ
   markers: {
     size: 5,
-    colors: ["#ffffff"],     // สีด้านในวงกลม
-    strokeColors: "#bab7fb", // สีขอบวงกลม
+    colors: ["#ffffff"],
+    strokeColors: "#bab7fb",
     strokeWidth: 2,
   },
 
@@ -104,8 +112,8 @@ const chartOptions: ApexOptions = {
   grid: {
     borderColor: "#e5e7eb",
     strokeDashArray: 4,
-    yaxis: { lines: { show: true } }, // แนวนอน
-    xaxis: { lines: { show: true } }, // แนวตั้ง
+    yaxis: { lines: { show: true } },
+    xaxis: { lines: { show: true } },
   },
 
   // แกน X (เวลา)
@@ -119,9 +127,17 @@ const chartOptions: ApexOptions = {
   // แกน Y (จำนวน alerts)
   yaxis: {
     min: 0,
-    max: 100,
     tickAmount: 5,
+    forceNiceScale: true,   // 👈 ปรับ step ให้ออกมาสวย
     labels: { style: AXIS_LABEL_STYLE },
+    title: {
+      text: "Alert Count",
+      style: {
+        color: "#4b5563",
+        fontSize: "12px",
+        fontWeight: 600,
+      },
+    },
   },
 
   // Tooltip ตอน hover
@@ -131,6 +147,24 @@ const chartOptions: ApexOptions = {
       formatter: (val: number) => `${val} alerts`,
     },
   },
+
+  // ปรับบางอย่างให้เหมาะกับจอเล็ก
+  responsive: [
+    {
+      breakpoint: 768,
+      options: {
+        dataLabels: {
+          enabled: false,
+        },
+        markers: {
+          size: 3,
+        },
+        yaxis: {
+          tickAmount: 4,
+        },
+      },
+    },
+  ],
 };
 
 // ===== DATA (ข้อมูลกราฟ) =====
@@ -142,42 +176,26 @@ const chartSeries: ApexSeries = [
 ];
 
 // ===== COMPONENT หลัก =====
-const TimeBasedAlertDistribution: React.FC<TimeBasedAlertChartProps> = ({
+export default function TimeBasedAlertDistribution({
   height = 220, // บีบกราฟให้เตี้ยลง
-}) => {
+}: TimeBasedAlertChartProps) {
   return (
-    <div
-      style={{
-        // กล่องด้านหลัง (ใต้หัวข้อ + ใต้กราฟทั้งหมด)
-        background: "#ffffff",
-        padding: "12px 20px", // [บน-ล่าง, ซ้าย-ขวา]
-        borderRadius: "24px",
-        boxShadow: "0 12px 30px rgba(15, 23, 42, 0.12)",
-        width: "100%",
-      }}
-    >
-      {/* หัวข้อด้านบนของกราฟ */}
-      <h2
-        style={{
-          marginBottom: "12px",
-          fontSize: "20px",
-          fontWeight: 600,
-          color: "#2563eb",
-        }}
-      >
+    <div className="w-full">
+      <h2 className="text-lg font-bold mb-2 text-[var(--color-primary)]">
         Time-based Alert Distribution
       </h2>
 
-      {/* ตัวกราฟ ApexCharts */}
-      <ReactApexChart
-        options={chartOptions}
-        series={chartSeries}
-        type="area"
-        height={height}
-        width="114%"
-      />
+      {/* Mobile: scroll X ที่ wrapper | Desktop: เต็มหน้าจอ */}
+      <div className="w-full md:overflow-visible overflow-x-auto overflow-y-hidden">
+        <div className="min-w-[900px] md:min-w-0">
+          <ReactApexChart
+            options={chartOptions}
+            series={chartSeries}
+            type="area"
+            height={height}
+          />
+        </div>
+      </div>
     </div>
   );
-};
-
-export default TimeBasedAlertDistribution;
+}
