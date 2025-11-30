@@ -48,6 +48,7 @@ import register from "./register.routes";
 // Others
 import locations from "./location.route";
 import users from "./users.route";
+import mailRoutes from "./mail.routes";
 
 // Middlewares
 import { authenticateToken } from "../controllers/auth.controller";
@@ -67,5 +68,6 @@ router.use("/logs", logs);
 /* ============================= Others ============================= */
 router.use("/locations", locations);
 router.use("/users", users);
+router.use("/mail", mailRoutes);
 
 export default router;
