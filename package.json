@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "jspdf": "^3.0.4",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "lucide-react": "^0.540.0"
   },
   "devDependencies": {
