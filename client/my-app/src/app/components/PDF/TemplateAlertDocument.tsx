@@ -51,7 +51,7 @@ const DEFAULT_CHART_OPTIONS: ApexOptions = {
   },
 };
 
-const DEFAULT_CHART_SERIES: ChartSeries  = [
+const DEFAULT_CHART_SERIES: ChartSeries = [
   {
     name: "Alerts",
     data: [5, 3, 4, 10, 22, 35, 40, 38, 30, 18, 10, 6],
@@ -68,7 +68,7 @@ export type TemplateAlertDocumentProps = {
     severityLabel?: string;
   };
   chartOptions?: ApexOptions;
-  chartSeries?: ChartSeries ;
+  chartSeries?: ChartSeries;
   className?: string;
 };
 
@@ -92,14 +92,16 @@ const TemplateAlertDocument: React.FC<TemplateAlertDocumentProps> = ({
     };
   }, [chartOptions]);
 
-  const mergedChartSeries = useMemo<ChartSeries >(
+  const mergedChartSeries = useMemo<ChartSeries>(
     () => chartSeries || DEFAULT_CHART_SERIES,
     [chartSeries]
   );
 
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className ?? ""}`}
+      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${
+        className ?? ""
+      }`}
     >
       {/* Header */}
       <header className="mb-4">

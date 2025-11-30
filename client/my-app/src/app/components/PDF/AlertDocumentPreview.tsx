@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import ApexCharts from "apexcharts";
+// ❌ ห้าม import apexcharts ตรง ๆ
+// import ApexCharts from "apexcharts";
 import { jsPDF } from "jspdf";
 
 import TemplateAlertDocument, {
@@ -57,6 +58,7 @@ const TEMPLATES: TemplateConfig[] = [
 const AlertDocumentPreview: React.FC = () => {
   const [selectedKey, setSelectedKey] = useState<TemplateKey>("alert-trend");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const currentTemplate = TEMPLATES.find((t) => t.key === selectedKey)!;
@@ -70,7 +72,14 @@ const AlertDocumentPreview: React.FC = () => {
   }, [pdfUrl]);
 
   const handleGeneratePdf = useCallback(async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+
     try {
+      // ✅ import apexcharts เฉพาะตอนรันบน client
+      const apexModule = await import("apexcharts");
+      const ApexCharts = apexModule.default;
+
       // 1) ดึงกราฟจาก ApexCharts เป็น dataURI
       const dataUriResponse = await ApexCharts.exec(ALERT_CHART_ID, "dataURI");
       const imgURI: string | undefined = (dataUriResponse as any)?.imgURI;
@@ -80,11 +89,7 @@ const AlertDocumentPreview: React.FC = () => {
         return;
       }
 
-      const {
-        title,
-        subtitle,
-        filters,
-      } = documentProps;
+      const { title, subtitle, filters } = documentProps;
 
       const {
         systemName = "AODS",
@@ -175,8 +180,10 @@ const AlertDocumentPreview: React.FC = () => {
     } catch (err) {
       console.error(err);
       alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+    } finally {
+      setIsGenerating(false);
     }
-  }, [documentProps, meta, pdfUrl]);
+  }, [documentProps, meta, pdfUrl, isGenerating]);
 
   const handleOpenPrintDialog = () => {
     if (!pdfUrl) return;
@@ -224,9 +231,10 @@ const AlertDocumentPreview: React.FC = () => {
 
         <button
           onClick={handleGeneratePdf}
-          className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+          disabled={isGenerating}
+          className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Generate PDF Preview
+          {isGenerating ? "Generating..." : "Generate PDF Preview"}
         </button>
       </div>
 
