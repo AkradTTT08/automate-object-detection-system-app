@@ -35,31 +35,6 @@ const colorMap: Record<ReportsCardProps["color"], string> = {
 const cardBase =
   "bg-white w-full min-w-0 rounded-[10px] shadow-[0_1px_3px_rgba(0,0,0,0.12)] border border-gray-200 h-[120px] flex flex-col justify-center px-[20px] py-[14px]";
 
-/* ================= Helper: format number ================= */
-// แปลง "10.00" → "10", "95.45" → "95.45"
-function formatNumber(raw?: string) {
-  if (!raw) return "";
-  const n = Number(raw);
-  if (isNaN(n)) return raw;
-
-  if (Number.isInteger(n)) {
-    return n.toString();
-  }
-  return n.toString(); // ถ้ามีทศนิยมจริง ให้แสดงตามจริง
-}
-
-/* ================= Helper: parse "Label: Value" ================= */
-function parseMeta(text?: string) {
-  if (!text) return null;
-
-  const [label, value] = text.split(":");
-
-  return {
-    label: (label ?? "").trim(),
-    value: formatNumber((value ?? "").trim()),
-  };
-}
-
 const ReportsCard: React.FC<ReportsCardProps> = ({
   title,
   icon,
@@ -74,7 +49,7 @@ const ReportsCard: React.FC<ReportsCardProps> = ({
       {/* Title */}
       <h4 className="text-sm font-medium text-slate-800 mb-1">{title}</h4>
 
-      {/* Value Section + Badge ข้าง ๆ */}
+      {/* Value Section + icon */}
       <div className="flex items-center gap-3">
         <IconComponent className={`h-[28px] w-[28px] ${colorClass}`} />
 
