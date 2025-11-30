@@ -169,7 +169,7 @@ export default function UserTable({ users }: { users: User[] }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // default password from env
-  const defaultPassword = process.env.NEXT_PUBLIC_DEFAULT_PASSWORD;
+  const DEFAULT_PASSWORD = process.env.NEXT_PUBLIC_DEFAULT_PASSWORD;
 
   // reset password logic
   const handleConfirmReset = async () => {
@@ -180,7 +180,7 @@ export default function UserTable({ users }: { users: User[] }) {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: defaultPassword }),
+        body: JSON.stringify({ password: DEFAULT_PASSWORD }),
       });
 
       const json = await res.json().catch(() => ({}));
