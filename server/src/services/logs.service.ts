@@ -1,34 +1,91 @@
 import { pool } from "../config/db";
 import * as Mapping from "../models/Mapping/logs.map";
 
-// 2025-10-31
+/**
+ * ดึงรายการบันทึกกล้อง (Camera Logs) ทั้งหมดจากฐานข้อมูล
+ * รวมข้อมูลผู้ใช้งาน (users), บทบาท (roles) และข้อมูลกล้อง (cameras)
+ *
+ * @returns {Promise<Array<Model.CameraLog>>} รายการบันทึกกล้องทั้งหมด เรียงตามเวลาที่สร้าง (clg_created_at) แบบล่าสุดก่อน (DESC)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-11-26
+ */
 export async function getCameraLogs(){
     const { rows } = await pool.query(`
         SELECT
             clg_id, 
             clg_usr_id, 
+            usr_username,
+            rol_name,
             clg_cam_id, 
+            cam_name,
             clg_action, 
             clg_created_at
         FROM camera_logs
+        JOIN users ON clg_usr_id = usr_id
+        JOIN roles ON usr_rol_id = rol_id
+        JOIN cameras ON clg_cam_id = cam_id
         ORDER BY clg_created_at DESC;
     `);
 
     return rows.map(Mapping.mapCameraLogsToSaveResponse);
 }
 
-// 2025-10-31
+/**
+ * ดึงรายการบันทึกการแจ้งเตือน (Alert Logs) ทั้งหมดจากฐานข้อมูล
+ * รวมข้อมูลผู้ใช้งาน (users) และบทบาท (roles)
+ *
+ * @returns {Promise<Array<Model.AlertLog>>} รายการบันทึกการแจ้งเตือนทั้งหมด เรียงตามเวลาที่สร้าง (alg_created_at) แบบล่าสุดก่อน (DESC)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-11-26
+ */
 export async function getAlertLogs(){
     const { rows } = await pool.query(`
         SELECT
             alg_id, 
             alg_usr_id, 
+            usr_username,
+            rol_name,
             alg_alr_id, 
             alg_action, 
             alg_created_at
         FROM alert_logs
+        JOIN users ON alg_usr_id = usr_id
+        JOIN roles ON usr_rol_id = rol_id
         ORDER BY alg_created_at DESC;
     `);
 
     return rows.map(Mapping.mapAlertLogsToSaveResponse);
+}
+
+/**
+ * ดึงรายการบันทึกกิจกรรมการทำงานของผู้ใช้ (User Activity Logs)
+ * จากตาราง auth_activity_logs พร้อมข้อมูลผู้ใช้งาน (users)
+ * และข้อมูลบทบาท (roles)
+ *
+ * @returns {Promise<Array<Model.UserLog>>} รายการบันทึกกิจกรรมของผู้ใช้ทั้งหมด เรียงตามเวลาที่สร้างล่าสุด (aal_created_at DESC)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wanasart
+ * @lastModified 2025-11-26
+ */
+export async function getUserLogs(){
+    const { rows } = await pool.query(`
+        SELECT 
+            aal_id, 
+            aal_usr_id, 
+            usr_username,
+            rol_name,
+            aal_action, 
+            aal_created_at
+        FROM auth_activity_logs
+        JOIN users ON aal_usr_id = usr_id
+        JOIN roles ON usr_rol_id = rol_id
+        ORDER BY aal_created_at DESC;
+    `);
+
+    return rows.map(Mapping.mapUserLogsToSaveResponse);
 }
