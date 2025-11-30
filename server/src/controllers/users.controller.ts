@@ -80,3 +80,27 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
         next(err);
     }
 }
+
+/**
+ * ดึง username ถัดไปที่ยังไม่ถูกใช้งานจากระบบ
+ *
+ * ทำงานโดยเรียก UserService.generateUniqueUsername()
+ * ซึ่งจะสร้าง username แบบ unique (ไม่ซ้ำกับผู้ใช้เดิม)
+ * แล้วส่งกลับไปให้ client ใช้งาน เช่น autofill ตอนสมัครสมาชิก
+ *
+ * @param {Request} req - HTTP request object
+ * @param {Response} res - HTTP response object (ใช้ส่ง JSON กลับ)
+ * @param {NextFunction} next - ใช้ส่ง error ไป middleware ถัดไป
+ * @returns {Promise<void>} ส่งกลับ username ในรูปแบบ JSON เช่น { username: "user001" }
+ * 
+ * @author Premsirikun
+ * @lastModified 2025-11-29
+ */
+export async function getNextUsername(req : Request, res: Response, next: NextFunction) {
+  try {
+    const username = await UserService.generateUniqueUsername();
+    return res.json({ username });
+  } catch (err) {
+    next(err);
+  }
+}
