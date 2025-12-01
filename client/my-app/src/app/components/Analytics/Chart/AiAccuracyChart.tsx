@@ -4,25 +4,25 @@ import React from "react";
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 
-// โหลด react-apexcharts แบบ dynamic กัน error window is not defined ตอน SSR
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-// ===== TYPES =====
+
 type TimeBasedAlertChartProps = {
-  height?: number; // ความสูงของกราฟ (ส่ง override ได้)
+  height?: number; 
 };
 
 type ApexSeries = NonNullable<ApexOptions["series"]>;
 
-// ===== SHARED CONSTS =====
+
 const AXIS_LABEL_STYLE = {
   colors: "#6b7280",
   fontSize: "12px",
 };
 
-// ===== DATA แบบเดียวกับกราฟ AI Accuracy ในรูป =====
+
 const X_CATEGORIES = [
     "5 months ago","4 months ago","3 months ago",
     "2 months ago","1 months ago",
@@ -34,7 +34,7 @@ const X_CATEGORIES = [
 const CORRECT_SERIES = [58, 20, 66, 15, 95, 65, 38, 2, 23, 56, 45, 62, 45, 42 ];
 const INCORRECT_SERIES = [16, 82, 88, 18, 18, 46, 90, 20, 30, 40, 50, 30, 23, 12];
 
-// ===== CONFIG (Spline Area Chart แบบในรูป) =====
+
 const chartOptions: ApexOptions = {
   chart: {
     type: "area",
@@ -71,7 +71,7 @@ const chartOptions: ApexOptions = {
     },
   },
 
-  // พื้นใต้เส้นแบบ gradient ซ้อนกัน
+ 
 fill: {
   type: "gradient",
   gradient: {
@@ -82,7 +82,7 @@ fill: {
     gradientToColors: ["#d8ddff", "#ffd8dd"],
 
     opacityFrom: 0.20,
-    opacityTo: 0.50,   // 👈 ต้องไม่ใช่ 0 ถมถึงล่างจริง
+    opacityTo: 0.50,   
     stops: [0, 60, 100],
   },
 },
@@ -92,12 +92,7 @@ yaxis: {
   tickAmount: 5,
   labels: { style: AXIS_LABEL_STYLE },
 },
-
-
-
-
-
-  // เส้นตาราง
+ 
   grid: {
     borderColor: "#e5e7eb",
     strokeDashArray: 4,
@@ -105,7 +100,7 @@ yaxis: {
     xaxis: { lines: { show: true } },
   },
 
-  // แกน X
+ 
   xaxis: {
     categories: X_CATEGORIES,
     labels: { style: AXIS_LABEL_STYLE },
@@ -113,7 +108,7 @@ yaxis: {
     axisTicks: { show: false },
   },
 
-  // แกน Y (0–100)
+  
   yaxis: {
     min: 0,
     max: 200,
@@ -124,7 +119,7 @@ yaxis: {
     },
   },
 
-  // Tooltip
+  
   tooltip: {
     theme: "light",
     shared: true,
@@ -134,7 +129,6 @@ yaxis: {
     },
   },
 
-  // Legend ด้านล่าง
   legend: {
     show: true,
     position: "bottom",
