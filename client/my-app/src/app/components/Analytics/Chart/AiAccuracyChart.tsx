@@ -4,12 +4,12 @@ import React from "react";
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 
-// โหลด react-apexcharts แบบ dynamic กัน error window is not defined ตอน SSR
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-// ===== TYPES =====
+
 type TimeBasedAlertChartProps = {
   height?: number;       // ความสูงของกราฟ (ส่ง override ได้)
   rangeLabel?: string;   // ข้อความบอกช่วงเวลา (เชื่อมกับ filter time range)
@@ -17,7 +17,7 @@ type TimeBasedAlertChartProps = {
 
 type ApexSeries = NonNullable<ApexOptions["series"]>;
 
-// ===== SHARED CONSTS =====
+
 const AXIS_LABEL_STYLE = {
   colors: "#6b7280",
   fontSize: "12px",
@@ -123,7 +123,7 @@ const chartOptions: ApexOptions = {
     xaxis: { lines: { show: true } },
   },
 
-  // แกน X
+ 
   xaxis: {
     categories: X_CATEGORIES,
     labels: {
