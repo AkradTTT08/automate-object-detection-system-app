@@ -6,6 +6,7 @@ import ReportHistoryView from "./ReportHistoryView";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/app/models/alerts.model";
 import { ArrowLeft } from "lucide-react";
+import TemplateTab from "@/app/components/Reports/Template";
 
 export default function ReportMenu() {
 
@@ -38,11 +39,13 @@ export default function ReportMenu() {
             </div>
           </div>
 
+          <TabsContent value="Send History" className="py-2 text-sm text-gray-600">
+           
           <TabsContent value="History" className="py-2 text-sm text-gray-600">
-            <ReportHistoryView />
+              <ReportHistoryView />
           </TabsContent>
           <TabsContent value="Template" className="py-2 text-sm text-gray-600">
-
+              <TemplateTab />
           </TabsContent>
           <TabsContent value="Scheduled" className="py-2 text-sm text-gray-600">
 
