@@ -1,82 +1,153 @@
-'use client';
+"use client";
+
 import React from "react";
+import {
+  FileText,
+  BellRing,
+  Gauge,
+  CalendarClock,
+  Eye,
+  Download,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-{/* TemplateTab Component */ }
-export default function TemplateTab({ onPreview, }: { onPreview?: (id: string) => void; }) {
-  const templates = [
-    { id: 'g', title: 'รายงานทั่วไป', subtitle: 'สรุปกิจกรรมและเหตุการณ์', color: 'b' },
-    { id: 'a', title: 'รายงานการแจ้งเตือน', subtitle: 'ลายละเอียดการแจ้งเตือนเหตุการณ์และการจัดกิจกรรม', color: 'r' },
-    { id: 'p', title: 'รายงานประสิทธิภาพ', subtitle: 'รายงานประสิทธิภาพของระบบ', color: 'p' },
-  ];
+type TemplateTabProps = {
+  onPreview?: (id: string) => void;
+};
 
-  { /* Define color */ }
-  const colorClasses: Record<string, { bg: string }> = {
-    b: { bg: 'bg-blue-500' },
-    r: { bg: 'bg-red-500' },
-    p: { bg: 'bg-purple-500' },
-  };
+const templates = [
+  {
+    id: "g",
+    title: "General Summary Report",
+    subtitle: "High-level overview of system activities and events.",
+    color: "b",
+  },
+  {
+    id: "a",
+    title: "Alert Analysis Report",
+    subtitle: "Detailed breakdown of alert events and handling.",
+    color: "r",
+  },
+  {
+    id: "p",
+    title: "Performance Evaluation Report",
+    subtitle: "Key metrics and KPIs for system performance.",
+    color: "p",
+  },
+] as const;
 
-  {/* Icons map */ }
-  const icons: Record<string, React.ReactNode> = {
-    g: (
-      <img src="https://cdn-icons-png.flaticon.com/128/1508/1508964.png" alt="Calendar Icon" className="mt-1 ml-0.5 h-6 w-6 filter brightness-0 invert" />
-    ),
-    a: (
-      <img src="https://cdn-icons-png.flaticon.com/128/9307/9307174.png" alt="Calendar Icon" className="mt-0.5 ml-1 h-7 w-7 filter brightness-0 invert" />
-    ),
-    p: (
-      <img src="https://cdn-icons-png.flaticon.com/128/16747/16747475.png" alt="Calendar Icon" className="mt-1 h-8 w-8 filter brightness-0 invert" />
-    ),
-  };
+const colorClasses: Record<
+  string,
+  { bg: string; ring: string }
+> = {
+  b: { bg: "bg-blue-500", ring: "ring-blue-100" },
+  r: { bg: "bg-rose-500", ring: "ring-rose-100" },
+  p: { bg: "bg-violet-500", ring: "ring-violet-100" },
+};
 
-  {/* TemplateTab component */ }
+const icons: Record<string, React.ReactNode> = {
+  g: <FileText className="h-7 w-7 text-white" />,
+  a: <BellRing className="h-7 w-7 text-white" />,
+  p: <Gauge className="h-7 w-7 text-white" />,
+};
+
+export default function TemplateTab({ onPreview }: TemplateTabProps) {
   return (
-    <>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="col-span-full text-sm text-slate-500 flex items-center justify-between">
-          <div className="text-[var(--color-primary,_#0B63FF)] font-medium text-lg">Templates</div>
-          <button className="inline-flex items-center gap-2 rounded-md bg-[var(--color-primary,_#0B63FF)] text-white px-4 py-1 text-sm font-medium hover:cursor-pointer  group transition">
-            <img src="https://cdn-icons-png.flaticon.com/128/5251/5251753.png" alt="Calendar Icon" className="mt-1 h-4 w-4 filter brightness-0 invert " />
-            Schedule Reports
-          </button>
-        </div>
-        <hr className="col-span-full border-t pt-2 border-blue-500" />
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* ---------- Header ---------- */}
+      <div className="col-span-full flex items-center justify-between">
+        <h2 className="text-lg font-medium text-[var(--color-primary)]">
+          Templates
+        </h2>
 
-        {/* Selection */}
-        {templates.map((t) => {
-          const cls = colorClasses[t.color] ?? colorClasses.blue;
-          return (
-            <div key={t.id} className="rounded-lg border p-6 text-center bg-white shadow-sm">
-              <div className={`mb-4 inline-flex items-center justify-center h-14 w-14 rounded-full ${cls.bg} mx-auto`}>
+        <Button size="sm" className="flex items-center gap-2">
+          <CalendarClock className="h-4 w-4" />
+          Schedule Reports
+        </Button>
+      </div>
+
+      <hr className="col-span-full border-slate-200 pt-2" />
+
+      {/* ---------- Cards ---------- */}
+      {templates.map((t) => {
+        const cls = colorClasses[t.color] ?? colorClasses.b;
+
+        return (
+          <div
+            key={t.id}
+            className="
+              flex
+              min-h-[340px]
+              flex-col
+              items-center
+              justify-between
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              p-6
+              text-center
+              shadow-sm
+              transition
+              hover:-translate-y-1
+              hover:shadow-md
+            "
+          >
+            {/* ---- Center Content ---- */}
+            <div className="flex flex-col items-center justify-center gap-3">
+              <div
+                className={`inline-flex h-16 w-16 items-center justify-center rounded-full ${cls.bg} ring-4 ${cls.ring}`}
+              >
                 {icons[t.id]}
               </div>
 
-              {/* Selection title */}
-              <h3 className="text-base font-semibold">{t.title}</h3>
-              <p className="text-xs text-slate-500 mt-1">{t.subtitle}</p>
+              <h3 className="mt-2 text-base font-semibold text-slate-900">
+                {t.title}
+              </h3>
 
-              <div className="mt-20">
-
-                {/*  Preview button */}
-                <button
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-3 py-1 text-sm text-[var(--color-primary,_#0B63FF)] mx-auto hover:bg-[var(--color-primary,_#0B63FF)] hover:text-white transition hover:cursor-pointer mr-2"
-                >
-                  <img src="https://cdn-icons-png.flaticon.com/128/11502/11502607.png" alt="Preview Icon" className="relative top-0.5 h-4 w-4 transition" />
-                  Preview
-                </button>
-
-                {/* Download button */}
-                <button
-                  className="relative -top-1 inline-flex items-center gap-2 rounded-md border border-slate-200 px-3 py-1 text-sm text-[var(--color-primary,_#0B63FF)] mx-auto hover:bg-[var(--color-primary,_#0B63FF)] hover:text-white transition hover:cursor-pointer ml-2"
-                >
-                  <img src="https://cdn-icons-png.flaticon.com/128/7268/7268609.png" alt="Preview Icon" className="relative top-0.2 h-3 w-3 transition" />              
-                  Download
-                </button>
-              </div>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-[220px]">
+                {t.subtitle}
+              </p>
             </div>
-          );
-        })}
-      </div>
-    </>
+
+            {/* ---- Actions ---- */}
+            <div className="mt-6 flex w-full items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="
+                  flex-1
+                  gap-2
+                  border-[var(--color-primary)]
+                  text-[var(--color-primary)]
+                  hover:bg-[var(--color-primary)]
+                  hover:text-white
+                "
+                onClick={() => onPreview?.(t.id)}
+              >
+                <Eye className="h-4 w-4" />
+                Preview
+              </Button>
+
+              {/* <Button
+                variant="outline"
+                size="sm"
+                className="
+                  flex-1
+                  gap-2
+                  border-[var(--color-primary)]
+                  text-[var(--color-primary)]
+                  hover:bg-[var(--color-primary)]
+                  hover:text-white
+                "
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button> */}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
