@@ -11,7 +11,8 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 
 // ===== TYPES =====
 type TimeBasedAlertChartProps = {
-  height?: number; // ความสูงของกราฟ (ส่ง override ได้)
+  height?: number;       // ความสูงของกราฟ (ส่ง override ได้)
+  rangeLabel?: string;   // ข้อความบอกช่วงเวลา (เชื่อมกับ filter time range)
 };
 
 type ApexSeries = NonNullable<ApexOptions["series"]>;
@@ -22,19 +23,29 @@ const AXIS_LABEL_STYLE = {
   fontSize: "12px",
 };
 
-// ===== DATA แบบเดียวกับกราฟ AI Accuracy ในรูป =====
+// ===== DATA =====
+// ใช้แบบเขียนเต็ม 5 months ago ... 1 day ago
 const X_CATEGORIES = [
-    "5 months ago","4 months ago","3 months ago",
-    "2 months ago","1 months ago",
-    "3 week ago","2 week ago", "1 week ago",
-    "6 Days ago","5 Days ago","4 Days ago","3 Days ago",
-    "2 Days ago","1 Days ago",
+  "5 months ago",
+  "4 months ago",
+  "3 months ago",
+  "2 months ago",
+  "1 month ago",
+  "3 weeks ago",
+  "2 weeks ago",
+  "1 week ago",
+  "6 days ago",
+  "5 days ago",
+  "4 days ago",
+  "3 days ago",
+  "2 days ago",
+  "1 day ago",
 ];
 
-const CORRECT_SERIES = [58, 20, 66, 15, 95, 65, 38, 2, 23, 56, 45, 62, 45, 42 ];
+const CORRECT_SERIES = [58, 20, 66, 15, 95, 65, 38, 2, 23, 56, 45, 62, 45, 42];
 const INCORRECT_SERIES = [16, 82, 88, 18, 18, 46, 90, 20, 30, 40, 50, 30, 23, 12];
 
-// ===== CONFIG (Spline Area Chart แบบในรูป) =====
+// ===== CONFIG (Spline Area Chart) =====
 const chartOptions: ApexOptions = {
   chart: {
     type: "area",
@@ -72,30 +83,37 @@ const chartOptions: ApexOptions = {
   },
 
   // พื้นใต้เส้นแบบ gradient ซ้อนกัน
-fill: {
-  type: "gradient",
-  gradient: {
-    shade: "light",
-    type: "vertical",
-    shadeIntensity: 0.5,
-
-    gradientToColors: ["#d8ddff", "#ffd8dd"],
-
-    opacityFrom: 0.20,
-    opacityTo: 0.50,   // 👈 ต้องไม่ใช่ 0 ถมถึงล่างจริง
-    stops: [0, 60, 100],
+  fill: {
+    type: "gradient",
+    gradient: {
+      shade: "light",
+      type: "vertical",
+      shadeIntensity: 0.5,
+      gradientToColors: ["#d8ddff", "#ffd8dd"],
+      opacityFrom: 0.2,
+      opacityTo: 0.5,
+      stops: [0, 60, 100],
+    },
   },
-},
-yaxis: {
-  min: 0,
-  max: 100,
-  tickAmount: 5,
-  labels: { style: AXIS_LABEL_STYLE },
-},
 
-
-
-
+  // แกน Y (จำนวนครั้ง)
+  yaxis: {
+    min: 0,
+    max: 200, // ลบออกได้ถ้าอยากให้ auto
+    tickAmount: 5,
+    title: {
+      text: "Alert Count",
+      style: {
+        color: "#6b7280",
+        fontSize: "12px",
+        fontWeight:600,
+      },
+    },
+    labels: {
+      style: AXIS_LABEL_STYLE,
+      formatter: (val) => `${val}`,
+    },
+  },
 
   // เส้นตาราง
   grid: {
@@ -108,60 +126,32 @@ yaxis: {
   // แกน X
   xaxis: {
     categories: X_CATEGORIES,
-    labels: { style: AXIS_LABEL_STYLE },
+    labels: {
+      style: AXIS_LABEL_STYLE,
+    },
     axisBorder: { show: false },
     axisTicks: { show: false },
   },
 
-  // แกน Y (0–100)
-  yaxis: {
-    min: 0,
-    max: 200,
-    tickAmount: 5,
-    labels: {
-      style: AXIS_LABEL_STYLE,
-      formatter: (val) => `${val}`,
-    },
-  },
-
-  // Tooltip
+  // Tooltip (จำนวนครั้งล้วน ๆ)
   tooltip: {
     theme: "light",
     shared: true,
     intersect: false,
     y: {
-      formatter: (val: number) => `${val.toFixed(0)} %`,
+      formatter: (val: number) => `${val.toFixed(0)}`,
     },
   },
 
-  // Legend ด้านล่าง
+  // ใช้ legend custom เองด้านล่าง
   legend: {
-    show: true,
-    position: "bottom",
-    horizontalAlign: "center",
-    fontSize: "12px",
-    labels: {
-      colors: "#6b7280",
-    },
-    markers: {
-      width: 12,
-      height: 12,
-    },
-    itemMargin: {
-      horizontal: 12,
-      vertical: 4,
-    },
+    show: false,
   },
 
-  // ปรับสำหรับจอเล็ก
   responsive: [
     {
       breakpoint: 768,
-      options: {
-        legend: {
-          fontSize: "11px",
-        },
-      },
+      options: {},
     },
   ],
 };
@@ -181,13 +171,23 @@ const chartSeries: ApexSeries = [
 // ===== COMPONENT หลัก =====
 export default function TimeBasedAlertDistribution({
   height = 250,
+  rangeLabel = "Last 5 months – 1 day", // default (ผูกกับ filter ภายหลังได้)
 }: TimeBasedAlertChartProps) {
   return (
     <div className="w-full rounded-3xl bg-[#ffffff] px-6 py-5 shadow-sm border border-[#e5e7f5]">
-       <h2 className="text-lg font-bold mb-2 text-[var(--color-primary)]">
-        Ai Accuracy
-      </h2>
+      {/* Header + Time Range Badge */}
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-lg font-bold text-[var(--color-primary,#111827)]">
+          AI Accuracy
+        </h2>
 
+        {/* badge แสดงช่วงเวลา (เชื่อมกับ filter time range) */}
+        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+          {rangeLabel}
+        </span>
+      </div>
+
+      {/* Chart */}
       <div className="w-full md:overflow-visible overflow-x-auto overflow-y-hidden">
         <div className="min-w-[900px] md:min-w-0">
           <ReactApexChart
@@ -196,6 +196,23 @@ export default function TimeBasedAlertDistribution({
             type="area"
             height={height}
           />
+        </div>
+      </div>
+
+      {/* Legend อธิบายความหมายสี — ล็อกกลางทุกหน้าจอ */}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-600">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#a0a1ff]" />
+          <span className="whitespace-nowrap">
+            Correct — AI detection matches user
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff758a]" />
+          <span className="whitespace-nowrap">
+            Incorrect — AI detection mismatch
+          </span>
         </div>
       </div>
     </div>
