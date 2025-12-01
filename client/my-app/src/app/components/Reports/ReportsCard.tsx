@@ -1,21 +1,16 @@
 "use client";
 
 import React from "react";
-import {
-  FileText,
-  BadgeCheck,
-  LoaderCircle,
-  CircleX,
-} from "lucide-react";
+import { FileText, BadgeCheck, LoaderCircle, CircleX } from "lucide-react";
 
 export type IconKey = "file-text" | "badge-check" | "loader-circle" | "circle-x";
+export type CardColor = "blue" | "green" | "red";
 
 export interface ReportsCardProps {
   title: string;
   icon: IconKey;
   value: string | number;
-  color: "blue" | "green" | "blue" | "red";
-
+  color: CardColor;
 }
 
 const iconMap: Record<IconKey, React.ComponentType<any>> = {
@@ -25,15 +20,15 @@ const iconMap: Record<IconKey, React.ComponentType<any>> = {
   "circle-x": CircleX,
 };
 
-// สีหลักของเลข / icon
-const colorMap: Record<ReportsCardProps["color"], string> = {
-  red: "text-red-500",
-  blue: "text-blue-500",
-  green: "text-emerald-500",
+// สีหลักของเลข / icon (เอา bg ออก เหลือแค่สีตัว icon + ตัวเลข)
+const colorMap: Record<CardColor, string> = {
+  blue: "text-[var(--color-primary)]",
+  green: "text-[var(--color-success)]",
+  red: "text-[var(--color-danger)]",
 };
 
 const cardBase =
-  "bg-white w-full min-w-0 rounded-[10px] shadow-[0_1px_3px_rgba(0,0,0,0.12)] border border-gray-200 h-[120px] flex flex-col justify-center px-[20px] py-[14px]";
+  "bg-white w-full min-w-0 rounded-[10px] shadow-md border border-gray-100 min-h-[120px] flex";
 
 const ReportsCard: React.FC<ReportsCardProps> = ({
   title,
@@ -42,24 +37,30 @@ const ReportsCard: React.FC<ReportsCardProps> = ({
   color,
 }) => {
   const IconComponent = iconMap[icon];
-  const colorClass = colorMap[color];
+  const textColorClass = colorMap[color];
 
   return (
     <div className={cardBase}>
-      {/* Title */}
-      <h4 className="text-sm font-medium text-slate-800 mb-1">{title}</h4>
+      <div className="flex flex-1 flex-col justify-center items-start text-left px-[20px] sm:px-[24px] py-[20px] sm:py-[22px]">
+        {/* Title */}
+        <h4 className="text-base font-medium text-[#000000]">{title}</h4>
 
-      {/* Value Section + icon */}
-      <div className="flex items-center gap-3">
-        <IconComponent className={`h-[28px] w-[28px] ${colorClass}`} />
+        {/* Value Section + icon */}
+        <div className="mt-2 flex items-center gap-x-[10px]">
+          {/* icon ไม่มีพื้นหลังสีอ่อนแล้ว */}
+          <div className={`w-[30px] h-[30px] flex items-center justify-center ${textColorClass}`}>
+            <IconComponent className="h-[30px] w-[30px]" />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <span className={`text-[24px] font-semibold ${colorClass}`}>
-            {value}
-          </span>
+          <div className="flex items-baseline gap-x-1">
+            <span
+              className={`text-[24px] leading-none font-medium pb-[2px] ${textColorClass}`}
+            >
+              {value}
+            </span>
+          </div>
         </div>
       </div>
-
     </div>
   );
 };
