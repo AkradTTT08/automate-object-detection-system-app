@@ -42,5 +42,9 @@ router.get("/next-username", ctrl.getNextUsername);
 
 
 
+/* ========================== Update ========================== */
+router.put("/:id", ctrl.updateUser);
+/* ========================== Delete ========================== */
+router.patch("/:id/deactivate", ctrl.softDeleteUser);
 export default router;
 
