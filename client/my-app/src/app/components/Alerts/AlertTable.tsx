@@ -30,7 +30,7 @@ const SEVERITY_STYLES = {
   default: { pill: "bg-slate-50 text-slate-700 ring-slate-200", Icon: Icons.CircleAlert },
 } as const;
 
-function SeverityBadge({ value }: { value?: string }) {
+export function SeverityBadge({ value }: { value?: string }) {
   const key = (value ?? "").trim().toLowerCase() as keyof typeof SEVERITY_STYLES;
   const { pill, Icon } = SEVERITY_STYLES[key] ?? SEVERITY_STYLES.default;
   return (
