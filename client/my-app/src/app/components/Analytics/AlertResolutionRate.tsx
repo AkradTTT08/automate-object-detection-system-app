@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { Card, CardContent } from "@/components/ui/card";
+import type { ApexOptions } from "apexcharts";
 
-// ApexCharts ต้องใช้ dynamic import เพราะมันรันบน client เท่านั้น
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const data = [
@@ -22,9 +22,9 @@ const data = [
 ];
 
 export default function AlertResolutionRate() {
-  const options = {
+  const options: ApexOptions = {
     chart: {
-      type: "line",
+      type: "line", // ✔ ตอนนี้ TS รู้ว่าเป็น literal แล้ว เพราะ options มี type เป็น ApexOptions
       toolbar: { show: false },
     },
     stroke: {
@@ -40,27 +40,15 @@ export default function AlertResolutionRate() {
       max: 100,
       labels: { style: { fontSize: "12px", colors: "#6b7280" } },
     },
-    colors: ["#3b82f6", "#ef4444"], // Total = blue, Closed = red
-    legend: {
-      show: true,
-    },
-    grid: {
-      borderColor: "#e5e7eb",
-    },
-    tooltip: {
-      theme: "light",
-    },
+    colors: ["#3b82f6", "#ef4444"],
+    legend: { show: true },
+    grid: { borderColor: "#e5e7eb" },
+    tooltip: { theme: "light" },
   };
 
   const series = [
-    {
-      name: "Total",
-      data: data.map((d) => d.total),
-    },
-    {
-      name: "Closed",
-      data: data.map((d) => d.closed),
-    },
+    { name: "Total", data: data.map((d) => d.total) },
+    { name: "Closed", data: data.map((d) => d.closed) },
   ];
 
   return (
