@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ReportHistoryView from "./ReportHistoryView";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/app/models/alerts.model";
 import { ArrowLeft } from "lucide-react";
 import Scheduled from "./ScheduledReports"
+import TemplateTab from "@/app/components/Reports/Template";
 
 export default function ReportMenu() {
 
@@ -19,7 +21,7 @@ export default function ReportMenu() {
                 {[
                   { id: "History", label: "Send History" },
                   { id: "Template", label: "Template" },
-                  { id: "Schduled", label: "Scheduled Reports" },
+                  { id: "Scheduled", label: "Scheduled Reports" },
                 ].map((t) => (
                   <TabsTrigger
                     key={t.id}
@@ -38,13 +40,13 @@ export default function ReportMenu() {
             </div>
           </div>
 
-          <TabsContent value="Send History" className="py-2 text-sm text-gray-600">
-                
+          <TabsContent value="History" className="py-2 text-sm text-gray-600">
+              <ReportHistoryView />
           </TabsContent>
           <TabsContent value="Template" className="py-2 text-sm text-gray-600">
-
+              <TemplateTab />
           </TabsContent>
-          <TabsContent value="Schduled" className="py-2 text-sm text-gray-600">
+          <TabsContent value="Scheduled" className="py-2 text-sm text-gray-600">
               <Scheduled />
           </TabsContent>
         </Tabs>
