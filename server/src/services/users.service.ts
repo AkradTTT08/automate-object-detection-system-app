@@ -99,7 +99,7 @@ export async function updateProfile(
  * @param {number} user_id - รหัสผู้ใช้งานเป้าหมาย
  * @param {string} password - รหัสผ่านใหม่ (Plain text ที่จะถูกแฮชภายในฟังก์ชัน)
  * @returns {Promise<{ success: boolean, message: string }>} สถานะการอัปเดตและข้อความยืนยัน
- * @throws {Error} หากไม่พบผู้ใช้งานที่ระบุ (User not found) หรือเกิดข้อผิดพลาดฐานข้อมูล/การแฮช
+ * @throws {Error} หากไม่พบผู้ใช้งานที่ระบุ (User not found) หรือเกิดข้อผิดพลาดฐานข้อมูล
  *
  * @author Wanasart
  * @lastModified 2025-10-30
@@ -129,9 +129,6 @@ export async function updatePassword(
       message: "Password updated successfully",
     };
 }
-
-
-
 
 /**
  * อัปเดตข้อมูลผู้ใช้งานตามรหัสผู้ใช้ที่ระบุ
@@ -247,4 +244,70 @@ export async function softDeleteUser(userId: number) {
   }
 
   return rows[0]; // ส่ง user กลับเพื่อให้ frontend รู้ว่าปิดใช้งานแล้ว
+}
+/**
+ * สร้าง User อัตโนมัติ
+ * @async
+ * @function generateUniqueUsername
+ * @returns `${USERNAME_PREFIX}${padded}` UserName Admin2025ล่าสุด
+ *
+ * @author Premsirikun
+ * @lastModified 2025-11-28
+ */
+const USERNAME_PREFIX =
+process.env.DEFAULT_USERNAME || `user_${new Date().getFullYear()}`;
+
+export async function generateUniqueUsername() {
+  const res = await pool.query(
+    `SELECT usr_username FROM users
+    WHERE usr_username LIKE $1
+    ORDER BY usr_username DESC
+    LIMIT 1
+  `,
+    [USERNAME_PREFIX + "%"]
+  );
+
+  let nextNumber = 1;
+
+  if (res.rows.length > 0) {
+    const last = res.rows[0].usr_username; // เช่น user_202503
+    const numPart = last.replace(USERNAME_PREFIX, ""); // "03"
+    const lastNum = parseInt(numPart || "0");
+    nextNumber = lastNum + 1;
+  }
+
+  const padded = String(nextNumber).padStart(2, "0");
+  return `${USERNAME_PREFIX}${padded}`;
+}
+/**
+ * ดึงข้อมูลผู้ใช้งานทุกคนจากฐานข้อมูล
+ * โดยเลือกเฉพาะฟิลด์ที่จำเป็น ได้แก่ username, email, name, phone และ role
+ * ใช้สำหรับแสดงรายการผู้ใช้งานในหน้าจัดการผู้ใช้
+ *
+ * @async
+ * @function getUsers
+ * @returns {Promise<Model.User[]>} รายการข้อมูลผู้ใช้งาน (เฉพาะฟิลด์ที่เลือก)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wongsakon
+ * @lastModified 2025-11-28
+ */
+export async function getUsers() {
+    const query = `
+        SELECT 
+            usr_id,
+            usr_username,
+            usr_email,
+            usr_name,
+            usr_phone,
+            usr_rol_id,
+            usr_is_use,
+            rol_name AS usr_role
+        FROM users
+        LEFT JOIN roles ON usr_rol_id = rol_id
+        ORDER BY usr_id ASC
+    `;
+
+    const result = await pool.query(query);
+    return result.rows;
 }

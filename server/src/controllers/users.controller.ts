@@ -148,3 +148,48 @@ export async function softDeleteUser(
   }
 }
 
+/**
+ * ดึง username ถัดไปที่ยังไม่ถูกใช้งานจากระบบ
+ *
+ * ทำงานโดยเรียก UserService.generateUniqueUsername()
+ * ซึ่งจะสร้าง username แบบ unique (ไม่ซ้ำกับผู้ใช้เดิม)
+ * แล้วส่งกลับไปให้ client ใช้งาน เช่น autofill ตอนสมัครสมาชิก
+ *
+ * @param {Request} req - HTTP request object
+ * @param {Response} res - HTTP response object (ใช้ส่ง JSON กลับ)
+ * @param {NextFunction} next - ใช้ส่ง error ไป middleware ถัดไป
+ * @returns {Promise<void>} ส่งกลับ username ในรูปแบบ JSON เช่น { username: "user001" }
+ * 
+ * @author Premsirikun
+ * @lastModified 2025-11-29
+ */
+export async function getNextUsername(req : Request, res: Response, next: NextFunction) {
+  try {
+    const username = await UserService.generateUniqueUsername();
+    return res.json({ username });
+  } catch (err) {
+    next(err);
+  }
+}
+
+ /**
+ * ดึงรายการผู้ใช้งานทั้งหมดจาก API
+ * เหมาะสำหรับใช้ใน endpoint เช่น `/api/users/`
+ *
+ * @param {Request} req - Express Request
+ * @param {Response} res - Express Response สำหรับส่งข้อมูลกลับไป
+ * @param {NextFunction} next - ฟังก์ชันส่งต่อข้อผิดพลาดให้ middleware ถัดไป
+ * @returns {Promise<Response>} ข้อมูลผู้ใช้งานทั้งหมดและข้อความยืนยันการดึงข้อมูลสำเร็จ
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการเรียก service
+ *
+ * @author Wongsakon
+ * @lastModified 2025-11-28
+ */
+export async function getUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+        const users = await UserService.getUsers();
+        return res.status(200).json({message: 'Fetched successfully',data: users});
+    } catch (err) {
+        next(err);
+    }
+}
