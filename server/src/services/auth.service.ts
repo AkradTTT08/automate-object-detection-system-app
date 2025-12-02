@@ -102,9 +102,35 @@ export async function authenticateUser(usernameOrEmail: string, password: string
     if (!ok) {
         throw new Error('Invalid password');
     }
+
+    const log = await pool.query(`
+      INSERT INTO auth_activity_logs(
+        aal_usr_id, 
+        aal_action, 
+        aal_created_at
+      )
+      VALUES($1, $2, CURRENT_TIMESTAMP);
+    `,[
+        user.usr_id,
+        'LOGIN',
+      ]);
     
     console.log(toUserSafe(user));
     return toUserSafe(user);
+}
+
+export  async function logLogout(user_id: number) {
+    const log = await pool.query(`
+      INSERT INTO auth_activity_logs(
+        aal_usr_id, 
+        aal_action, 
+        aal_created_at
+      )
+      VALUES($1, $2, CURRENT_TIMESTAMP);
+    `,[
+        user_id,
+        'LOGOUT',
+      ]);
 }
 
 /**

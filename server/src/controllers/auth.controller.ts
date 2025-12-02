@@ -82,6 +82,23 @@ export async function login(req: Request, res: Response, next: NextFunction) {
  */
 export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
+    // 🧠 1) ดึง token จาก cookie (ต้องใช้ cookie-parser ด้วยนะ)
+    const token = req.cookies?.[COOKIE_NAME];
+
+    if (token) {
+      try {
+        // 🧠 2) decode token เอา payload ออกมา
+        const payload = AuthService.verifySessionToken(token); 
+        // payload type: { id: number; role: string }
+
+        // 🧠 3) ส่ง user_id เข้า service สำหรับ log LOGOUT
+        await AuthService.logLogout(payload.id);
+      } catch (e) {
+        // ถ้า token เสีย/หมดอายุ ก็แค่ log ไว้ แต่ให้ logout ผ่านไปได้
+        console.error('Failed to decode token in logout:', e);
+      }
+    }
+    
     // ✅ เวอร์ชันต่าง ๆ ที่อาจหลงเหลือมาจากการตั้งค่าเก่า
     const variants = [
       { ...cookieBase },                    // มี domain (ถ้าตั้ง)
