@@ -46,6 +46,7 @@ const router = Router();
 /* ========================== Cameras ========================== */
 router.get('/', ctrl.getCameras);
 router.get('/summary', ctrl.getSummaryCameras);
+router.get('/analytics', ctrl.getCamerasForAnalytics);
 router.get('/:cam_id', ctrl.getCameraById);
 router.post('/', ctrl.createCamera);
 router.put('/:cam_id', ctrl.updateCamera);
