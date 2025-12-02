@@ -1,4 +1,4 @@
-import HistoryMenu from "@/app/components/History/HistoryMenu";
+import HistoryMenu from "@/components/features/history/HistoryMenu";
 
 export default function History() {
     return (

@@ -1,6 +1,6 @@
-import AnalyticsView from "@/app/components/Analytics/AnalyticsView";
-import TimeBasedAlertDistribution from "@/app/components/Analytics/Chart/TimeBasedAlertDistribution";
-import AiAccuracyChart from "@/app/components/Analytics/Chart/AiAccuracyChart";
+import AnalyticsView from "@/components/features/analytics/AnalyticsView";
+import TimeBasedAlertDistribution from "@/components/features/analytics/Chart/TimeBasedAlertDistribution";
+import AiAccuracyChart from "@/components/features/analytics/Chart/AiAccuracyChart";
 
 export default function Analytics() {
   return (

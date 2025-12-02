@@ -1,6 +1,6 @@
-import EventSeverityChart from '@/app/components/Dashboard/SeverityDistributionChart';
-import AlertBarChart from '@/app/components/Dashboard/AlertAcorssCamerasChart';
-import CameraAlertView from '@/app/components/Dashboard/CameraAlertView';
+import EventSeverityChart from '@/components/features/dashboard/SeverityDistributionChart';
+import AlertBarChart from '@/components/features/dashboard/AlertAcorssCamerasChart';
+import CameraAlertView from '@/components/features/dashboard/CameraAlertView';
 
 type SP = Record<string, string | string[] | undefined>;
 

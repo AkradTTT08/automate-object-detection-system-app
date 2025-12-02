@@ -1,5 +1,5 @@
 import { Alert } from "@/app/models/alerts.model";
-import AlertDetails from '@/app/components/Alerts/Details/AlertDetails'
+import AlertDetails from '@/components/features/alerts/Details/AlertDetails'
 
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 

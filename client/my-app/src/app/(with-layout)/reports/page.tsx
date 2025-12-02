@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 
-import GeneratePDFReports from "@/app/components/Forms/GeneratePDFReports";
-import GenerateScheduleReports from "@/app/components/Forms/GenerateScheduleReports";
+import GeneratePDFReports from "@/components/forms/GeneratePDFReports";
+import GenerateScheduleReports from "@/components/forms/GenerateScheduleReports";
 
 export default function Reports() {
     const [open, setOpen] = useState(false);

@@ -1,9 +1,9 @@
 // app/(dashboard)/alerts/page.tsx
 import { Separator } from "@/components/ui/separator";
-import AlertView from "@/app/components/Alerts/AlertsView";
-import SearchAlertsInput from "@/app/components/Alerts/SearchAlertsInput";
-import AlertFilters from "@/app/components/Alerts/AlertFilters";
-import RecentAlerts from "@/app/components/Alerts/RecentAlerts";
+import AlertView from "@/components/features/alerts/AlertsView";
+import SearchAlertsInput from "@/components/features/alerts/SearchAlertsInput";
+import AlertFilters from "@/components/features/alerts/AlertFilters";
+import RecentAlerts from "@/components/features/alerts/RecentAlerts";
 
 export default function AlertsPage() {
   return (

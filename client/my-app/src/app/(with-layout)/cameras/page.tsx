@@ -1,10 +1,10 @@
 // app/(with-layout)/cameras/page.tsx
-import CreateEventForm from "@/app/components/Forms/CreateEventForm";
+import CreateEventForm from "@/components/forms/events/CreateEventForm";
 import { Separator } from "@/components/ui/separator";
-import CameraView from "@/app/components/Cameras/CameraView";
-import SearchCamerasInput from "@/app/components/Cameras/SearchCamerasInput";
-import CameraFilters from "@/app/components/Cameras/CameraFilters";
-import EventGrid from "@/app/components/Events/EventCardGrid";
+import CameraView from "@/components/features/cameras/CameraView";
+import SearchCamerasInput from "@/components/features/cameras/SearchCamerasInput";
+import CameraFilters from "@/components/features/cameras/CameraFilters";
+import EventGrid from "@/components/features/events/EventCardGrid";
 
 type ViewMode = "grid" | "list";
 type SP = Record<string, string | string[] | undefined>;

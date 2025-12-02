@@ -1,4 +1,4 @@
-import AlertDocumentPreview from "@/app/components/PDF/AlertDocumentPreview";
+import AlertDocumentPreview from "@/components/documents/AlertDocumentPreview";
 
 export default function AlertPreviewPage() {
   return (

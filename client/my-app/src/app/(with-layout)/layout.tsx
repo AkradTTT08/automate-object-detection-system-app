@@ -1,8 +1,8 @@
 import "../../styles/globals.css";
-import Sidebar from "../components/Layouts/SideBar";
-import Header from "../components/Layouts/Header";
-import { UIProvider } from "../components/Layouts/UI-Provider";
-import Title from "../components/Layouts/Title";
+import Sidebar from "../../components/layouts/SideBar";
+import Header from "../../components/layouts/Header";
+import { UIProvider } from "../../components/provider/UiProvider";
+import Title from "../../components/layouts/Title";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
