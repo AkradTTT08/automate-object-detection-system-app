@@ -99,7 +99,7 @@ export async function updateProfile(
  * @param {number} user_id - รหัสผู้ใช้งานเป้าหมาย
  * @param {string} password - รหัสผ่านใหม่ (Plain text ที่จะถูกแฮชภายในฟังก์ชัน)
  * @returns {Promise<{ success: boolean, message: string }>} สถานะการอัปเดตและข้อความยืนยัน
- * @throws {Error} หากไม่พบผู้ใช้งานที่ระบุ (User not found) หรือเกิดข้อผิดพลาดฐานข้อมูล/การแฮช
+ * @throws {Error} หากไม่พบผู้ใช้งานที่ระบุ (User not found) หรือเกิดข้อผิดพลาดฐานข้อมูล
  *
  * @author Wanasart
  * @lastModified 2025-10-30
@@ -128,4 +128,186 @@ export async function updatePassword(
       success: true,
       message: "Password updated successfully",
     };
+}
+
+/**
+ * อัปเดตข้อมูลผู้ใช้งานตามรหัสผู้ใช้ที่ระบุ
+ * ระบบจะตรวจสอบความซ้ำของ Username/Email (ยกเว้นบัญชีของตัวเอง)
+ * แปลงชื่อบทบาท (role name) เป็นรหัสบทบาท (rol_id) จากตาราง roles
+ * และอัปเดตข้อมูลลงในฐานข้อมูล พร้อมบันทึกเวลาแก้ไขล่าสุด
+ *
+ * ข้อควรระวัง:
+ * - ใช้ฟังก์ชันนี้ในส่วนที่ได้รับอนุญาตเท่านั้น (เช่น Admin Panel)
+ * - ควรใช้ผ่าน HTTPS เพื่อความปลอดภัยของข้อมูลผู้ใช้งาน
+ *
+ * @async
+ * @function updatedUser
+ * @param {number} userId - รหัสผู้ใช้งานที่ต้องการแก้ไข
+ * @param {Object} data - ข้อมูลใหม่ของผู้ใช้งาน
+ * @param {string} data.username - ชื่อผู้ใช้ใหม่ (ตรวจสอบความซ้ำ)
+ * @param {string} data.email - อีเมลใหม่ (ตรวจสอบความซ้ำ)
+ * @param {string} data.name - ชื่อจริงของผู้ใช้งาน
+ * @param {string} data.phone - เบอร์โทรศัพท์
+ * @param {string} data.usr_role - บทบาทใหม่ (เช่น "admin", "staff", "user")
+ * @param {boolean} data.is_use - สถานะการใช้งานบัญชี (true = ใช้งานอยู่)
+ *
+ * @returns {Promise<Object>} ข้อมูลผู้ใช้งานหลังอัปเดต (รวม rol_name)
+ * @author Premsirikun Ketphaen
+ * @lastModified 2025-11-30
+ */
+export async function updatedUser(
+  userId: number, 
+  data :{username: string;name: string;phone: string;email: string;usr_role: string;  is_use: boolean;
+}) {
+  const {username,name,phone,email,usr_role,is_use} = data;
+  const existing = await pool.query(
+  `
+    SELECT * FROM users
+    WHERE (usr_username = $1 OR usr_email = $2)
+    AND usr_id <> $3
+  `,
+  [username, email, userId]
+);
+if (existing.rows.length > 0) {
+  throw new Error("Username or email already exists");
+}
+const roleRes = await pool.query(
+  `
+    SELECT rol_id FROM roles
+    WHERE rol_name = $1
+  `,
+  [usr_role]      
+);
+if (roleRes.rows.length === 0) {
+    throw new Error("Role not found");
+  }
+const role_id = roleRes.rows[0].rol_id;
+  const { rows } = await pool.query(
+    `
+      UPDATE users
+      SET
+        usr_username = $1,
+        usr_email    = $2,
+        usr_name     = $3,
+        usr_phone    = $4,
+        usr_rol_id   = $5,   
+        usr_is_use   = $6,
+        usr_updated_at = CURRENT_TIMESTAMP
+      WHERE usr_id = $7
+      RETURNING usr_id,usr_username,usr_email,usr_name,usr_phone,usr_rol_id,
+        (SELECT rol_name FROM roles WHERE rol_id = usr_rol_id) AS usr_role
+    `,
+    [username.trim(), email.trim(), name.trim(), phone.trim(), role_id, is_use, userId]
+  );
+
+  if (rows.length === 0) {
+    throw new Error("Failed to update user");
+  }
+
+  return rows[0]; 
+}
+
+/**
+ * ปิดการใช้งานผู้ใช้แบบ Soft Delete ตาม userId ที่ระบุ
+ * ฟังก์ชันนี้จะอัปเดตฟิลด์ usr_is_use ให้เป็น FALSE และตั้งค่าเวลา usr_updated_at เป็นเวลาปัจจุบัน
+ * โดยไม่ลบข้อมูลจริงออกจากฐานข้อมูล จากนั้นคืนค่าข้อมูลผู้ใช้ที่ถูกปิดใช้งานกลับไป
+ *
+ * @param {number} userId - รหัสผู้ใช้งานที่ต้องการปิดการใช้งาน
+ * @returns {Promise<Object>} ออบเจ็กต์ข้อมูลผู้ใช้หลังจากถูกปิดการใช้งานสำเร็จ
+ * @throws {Error} หากไม่พบผู้ใช้ตาม userId ที่ระบุ
+ *
+ * @description ใช้สำหรับกรณีที่ต้องการให้ผู้ใช้ไม่สามารถเข้าสู่ระบบได้
+ * โดยยังเก็บข้อมูลไว้ในระบบเพื่ออ้างอิงในอนาคต (Soft Delete)
+ *
+ * @author Premsirikun
+ * @lastModified 2025-11-30
+ */
+export async function softDeleteUser(userId: number) {
+  const { rows } = await pool.query(
+    `
+      UPDATE users
+      SET usr_is_use = FALSE,
+          usr_updated_at = CURRENT_TIMESTAMP
+      WHERE usr_id = $1
+      RETURNING 
+        usr_id,
+        usr_username,
+        usr_email,
+        usr_name,
+        usr_is_use
+    `,
+    [userId]
+  );
+
+  if (rows.length === 0) {
+    throw new Error("User not found");
+  }
+
+  return rows[0]; // ส่ง user กลับเพื่อให้ frontend รู้ว่าปิดใช้งานแล้ว
+}
+/**
+ * สร้าง User อัตโนมัติ
+ * @async
+ * @function generateUniqueUsername
+ * @returns `${USERNAME_PREFIX}${padded}` UserName Admin2025ล่าสุด
+ *
+ * @author Premsirikun
+ * @lastModified 2025-11-28
+ */
+const USERNAME_PREFIX =
+process.env.DEFAULT_USERNAME || `user_${new Date().getFullYear()}`;
+
+export async function generateUniqueUsername() {
+  const res = await pool.query(
+    `SELECT usr_username FROM users
+    WHERE usr_username LIKE $1
+    ORDER BY usr_username DESC
+    LIMIT 1
+  `,
+    [USERNAME_PREFIX + "%"]
+  );
+
+  let nextNumber = 1;
+
+  if (res.rows.length > 0) {
+    const last = res.rows[0].usr_username; // เช่น user_202503
+    const numPart = last.replace(USERNAME_PREFIX, ""); // "03"
+    const lastNum = parseInt(numPart || "0");
+    nextNumber = lastNum + 1;
+  }
+
+  const padded = String(nextNumber).padStart(2, "0");
+  return `${USERNAME_PREFIX}${padded}`;
+}
+/**
+ * ดึงข้อมูลผู้ใช้งานทุกคนจากฐานข้อมูล
+ * โดยเลือกเฉพาะฟิลด์ที่จำเป็น ได้แก่ username, email, name, phone และ role
+ * ใช้สำหรับแสดงรายการผู้ใช้งานในหน้าจัดการผู้ใช้
+ *
+ * @async
+ * @function getUsers
+ * @returns {Promise<Model.User[]>} รายการข้อมูลผู้ใช้งาน (เฉพาะฟิลด์ที่เลือก)
+ * @throws {Error} หากเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
+ *
+ * @author Wongsakon
+ * @lastModified 2025-11-28
+ */
+export async function getUsers() {
+    const query = `
+        SELECT 
+            usr_id,
+            usr_username,
+            usr_email,
+            usr_name,
+            usr_phone,
+            usr_rol_id,
+            usr_is_use,
+            rol_name AS usr_role
+        FROM users
+        LEFT JOIN roles ON usr_rol_id = rol_id
+        ORDER BY usr_id ASC
+    `;
+
+    const result = await pool.query(query);
+    return result.rows;
 }
