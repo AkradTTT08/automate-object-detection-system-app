@@ -31,8 +31,6 @@ export default function LoginPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.message || 'Login failed');
 
-      localStorage.setItem("access_token", data.token);
-
       window.location.href = '/cameras';
     } catch (e: any) {
       setErr(e.message ?? 'Login failed');
@@ -40,8 +38,6 @@ export default function LoginPage() {
       setSubmitting(false);
     }
   }
-
-  console.log('Token: ', localStorage.getItem("access_token"));
 
   return (
     <main

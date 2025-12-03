@@ -163,11 +163,11 @@ export default function AccountSettings() {
       setMe((prev) =>
         prev
           ? {
-              ...prev,
-              usr_name: payload.name || null,
-              usr_phone: payload.phone || null,
-              usr_email: payload.email,
-            }
+            ...prev,
+            usr_name: payload.name || null,
+            usr_phone: payload.phone || null,
+            usr_email: payload.email,
+          }
           : prev
       );
 
@@ -190,20 +190,23 @@ export default function AccountSettings() {
     }
   }
 
+  const ROLE_STYLES = {
+    admin: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    "security team": "bg-sky-50 text-sky-700 ring-sky-200",
+    staff: "bg-orange-50 text-orange-700 ring-orange-200",
+    system: "bg-violet-50 text-violet-700 ring-violet-200",
+    default: "bg-slate-50 text-slate-700 ring-slate-200",
+  } as const;
+
+  /**
+   * คืนค่า Tailwind class สำหรับแสดง Badge ของ Role
+   */
   function getRoleBadgeClass(role?: string): string {
-    if (!role) return "bg-gray-100 text-gray-500";
-    switch (role.toLowerCase()) {
-      case "system":
-        return "bg-purple-100 text-purple-700";
-      case "admin":
-        return "bg-red-100 text-red-700";
-      case "security team":
-        return "bg-amber-100 text-amber-700";
-      case "staff":
-        return "bg-blue-100 text-blue-700";
-      default:
-        return "bg-[var(--color-primary,#2563eb)]/10 text-[var(--color-primary,#2563eb)]";
-    }
+    if (!role) return ROLE_STYLES.default;
+
+    const key = role.toLowerCase().trim() as keyof typeof ROLE_STYLES;
+
+    return ROLE_STYLES[key] ?? ROLE_STYLES.default;
   }
 
   // ------------------------------ UI ------------------------------
@@ -269,7 +272,7 @@ export default function AccountSettings() {
 
                 <div className="mt-1 flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-2">
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ${getRoleBadgeClass(me?.usr_role)}`}
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset capitalize ${getRoleBadgeClass(me?.usr_role)}`}
                   >
                     {me?.usr_role || "staff"}
                   </span>

@@ -177,7 +177,7 @@ export default function RegisterUserDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#0077FF] text-white hover:bg-[#0063d6]">
+        <Button className="bg-[#0077FF] text-white">
           Register
         </Button>
       </DialogTrigger>
@@ -197,10 +197,7 @@ export default function RegisterUserDialog() {
 
             {/* ขวา: ปุ่ม Generate */}
             <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-[#0077FF] text-[#0077FF] hover:bg-blue-50"
+              className="bg-[#0077FF] text-white"
               onClick={handleGenerateUser}
             >
               Generate

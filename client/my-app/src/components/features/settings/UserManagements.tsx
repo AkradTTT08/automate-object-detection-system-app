@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import UserTable, { type UserRow } from "./UserTable";
 import SearchUsersInput from "./SearchUsersInput";
 import UserFilters from "./UserFilters";
+import RegisterUserDialog from "@/components/forms/users/CreateUserForm";
 
 /* --------------------------- API response types --------------------------- */
 type ApiUser = {
@@ -104,6 +105,7 @@ export default function UserManagements() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-start gap-3 justify-between mb-3">
         <label className="font-bold text-lg text-[var(--color-primary)]">User Management</label>
+        <RegisterUserDialog />
       </div>
 
       {/* Search และ Filters */}

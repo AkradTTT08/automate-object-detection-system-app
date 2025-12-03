@@ -15,50 +15,53 @@ type UserBadgeProps = {
   className?: string;
 };
 
+/* ============================================
+   ROLE CONFIG
+============================================ */
+const BASE_ICON_CLASS = "w-3.5 h-3.5";
+
+const ROLE_ICONS = {
+  admin: ShieldAlert,
+  "security team": ShieldCheck,
+  staff: Wrench,
+  system: MonitorCog,
+  default: UserIcon,
+} as const;
+
+const ROLE_STYLES = {
+  admin: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  "security team": "bg-sky-50 text-sky-700 ring-sky-200",
+  staff: "bg-orange-50 text-orange-700 ring-orange-200",
+  system: "bg-violet-50 text-violet-700 ring-violet-200",
+  default: "bg-slate-50 text-slate-700 ring-slate-200",
+} as const;
+
+type RoleKey = keyof typeof ROLE_STYLES;
+
+/* ============================================
+   HELPERS
+============================================ */
+function normalizeRole(role?: string | null): RoleKey {
+  if (!role) return "default";
+
+  const key = role.toLowerCase().trim() as RoleKey;
+  return ROLE_STYLES[key] ? key : "default";
+}
+
+/* ============================================
+   COMPONENT
+============================================ */
 export default function UserBadge({
   username,
   role,
   className = "",
 }: UserBadgeProps) {
   const name = (username ?? "").trim() || "unknown";
-  const roleName = (role ?? "").toLowerCase();
 
-  const BASE_ICON_CLASS = "w-3.5 h-3.5";
+  const roleKey = normalizeRole(role);
 
-  let palette = {
-    pill: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    Icon: <UserIcon className={`${BASE_ICON_CLASS} text-emerald-700`} />,
-  };
-
-  switch (roleName) {
-    case "system":
-      palette = {
-        pill: "bg-purple-50 text-purple-700 ring-purple-200",
-        Icon: <MonitorCog className={`${BASE_ICON_CLASS} text-purple-700`} />,
-      };
-      break;
-
-    case "admin":
-      palette = {
-        pill: "bg-red-50 text-red-700 ring-red-200",
-        Icon: <ShieldAlert className={`${BASE_ICON_CLASS} text-red-700`} />,
-      };
-      break;
-
-    case "security team":
-      palette = {
-        pill: "bg-amber-50 text-amber-700 ring-amber-200",
-        Icon: <ShieldCheck className={`${BASE_ICON_CLASS} text-amber-700`} />,
-      };
-      break;
-
-    case "staff":
-      palette = {
-        pill: "bg-blue-50 text-blue-700 ring-blue-200",
-        Icon: <Wrench className={`${BASE_ICON_CLASS} text-blue-700`} />,
-      };
-      break;
-  }
+  const Icon = ROLE_ICONS[roleKey] ?? ROLE_ICONS.default;
+  const pill = ROLE_STYLES[roleKey];
 
   return (
     <span
@@ -66,11 +69,11 @@ export default function UserBadge({
         "inline-flex items-center gap-1",
         "rounded-full px-2 py-0.5 text-xs font-medium",
         "ring-1 ring-inset",
-        palette.pill,
+        pill,
         className,
       ].join(" ")}
     >
-      {palette.Icon}
+      <Icon className={BASE_ICON_CLASS} />
       <span>{name}</span>
     </span>
   );

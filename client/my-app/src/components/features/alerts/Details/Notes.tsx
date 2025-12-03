@@ -416,11 +416,12 @@ export default function Notes({ alrId }: { alrId: number }) {
             </TableRow>
           ) : (
             sortedNotes.map((n) => {
+              const noteCode = `ANH${String(n.note_id).padStart(3, "0")}`;
               const userLabel = n.creator_username || n.creator_name || "-";
+              
               return (
                 <TableRow key={n.note_id} className="border-b last:border-b-0 align-top text-[12px]">
-                  <TableCell className="py-3 font-medium text-black">{n.note_id}</TableCell>
-
+                  <TableCell className="py-3 font-medium text-black">{noteCode}</TableCell>
                   <TableCell className="px-2 py-3 align-top text-left text-black">
                     <BadgeUser username={userLabel || undefined} role={n.creator_role} />
                   </TableCell>

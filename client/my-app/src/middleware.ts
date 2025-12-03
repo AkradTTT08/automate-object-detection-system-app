@@ -33,7 +33,10 @@ export function middleware(req: NextRequest) {
 
   // 2) หน้าที่ต้องล็อกอิน
   const needsAuth =
-    pathname.startsWith("/cameras") || pathname.startsWith("/alerts");
+    pathname.startsWith("/cameras") || pathname.startsWith("/alerts") ||
+    pathname.startsWith("/settings") || pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/analytics") || pathname.startsWith("/history") ||
+    pathname.startsWith("/reports");
   if (needsAuth && !token) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
@@ -46,5 +49,13 @@ export function middleware(req: NextRequest) {
 
 // ให้ middleware ทำงานที่ /login ด้วย
 export const config = {
-  matcher: ["/login", "/cameras/:path*", "/alerts/:path*"],
+  matcher: ["/login", 
+    "/dashboard/:path*", 
+    "/analytics/:path*", 
+    "/cameras/:path*", 
+    "/alerts/:path*", 
+    "/reports/:path*", 
+    "/settings/:path*",
+    "/history/:path*"
+  ],
 };
