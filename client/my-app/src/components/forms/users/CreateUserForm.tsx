@@ -51,11 +51,8 @@ export default function RegisterUserDialog() {
     try {
       const res = await fetch("/api/users/next-username", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        credentials: "include",
+        cache: "no-store",
       });
 
       const raw = await res.text();
@@ -121,7 +118,12 @@ export default function RegisterUserDialog() {
 
       const res = await fetch("/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           username: username.trim(),
           email: emailToSend,

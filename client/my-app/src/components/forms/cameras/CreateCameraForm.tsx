@@ -77,10 +77,7 @@ export default function
 
         const res = await fetch(`/api/locations`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-            "Content-Type": "application/json",
-          },
+          credentials: "include",
           cache: "no-store",
         });
 
@@ -112,13 +109,13 @@ export default function
   async function createCamera(payload: CameraForm): Promise<any> {
     const res = await fetch("/api/cameras/", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
       credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      body: JSON.stringify(payload),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -157,12 +154,14 @@ export default function
       // 1) recheck auth
       const check = await fetch("/api/auth/recheck", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-          "Content-Type": "application/json",
-        },
         credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ password: authPassword }),
+        
       });
       if (!check.ok) {
         throw new Error("Password incorrect, please try again.");

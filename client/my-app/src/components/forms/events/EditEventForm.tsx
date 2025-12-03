@@ -64,14 +64,6 @@ export default function EditEventForm({
     setErrors({});
   }, [item]);
 
-  function authHeaders(): HeadersInit {
-    const h: HeadersInit = { "Content-Type": "application/json" };
-    if (process.env.NEXT_PUBLIC_TOKEN) {
-      h.Authorization = `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`;
-    }
-    return h;
-  }
-
   async function updateEvent(payload: {
     icon_name: string;
     event_name: string;
@@ -82,10 +74,13 @@ export default function EditEventForm({
   }) {
     const res = await fetch(`${endpoint}/${item.event_id}`, {
       method: "PUT",
-      headers: authHeaders(),
       credentials: "include",
-      body: JSON.stringify(payload),
       cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json().catch(() => null);

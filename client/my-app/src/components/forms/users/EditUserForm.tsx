@@ -58,9 +58,11 @@ export function EditUserDialog({ user, onUpdated }: EditUserDialogProps) {
     try {
       const res = await fetch(`/api/users/${user.usr_id}`, {
         method: "PUT",
+        credentials: "include",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
-          
+          Accept: "application/json",
         },
         body: JSON.stringify({
           username,

@@ -169,7 +169,6 @@ export default function Notes({ alrId }: { alrId: number }) {
         method: "GET",
         credentials: "include",
         cache: "no-store",
-        headers: { "Content-Type": "application/json" },
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.message || `HTTP ${res.status}`);
@@ -204,7 +203,11 @@ export default function Notes({ alrId }: { alrId: number }) {
       const res = await fetch(`/api/alerts/${alrId}/notes`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ user_id: me.usr_id, note: newNote.trim() }),
       });
       const json = await res.json().catch(() => ({}));
@@ -234,7 +237,11 @@ export default function Notes({ alrId }: { alrId: number }) {
       const res = await fetch(`/api/alerts/notes/${editId}`, {
         method: "PUT",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ note: editVal }),
       });
       const json = await res.json().catch(() => ({}));
@@ -264,7 +271,11 @@ export default function Notes({ alrId }: { alrId: number }) {
       const res = await fetch(`/api/alerts/notes/${deleteTarget.note_id}`, {
         method: "PATCH",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({}),
       });
       const json = await res.json().catch(() => ({}));
@@ -418,7 +429,7 @@ export default function Notes({ alrId }: { alrId: number }) {
             sortedNotes.map((n) => {
               const noteCode = `ANH${String(n.note_id).padStart(3, "0")}`;
               const userLabel = n.creator_username || n.creator_name || "-";
-              
+
               return (
                 <TableRow key={n.note_id} className="border-b last:border-b-0 align-top text-[12px]">
                   <TableCell className="py-3 font-medium text-black">{noteCode}</TableCell>

@@ -28,10 +28,13 @@ export default function Page() {
   async function postUser(payload: User): Promise<User> {
     const res = await fetch("/api/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      cache: "no-store",
       credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {

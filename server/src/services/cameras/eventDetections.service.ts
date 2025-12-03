@@ -10,7 +10,7 @@ import * as Mapping from '../../models/Mapping/cameras.map';
  * @throws {Error} ถ้าเกิดข้อผิดพลาดระหว่างการดึงข้อมูลจากฐานข้อมูล
  * 
  * @author Wanasart
- * @lastModified 2025-10-12
+ * @lastModified 2025-12-02
  */
 export async function getEventDetectionById(camera_id: number){
     const { rows } = await pool.query(`
@@ -29,7 +29,7 @@ export async function getEventDetectionById(camera_id: number){
         WHERE
             cds_cam_id = $1
         AND
-            cds_is_use = true;
+            evt_is_use = true;
     `,[
         camera_id
     ]);

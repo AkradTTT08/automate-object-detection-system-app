@@ -86,7 +86,6 @@ export default function RelatedAlerts({ alrId }: Props) {
           method: "GET",
           credentials: "include",
           cache: "no-store",
-          headers: { "Content-Type": "application/json" },
         });
         const json = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(json?.message || `HTTP ${res.status}`);

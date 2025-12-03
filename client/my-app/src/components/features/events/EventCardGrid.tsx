@@ -27,14 +27,6 @@ export default function EventCardGrid({
   const doFetch: Fetcher =
     fetcher ?? (typeof fetch !== "undefined" ? fetch : (async () => new Response()) as any);
 
-  function authHeaders(): HeadersInit {
-    const h: HeadersInit = { "Content-Type": "application/json" };
-    if (process.env.NEXT_PUBLIC_TOKEN) {
-      h.Authorization = `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`;
-    }
-    return h;
-    }
-
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -43,7 +35,7 @@ export default function EventCardGrid({
       try {
         const res = await doFetch(`${endpoint}/global`, {
           method: "GET",
-          headers: authHeaders(),
+          credentials: "include",
           cache: "no-store",
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -62,12 +54,12 @@ export default function EventCardGrid({
   }, [endpoint, doFetch]);
 
   /** รวมค่าปัจจุบัน + ที่จะเปลี่ยน แล้วยิง PUT */
-  async function putMerged(id: number, patch: Partial<Pick<Event,"sensitivity"|"priority"|"status">>) {
+  async function putMerged(id: number, patch: Partial<Pick<Event, "sensitivity" | "priority" | "status">>) {
     // หา current
     const cur = items.find(x => x.event_id === id);
     if (!cur) return;
 
-    const merged: Pick<Event,"sensitivity"|"priority"|"status"> = {
+    const merged: Pick<Event, "sensitivity" | "priority" | "status"> = {
       sensitivity: (patch.sensitivity ?? cur.sensitivity) as any,
       priority: (patch.priority ?? cur.priority) as any,
       status: (patch.status ?? cur.status) as boolean,
@@ -80,7 +72,12 @@ export default function EventCardGrid({
       setBusyId(id);
       const res = await doFetch(`${endpoint}/${id}/global`, {
         method: "PUT",
-        headers: authHeaders(),
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           sensitivity: merged.sensitivity,
           priority: merged.priority,
@@ -104,7 +101,7 @@ export default function EventCardGrid({
 
   // จาก dropdown → onEdit ส่ง item ทั้งตัวมา เราใช้เฉพาะ field ที่เกี่ยวแล้ว PUT
   async function updateItem(next: Event) {
-    const patch: Partial<Pick<Event,"sensitivity"|"priority"|"status">> = {};
+    const patch: Partial<Pick<Event, "sensitivity" | "priority" | "status">> = {};
     // เราถือว่า next คือค่าที่ “ถูกแก้แล้ว” จากการ์ด
     patch.sensitivity = next.sensitivity;
     patch.priority = next.priority;

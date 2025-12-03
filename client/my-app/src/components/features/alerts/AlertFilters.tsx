@@ -82,23 +82,23 @@ export default function AlertFilters({
   const { searchParams, setParam, setMany } = useQueryParam();
 
   const severityValue = searchParams.get("severity");
-  const statusValue   = searchParams.get("status");
-  const eventValue    = searchParams.get("event");
-  const cameraValue   = searchParams.get("camera");   // cam_name
+  const statusValue = searchParams.get("status");
+  const eventValue = searchParams.get("event");
+  const cameraValue = searchParams.get("camera");   // cam_name
   const locationValue = searchParams.get("location"); // เก็บเป็น lower-case string
-  const fromValue     = searchParams.get("from") ?? "";
-  const toValue       = searchParams.get("to") ?? "";
+  const fromValue = searchParams.get("from") ?? "";
+  const toValue = searchParams.get("to") ?? "";
 
   // ====== state ======
   const [cameraNames, setCameraNames] = useState<string[]>([]);
-  const [locations, setLocations]     = useState<ApiLocation[]>([]);
-  const [evOpts, setEvOpts]           = useState<string[]>([]);
+  const [locations, setLocations] = useState<ApiLocation[]>([]);
+  const [evOpts, setEvOpts] = useState<string[]>([]);
 
   const [camsLoading, setCamsLoading] = useState(false);
-  const [locLoading,  setLocLoading]  = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
 
   const [camsErr, setCamsErr] = useState<string>("");
-  const [locErr,  setLocErr]  = useState<string>("");
+  const [locErr, setLocErr] = useState<string>("");
 
   const wantAutoLoadEvents = !eventOptions || eventOptions.length === 0;
 
@@ -112,10 +112,7 @@ export default function AlertFilters({
 
         const r = await fetch(`/api/alerts`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-            "Content-Type": "application/json",
-          },
+          credentials: "include",
           cache: "no-store",
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -123,7 +120,7 @@ export default function AlertFilters({
         const arr: any[] = Array.isArray(json) ? json : (json?.data ?? []);
 
         const cNameSet = new Set<string>();
-        const eSet     = new Set<string>();
+        const eSet = new Set<string>();
 
         for (const it of arr) {
           const camName =
@@ -164,10 +161,7 @@ export default function AlertFilters({
 
         const r = await fetch(`/api/locations`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-            "Content-Type": "application/json",
-          },
+          credentials: "include",
           cache: "no-store",
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -200,7 +194,7 @@ export default function AlertFilters({
 
   const hasAny =
     !!severityValue || !!statusValue || !!eventValue ||
-    !!cameraValue   || !!locationValue || !!fromValue || !!toValue;
+    !!cameraValue || !!locationValue || !!fromValue || !!toValue;
 
   return (
     <div className="w-full">
@@ -318,7 +312,7 @@ export default function AlertFilters({
                        hover:bg-[var(--color-primary)] hover:text-[var(--color-white)]"
             disabled={!(
               severityValue || statusValue || eventValue ||
-              cameraValue   || locationValue || fromValue || toValue
+              cameraValue || locationValue || fromValue || toValue
             )}
             onClick={() =>
               setMany({

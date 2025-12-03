@@ -57,17 +57,17 @@ const router = Router();
 
 /* ========================== Authentication ========================== */
 router.use("/auth", login);
-router.use("/register", register);
+router.use("/register", authenticateToken, register);
 
 /* ============================ Core Modules ============================ */
-router.use("/cameras", cameras);
-router.use("/alerts", alerts);
-router.use("/events", events);
-router.use("/logs", logs);
+router.use("/cameras", authenticateToken, cameras);
+router.use("/alerts", authenticateToken, alerts);
+router.use("/events", authenticateToken, events);
+router.use("/logs", authenticateToken, logs);
 
 /* ============================= Others ============================= */
-router.use("/locations", locations);
-router.use("/users", users);
-router.use("/mail", mailRoutes);
+router.use("/locations", authenticateToken, locations);
+router.use("/users", authenticateToken, users);
+router.use("/mail", authenticateToken, mailRoutes);
 
 export default router;

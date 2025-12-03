@@ -221,23 +221,55 @@ export async function recheckPassword(req: Request, res: Response) {
 }
 
 interface AuthRequest extends Request {
-    user?: string | JwtPayload;
+  // แนะนำให้ใช้ type ให้ตรงกับ payload จริง ๆ
+  user?: any; // หรือ { id: number; role: string }
 }
 
-export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(" ")[1];
-    
-    if(!token){
-        return res.status(401).json({ message: "Authorization token is missing" });
-    }
+/**
+ * Middleware ตรวจสอบ session token จาก cookie หรือ Authorization header
+ *
+ * - ใช้ COOKIE_NAME ในการดึง token จาก cookie
+ * - ใช้ verifySessionToken เพื่อตรวจสอบ token
+ *
+ * ใช้กับ route:
+ *   router.use("/cameras", authenticateToken, cameras);
+ */
+export function authenticateToken(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
+  // ✅ 1) ดึง token จาก cookie ชื่อเดียวกับตอน login ตั้งไว้
+  const tokenFromCookie = req.cookies?.[COOKIE_NAME] as string | undefined;
 
-    jwt.verify(token, JWT_SECRET, (err, decode) => {
-        if(err) {
-            return res.status(403).json({ message: "Access denied. Invalid token" });
-        }
+  // ✅ 2) เผื่อรองรับกรณีในอนาคตที่อยากใช้ Bearer token ด้วยก็ยังใช้ได้
+  const authHeader = req.headers["authorization"];
+  const tokenFromHeader =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : undefined;
 
-        req.user = decode as string;;
-        next();
-    });
+  // ✅ 3) เลือกใช้ cookie ก่อน ถ้าไม่มีค่อย fallback ไป header
+  const token = tokenFromCookie || tokenFromHeader;
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: "Authorization token is missing" });
+  }
+
+  try {
+    // ✅ ใช้ service เดิมที่คุณใช้ใน /me, /recheckPassword
+    const payload = verifySessionToken(token); // { id, role, ... }
+
+    // เก็บ user ลงใน req เอาไปใช้ต่อใน controller
+    req.user = payload;
+
+    return next();
+  } catch (err) {
+    console.error("authenticateToken error:", err);
+    return res
+      .status(403)
+      .json({ message: "Access denied. Invalid or expired token" });
+  }
 }

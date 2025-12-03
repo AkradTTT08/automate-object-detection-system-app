@@ -89,16 +89,15 @@ function buildAlertHtml(data: {
           <td style="color:#64748b;">Datetime</td>
           <td>${new Date(data.timestamp).toLocaleString()}</td>
         </tr>
-        ${
-          data.location
-            ? `
+        ${data.location
+      ? `
         <tr>
           <td style="color:#64748b;">Location</td>
           <td>${data.location}</td>
         </tr>
         `
-            : ""
-        }
+      : ""
+    }
       </table>
 
       <!-- CTA -->
@@ -161,7 +160,12 @@ export default function TestAlertMailPage() {
   async function handleSend() {
     await fetch('/api/mail/alert', {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       body: JSON.stringify({
         to,
         subject: `[AODS ALERT] ${eventName}`,

@@ -26,14 +26,6 @@ export default function CreateEventForm() {
   const [enabled, setEnabled] = useState<boolean>(true);
   const [description, setDescription] = useState("");
 
-  function authHeaders(): HeadersInit {
-    const h: HeadersInit = { "Content-Type": "application/json" };
-    if (process.env.NEXT_PUBLIC_TOKEN) {
-      h.Authorization = `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`;
-    }
-    return h;
-  }
-
   async function createEvent(payload: {
     icon_name: string;
     event_name: string;
@@ -44,10 +36,13 @@ export default function CreateEventForm() {
   }) {
     const res = await fetch("/api/events", {
       method: "POST",
-      headers: authHeaders(),
       credentials: "include",
-      body: JSON.stringify(payload),
       cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json().catch(() => null);

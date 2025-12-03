@@ -1,17 +1,13 @@
 import { Camera } from "@/app/models/cameras.model";
 import CameraDetails from '@/components/features/cameras/details/CameraDetails'
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 
 export default async function Page({ params }: { params: Promise<{ cam_id: string }> }) {
     const { cam_id } = await params
 
-    const res = await fetch(`${base}/api/cameras/${cam_id}`, { cache: "no-store" });
-    if (!res.ok) {
-        throw new Error("Failed to load cameras");
-    }
-
-    const json = await res.json();
+    const json = await fetchWithAuth<{ data: Camera[] }>(`/api/cameras/${cam_id}`);
     const camera: Camera = json.data[0];
 
     return (

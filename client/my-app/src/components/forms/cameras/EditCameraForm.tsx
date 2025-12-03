@@ -89,12 +89,8 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
 
         const res = await fetch(`/api/cameras/${camId}`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
           credentials: "include",
+          cache: "no-store",
         });
 
         const payload = await res.json().catch(() => ({}));
@@ -146,10 +142,7 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
 
         const res = await fetch(`/api/locations`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-            "Content-Type": "application/json",
-          },
+          credentials: "include",
           cache: "no-store",
         });
 
@@ -239,13 +232,13 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
       setSubmitting(true);
       const res = await fetch(`/api/cameras/${camId}`, {
         method: "PUT",
+        credentials: "include",
+        cache: "no-store",
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(payload),
-        cache: "no-store",
-        credentials: "include",
       });
 
       const json = await res.json().catch(() => ({}));

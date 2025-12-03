@@ -41,7 +41,12 @@ export function DeleteUserDialog({ user, onDeleted }: DeleteUserDialogProps) {
     try {
       const res = await fetch(`/api/users/${user.usr_id}/deactivate`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
       });
 
       const result = await res.json();

@@ -162,6 +162,8 @@ export default function AlertLogs() {
         setError(null);
 
         const res = await fetch("/api/logs/alert", {
+          method: "GET",
+          cache: "no-store",
           credentials: "include",
         });
 

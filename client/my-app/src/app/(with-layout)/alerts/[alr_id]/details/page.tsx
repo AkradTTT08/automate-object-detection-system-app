@@ -1,17 +1,13 @@
 import { Alert } from "@/app/models/alerts.model";
 import AlertDetails from '@/components/features/alerts/details/AlertDetails'
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 const base = process.env.NEXT_PUBLIC_APP_URL!;
 
 export default async function Page({ params }: { params: Promise<{ alr_id: string }> }) {
     const { alr_id } = await params
 
-    const res = await fetch(`${base}/api/alerts/${alr_id}`, { cache: "no-store" });
-    if (!res.ok) {
-        throw new Error("Failed to load alert");
-    }
-
-    const json = await res.json();
+    const json = await fetchWithAuth<{ data: Alert }>(`/api/alerts/${alr_id}`);
     const alert: Alert = json.data;
 
     return (

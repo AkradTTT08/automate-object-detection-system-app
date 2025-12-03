@@ -1,24 +1,11 @@
 import FullScreenView from "@/components/features/cameras/FullScreenView";
 import { Camera } from "@/app/models/cameras.model";
-
-const base = process.env.NEXT_PUBLIC_APP_URL!;
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export default async function Page({ params }: { params: Promise<{ cam_id: string }> }) {
   const { cam_id } = await params
 
-  const res = await fetch(`${base}/api/cameras/${cam_id}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to load cameras");
-  }
-
-  const json = await res.json();
+  const json = await fetchWithAuth<{ data: Camera }>(`/api/cameras/${cam_id}`);
   const camera: Camera = json.data;
 
   console.log(camera);

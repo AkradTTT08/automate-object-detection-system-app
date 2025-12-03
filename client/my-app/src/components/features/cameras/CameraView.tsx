@@ -9,9 +9,9 @@ import ToggleViewButton from "@/components/features/cameras/ToggleViewButton";
 import CreateCameraForm from "@/components/forms/cameras/CreateCameraForm";
 import { Separator } from "@/components/ui/separator";
 import RefreshButton from "@/components/features/cameras/RefreshCamerasButton";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 type ViewMode = "grid" | "list";
-const base = process.env.NEXT_PUBLIC_APP_URL!;
 
 /* ------------------------- Search matcher -------------------------- */
 function buildMatcher(search?: string) {
@@ -61,16 +61,7 @@ export default async function CameraView({
   location?: string;
   type?: string;
 }) {
-  const res = await fetch(`${base}/api/cameras`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("Failed to load cameras");
-  const json = await res.json();
+  const json = await fetchWithAuth<{ data: Camera[] }>("/api/cameras");
   const cameras: Camera[] = Array.isArray(json.data) ? json.data : [];
 
   // 1) ค้นหา

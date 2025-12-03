@@ -154,6 +154,8 @@ export default function UserLogs() {
         setError(null);
 
         const res = await fetch("/api/logs/user", {
+          method: "GET",
+          cache: "no-store",
           credentials: "include",
         });
 
