@@ -48,10 +48,12 @@ function getRangeDates(range: RangeType) {
    FORMAT NUMBER (ไม่แสดง .00 ถ้าเป็นจำนวนเต็ม)
 ============================================ */
 function formatNumber(value: number, suffix = "") {
-  if (Number.isInteger(value)) {
-    return `${value}${suffix}`;
-  }
-  return `${value}${suffix}`;
+  const formatted = value
+    .toFixed(2)               // บังคับ 2 ตำแหน่ง
+    .replace(/\.00$/, "")    // ตัด .00 ทิ้ง
+    .replace(/(\.\d)0$/, "$1"); // ตัดเลข 0 สุดท้าย เช่น 1.50 -> 1.5
+
+  return `${formatted}${suffix}`;
 }
 
 /* ============================================
