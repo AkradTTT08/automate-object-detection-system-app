@@ -10,7 +10,7 @@ import * as Icons from "lucide-react";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { SaveConfirmModal } from "@/components/modals/AlertsPopup";
+import { SaveConfirmModal } from "@/components/modals/AlertsModal";
 
 /* ------------------------------ ROLE COLORS ------------------------------ */
 const ROLE_STYLES = {

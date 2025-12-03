@@ -7,10 +7,10 @@ import { Alert } from "@/app/models/alerts.model";
 import { ArrowLeft } from "lucide-react";
 
 // ⬇️ ใช้คอมโพเนนต์ที่แยกไว้
-import AlertFootageCard from "@/components/features/alerts/Details/AlertFootageCard";
-import AlertMetaCard from "@/components/features/alerts/Details/AlertMetaCard";
-import EventTimeline from "@/components/features/alerts/Details/EventTimeline";
-import RelatedAlerts from "@/components/features/alerts/Details/RelatedAlerts";
+import AlertFootageCard from "@/components/features/alerts/details/AlertFootageCard";
+import AlertMetaCard from "@/components/features/alerts/details/AlertMetaCard";
+import EventTimeline from "@/components/features/alerts/details/EventTimeline";
+import RelatedAlerts from "@/components/features/alerts/details/RelatedAlerts";
 import Notes from "./Notes";
 
 export default function AlertDetails({ alert }: { alert: Alert }) {

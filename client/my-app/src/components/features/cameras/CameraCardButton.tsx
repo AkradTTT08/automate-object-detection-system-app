@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { Eye, Settings, Info, Trash2 } from "lucide-react";
 import EditCameraModal from "../../forms/cameras/EditCameraForm";
 import { useState } from "react";
-import { DeleteConfirmModal } from "@/components/modals/AlertsPopup";
+import { DeleteConfirmModal } from "@/components/modals/AlertsModal";
 import { useMe } from "@/hooks/useMe";
 
 type Props = {

@@ -7,9 +7,9 @@ import {
   AlertSummaryProvider,
   DashboardSummaryAlertSection,
 } from "@/components/provider/AlertSummaryProvider";
-import DistributionChart from "@/components/features/alerts/Chart/Distribution";
-import Severity from "@/components/features/alerts/Chart/Severity";
-import RefreshAlertsButton from "@/components/utilities/RefreshAlertsButton";
+import DistributionChart from "@/components/features/alerts/chart/Distribution";
+import Severity from "@/components/features/alerts/chart/Severity";
+import RefreshAlertsButton from "@/components/features/alerts/RefreshAlertsButton";
 import { Separator } from "@/components/ui/separator";
 
 /* --------------------------- API response types --------------------------- */

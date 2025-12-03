@@ -1,7 +1,7 @@
 import { Camera } from "@/app/models/cameras.model";
 import CameraAlertTable from "./CameraAlertTable";
 import { Separator } from "@/components/ui/separator";
-import RefreshButton from "@/components/utilities/RefreshCamerasButton";
+import RefreshButton from "@/components/features/cameras/RefreshCamerasButton";
 import SearchCamerasInput from "@/components/features/cameras/SearchCamerasInput";
 import CameraFilters from "@/components/features/cameras/CameraFilters";
 

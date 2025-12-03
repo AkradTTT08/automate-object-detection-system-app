@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Icons from "lucide-react";
-import DynamicLucideIcon from "@/components/utilities/DynamicLucide";
+import DynamicLucideIcon from "@/components/features/events/DynamicLucide";
 import { Button } from "@/components/ui/button";
 
 /* ------------------------------- Types ----------------------------------- */

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Camera } from "@/app/models/cameras.model";
-import DynamicLucideIcon from "@/components/utilities/DynamicLucide";
+import DynamicLucideIcon from "@/components/features/events/DynamicLucide";
 
 /* =============== Severity styles (no icons) =============== */
 const SEVERITY_STYLES = {

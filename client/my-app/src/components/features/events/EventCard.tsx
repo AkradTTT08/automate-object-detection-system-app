@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { Event } from "../../../app/models/events.model";
-import DynamicLucideIcon from "@/components/utilities/DynamicLucide";
+import DynamicLucideIcon from "@/components/features/events/DynamicLucide";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import EditEventForm from "@/components/forms/events/EditEventForm";
-import { DeleteConfirmModal } from "@/components/modals/AlertsPopup";
+import { DeleteConfirmModal } from "@/components/modals/AlertsModal";
 
 export function EventCard({
   item,

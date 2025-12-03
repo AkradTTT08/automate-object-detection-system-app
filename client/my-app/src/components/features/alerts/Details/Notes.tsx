@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { DeleteConfirmModal } from "@/components/modals/AlertsPopup";
+import { DeleteConfirmModal } from "@/components/modals/AlertsModal";
 import BadgeUser from "@/components/badges/UserBadge";
 
 /* ---------------------------------- Types --------------------------------- */

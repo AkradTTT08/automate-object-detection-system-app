@@ -1,7 +1,7 @@
 "use client";
 
 import { Camera, MapPin, Clock3, User, FileVideo } from "lucide-react";
-import DynamicLucideIcon from "@/components/utilities/DynamicLucide"; // ปรับพาธให้ตรงโปรเจกต์คุณ
+import DynamicLucideIcon from "@/components/features/events/DynamicLucide"; // ปรับพาธให้ตรงโปรเจกต์คุณ
 import { TriangleAlert, CircleAlert, Minus, ArrowDown } from "lucide-react";
 
 type Props = {

@@ -15,10 +15,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Camera } from "@/app/models/cameras.model";
 import { ArrowLeft } from "lucide-react"
-import Performance from "@/components/features/cameras/Details/Performance";
-import Maintenance from "@/components/features/cameras/Details/MaintenanceHistoryTable";
-import EventDetection from "@/components/features/cameras/Details/EventDetection";
-import AccessControl from "@/components/features/cameras/Details/CameraAccess";
+import Performance from "@/components/features/cameras/details/Performance";
+import Maintenance from "@/components/features/cameras/details/MaintenanceHistoryTable";
+import EventDetection from "@/components/features/cameras/details/EventDetection";
+import AccessControl from "@/components/features/cameras/details/CameraAccess";
 
 export default function CameraDetails({ camera }: { camera: Camera }) {
     

@@ -1,8 +1,43 @@
-// app/logs/alert/page.tsx
+/**
+ * Page: Alert Logs
+ *
+ * Purpose:
+ *  แสดงประวัติการทำงานที่เกี่ยวข้องกับ Alert (Alert Activity Logs)
+ *  เช่น การสร้างการแจ้งเตือน และการเปลี่ยนสถานะการแจ้งเตือน
+ *
+ * Responsibilities:
+ *  - ดึงข้อมูล alert logs จาก API
+ *  - รองรับการเรียงลำดับ (sorting) ตามคอลัมน์ต่าง ๆ
+ *  - แสดงข้อมูลแบบแบ่งหน้า (pagination)
+ *
+ * Main Columns:
+ *  - Log ID
+ *  - Action (CREATE_ALERT / UPDATE_STATUS / ...)
+ *  - Alert (รหัสการแจ้งเตือน ALTxxx)
+ *  - User (ผู้ใช้งานและสิทธิ์)
+ *  - Timestamp (วันที่และเวลาที่ทำรายการ)
+ *
+ * UI Behavior:
+ *  - แสดงสถานะ Loading / Error / Empty state
+ *  - คลิกหัวคอลัมน์เพื่อเปลี่ยนลำดับการเรียง (asc / desc / none)
+ *  - แสดงรหัส Alert ในรูปแบบ ALTxxx เพื่อให้อ่านง่าย
+ *
+ * Dependencies:
+ *  - shadcn/ui → Table components
+ *  - lucide-react → Icons (Clock3, ArrowUpDown / ArrowUp / ArrowDown)
+ *  - UserBadge, ActionBadge → แสดง badge สำหรับผู้ใช้และ action
+ *
+ * Notes:
+ *  - การดึงข้อมูลจัดการฝั่ง client ผ่าน fetch("/api/logs/alert")
+ *  - โครงสร้างหน้าคล้ายกับ Camera Logs เพื่อความสม่ำเสมอ
+ *
+ * Author: Wanasart
+ * Created: 2025-12-02
+ * Updated: 2025-12-02
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import {
   Table,
@@ -17,12 +52,13 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Activity,
   Clock3,
 } from "lucide-react";
 
 import UserBadge from "@/components/badges/UserBadge";
 import { ActionBadge } from "../../badges/ActionBadge";
+
+/* ============================== TYPES ===================================== */
 
 type AlertLog = {
   log_id: number;
@@ -30,15 +66,25 @@ type AlertLog = {
   user_username: string;
   role: string;
   alert_id: number;
-  log_action: string; // "CREATE_ALERT" | "UPDATE_STATUS" | ...
-  log_created_at: string; // "YYYY-MM-DD HH:mm:ss"
+  log_action: string;      // "CREATE_ALERT" | "UPDATE_STATUS" | ...
+  log_created_at: string;  // "YYYY-MM-DD HH:mm:ss"
 };
-
-/* -------------------------------- SORTING --------------------------------- */
 
 type SortKey = "id" | "user" | "alert" | "action" | "timestamp";
 type SortOrder = "asc" | "desc" | null;
 
+type SortState = {
+  key: SortKey | null;
+  order: SortOrder;
+};
+
+const PAGE_SIZE = 25;
+
+/* ============================ HELPERS ===================================== */
+
+/**
+ * แปลงค่า log ให้กลายเป็นค่า primitive ที่ใช้สำหรับเปรียบเทียบเวลา sort
+ */
 function getComparable(log: AlertLog, key: SortKey) {
   switch (key) {
     case "id":
@@ -49,14 +95,19 @@ function getComparable(log: AlertLog, key: SortKey) {
       return log.alert_id;
     case "action":
       return (log.log_action ?? "").toLowerCase();
-    case "timestamp":
-      // "2025-11-26 16:19:54" -> Date
-      return new Date(log.log_created_at.replace(" ", "T")).getTime();
+    case "timestamp": {
+      // "2025-11-26 16:19:54" -> "2025-11-26T16:19:54" -> timestamp
+      const isoString = log.log_created_at?.replace(" ", "T");
+      return new Date(isoString).getTime();
+    }
     default:
       return 0;
   }
 }
 
+/**
+ * แสดง icon บอกสถานะการ sort ในแต่ละคอลัมน์
+ */
 function SortIcon({
   sortKey,
   sortOrder,
@@ -67,30 +118,41 @@ function SortIcon({
   columnKey: SortKey;
 }) {
   if (sortKey !== columnKey || !sortOrder) {
-    return <ArrowUpDown className="w-4 h-4 ml-1 inline-block" />;
+    return <ArrowUpDown className="ml-1 inline-block h-4 w-4" />;
   }
   if (sortOrder === "asc") {
-    return <ArrowUp className="w-4 h-4 ml-1 inline-block" />;
+    return <ArrowUp className="ml-1 inline-block h-4 w-4" />;
   }
-  return <ArrowDown className="w-4 h-4 ml-1 inline-block" />;
+  return <ArrowDown className="ml-1 inline-block h-4 w-4" />;
 }
 
-/* --------------------------------- PAGE ----------------------------------- */
+/**
+ * แปลง timestamp ให้อยู่ในรูปแบบ "YYYY-MM-DD HH:mm:ss"
+ * ถ้า format ไม่ถูกต้อง จะ fallback เป็นค่าเดิม
+ */
+function formatTimestamp(raw: string) {
+  if (!raw) return "-";
+  const [datePart, timePart] = raw.split(" ");
+  if (!timePart) return raw;
+  return `${datePart} ${timePart}`;
+}
+
+/* =============================== PAGE ===================================== */
 
 export default function AlertLogs() {
-  const router = useRouter();
-
   const [logs, setLogs] = useState<AlertLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [sortKey, setSortKey] = useState<SortKey | null>("timestamp");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [sortState, setSortState] = useState<SortState>({
+    key: "timestamp",
+    order: "desc",
+  });
 
-  const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
 
-  // Fetch logs จาก API
+  /* -------------------------- FETCH LOGS ---------------------------------- */
+
   useEffect(() => {
     let cancelled = false;
 
@@ -110,12 +172,15 @@ export default function AlertLogs() {
 
         const json = await res.json();
         const data = Array.isArray(json?.data) ? json.data : [];
+
         if (!cancelled) {
           setLogs(data);
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!cancelled) {
-          setError(e?.message || "Unable to load logs");
+          const message =
+            e instanceof Error ? e.message : "Unable to load logs";
+          setError(message);
         }
       } finally {
         if (!cancelled) {
@@ -125,37 +190,48 @@ export default function AlertLogs() {
     }
 
     fetchLogs();
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // reset page เวลาเปลี่ยน sort
+  /* -------------------------- SORTING ------------------------------------- */
+
+  // reset page เมื่อ sort หรือจำนวน log เปลี่ยน
   useEffect(() => {
     setPage(1);
-  }, [sortKey, sortOrder, logs.length]);
+  }, [sortState.key, sortState.order, logs.length]);
 
   const handleSort = (key: SortKey) => {
-    if (sortKey !== key) {
-      setSortKey(key);
-      setSortOrder("asc");
-    } else {
-      if (sortOrder === "asc") setSortOrder("desc");
-      else if (sortOrder === "desc") setSortOrder(null);
-      else setSortOrder("asc");
-    }
+    setSortState((prev) => {
+      // เปลี่ยนคอลัมน์ใหม่ → เริ่ม asc
+      if (prev.key !== key) {
+        return { key, order: "asc" };
+      }
+
+      // วนลูป: asc → desc → null → asc
+      if (prev.order === "asc") return { key, order: "desc" };
+      if (prev.order === "desc") return { key, order: null };
+      return { key, order: "asc" };
+    });
   };
 
   const sortedLogs = useMemo(() => {
-    if (!sortKey || !sortOrder) return logs;
+    const { key, order } = sortState;
+    if (!key || !order) return logs;
+
     return [...logs].sort((a, b) => {
-      const A = getComparable(a, sortKey);
-      const B = getComparable(b, sortKey);
-      if (A < B) return sortOrder === "asc" ? -1 : 1;
-      if (A > B) return sortOrder === "asc" ? 1 : -1;
+      const A = getComparable(a, key);
+      const B = getComparable(b, key);
+
+      if (A < B) return order === "asc" ? -1 : 1;
+      if (A > B) return order === "asc" ? 1 : -1;
       return 0;
     });
-  }, [logs, sortKey, sortOrder]);
+  }, [logs, sortState]);
+
+  /* ------------------------ PAGINATION ------------------------------------ */
 
   const total = sortedLogs.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -163,12 +239,22 @@ export default function AlertLogs() {
   const end = Math.min(start + PAGE_SIZE, total);
   const pageItems = sortedLogs.slice(start, end);
 
+  /* ------------------------ STATES (loading / error / empty) -------------- */
+
   if (loading) {
-    return <div className="text-sm text-gray-500">Loading alert logs…</div>;
+    return (
+      <div className="text-sm text-gray-500">
+        Loading alert logs…
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-sm text-rose-600">Error: {error}</div>;
+    return (
+      <div className="text-sm text-rose-600">
+        Error: {error}
+      </div>
+    );
   }
 
   if (!logs.length) {
@@ -178,6 +264,8 @@ export default function AlertLogs() {
       </div>
     );
   }
+
+  /* ----------------------------- RENDER ----------------------------------- */
 
   return (
     <div className="w-full space-y-4">
@@ -194,8 +282,8 @@ export default function AlertLogs() {
       </div>
 
       {/* Table */}
-      <div className="col-span-full w-full">
-        <Table className="table-auto w-full text-black">
+      <div className="w-full">
+        <Table className="w-full table-auto text-black">
           <TableHeader>
             <TableRow className="border-b border-[var(--color-primary,#1f2937)]">
               {[
@@ -208,13 +296,13 @@ export default function AlertLogs() {
                 <TableHead
                   key={key}
                   onClick={() => handleSort(key as SortKey)}
-                  className="cursor-pointer select-none text-[var(--color-primary,#1f2937)]"
+                  className="w-1/5 cursor-pointer select-none text-[var(--color-primary,#1f2937)]"
                 >
-                  <div className="flex items-center justify-between pr-3 border-r border-[var(--color-primary,#1f2937)] w-full">
+                  <div className="flex w-full items-center justify-between gap-2 pr-3">
                     <span>{label}</span>
                     <SortIcon
-                      sortKey={sortKey}
-                      sortOrder={sortOrder}
+                      sortKey={sortState.key}
+                      sortOrder={sortState.order}
                       columnKey={key as SortKey}
                     />
                   </div>
@@ -225,13 +313,14 @@ export default function AlertLogs() {
 
           <TableBody>
             {pageItems.map((log) => {
-              const code = `LOA${String(log.log_id).padStart(3, "0")}`;
-              const [datePart, timePart] = (log.log_created_at ?? "").split(" ");
+              const logCode = `LOA${String(log.log_id).padStart(3, "0")}`;
+              const alertCode = `ALT${String(log.alert_id).padStart(3, "0")}`;
+              const formattedTimestamp = formatTimestamp(log.log_created_at);
 
               return (
                 <TableRow key={log.log_id}>
                   {/* Log ID */}
-                  <TableCell>{code}</TableCell>
+                  <TableCell>{logCode}</TableCell>
 
                   {/* Action */}
                   <TableCell>
@@ -241,17 +330,17 @@ export default function AlertLogs() {
                   {/* Alert */}
                   <TableCell>
                     <div className="flex items-center gap-2">
-                        <span
-                          className="
-                            inline-flex items-center gap-1 
-                            rounded-full px-2 py-0.5
-                            text-xs font-mono
-                            ring-1 ring-inset
-                            bg-orange-50 text-orange-700 ring-orange-200
-                          "
-                        >
-                          ALT{String(log.alert_id).padStart(3, "0")}
-                        </span>
+                      <span
+                        className="
+                          inline-flex items-center gap-1 
+                          rounded-full px-2 py-0.5
+                          text-xs font-mono
+                          ring-1 ring-inset
+                          bg-orange-50 text-orange-700 ring-orange-200
+                        "
+                      >
+                        {alertCode}
+                      </span>
                     </div>
                   </TableCell>
 
@@ -268,7 +357,7 @@ export default function AlertLogs() {
                     <div className="flex items-center gap-2">
                       <Clock3 className="h-4 w-4 text-[var(--color-primary,#1f2937)]" />
                       <span className="text-sm">
-                        {datePart} {timePart}
+                        {formattedTimestamp}
                       </span>
                     </div>
                   </TableCell>
@@ -281,33 +370,40 @@ export default function AlertLogs() {
         {/* Pagination bar */}
         <div className="mt-3 flex items-center justify-between">
           <div className="text-xs text-gray-500">
-            Showing <span className="font-medium">{start + 1}</span>–
-            <span className="font-medium">{end}</span> of{" "}
+            Showing{" "}
+            <span className="font-medium">{start + 1}</span>
+            –
+            <span className="font-medium">{end}</span>
+            {" "}of{" "}
             <span className="font-medium">{total}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className={`px-3 py-1 rounded-md border text-sm ${
+              className={`rounded-md border px-3 py-1 text-sm ${
                 page <= 1
-                  ? "text-gray-400 border-gray-200"
-                  : "text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "border-gray-200 text-gray-400"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
             >
               Previous
             </button>
+
             <div className="text-sm tabular-nums">
               {page} / {totalPages}
             </div>
+
             <button
+              type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className={`px-3 py-1 rounded-md border text-sm ${
+              className={`rounded-md border px-3 py-1 text-sm ${
                 page >= totalPages
-                  ? "text-gray-400 border-gray-200"
-                  : "text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "border-gray-200 text-gray-400"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
             >
               Next

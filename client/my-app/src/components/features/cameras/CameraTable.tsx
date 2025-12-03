@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import * as Icons from "lucide-react";
 import EditCameraModal from "../../forms/cameras/EditCameraForm";
-import { DeleteConfirmModal } from "@/components/modals/AlertsPopup";
+import { DeleteConfirmModal } from "@/components/modals/AlertsModal";
 import { Camera } from "@/app/models/cameras.model";
 import { MaintenanceTypeBadge } from "../../badges/MaintenanceTypeBadge";
 import BadgeCameraType from "../../badges/CameraTypeBadge";

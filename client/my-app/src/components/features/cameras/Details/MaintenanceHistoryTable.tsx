@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Camera } from "@/app/models/cameras.model";
-import { DeleteConfirmModal } from "@/components/modals/AlertsPopup";
+import { DeleteConfirmModal } from "@/components/modals/AlertsModal";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
