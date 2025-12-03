@@ -16,6 +16,7 @@ import {
     Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
 import * as Lucide from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 /* -------------------------------- Types --------------------------------- */
 type Props = { camera: Camera; open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> };
@@ -41,7 +42,7 @@ export default function CreateAlertForm({ camera, open, setOpen }: Props) {
     const [me, setMe] = useState<Me | null>(null);
     useEffect(() => {
         if (!open) return;
-        fetch("/api/auth/me", { credentials: "include" })
+        fetch(apiUrl("api/auth/me"), { credentials: "include" })
             .then(r => (r.ok ? r.json() : null))
             .then(setMe)
             .catch(() => setMe(null));

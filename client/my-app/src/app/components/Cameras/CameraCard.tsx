@@ -3,12 +3,13 @@
 import Image from "next/image";
 import { MapPin, Camera as CameraIcon, Move, Scan, Thermometer, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
-import WhepPlayer from "../../components/WhepPlayer";
 import BottomCameraCard from "@/app/components/Utilities/ButtonCameraCard";
 import { Camera } from "@/app/models/cameras.model";
 import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
 import BadgeError from "../Badges/BadgeError";
 import BadgeCameraType from "../Badges/BadgeCameraType"
+import { apiUrl } from "@/lib/api";
+import StreamPlayer from "./StreamPlayer";
 
 // ---------- component ----------
 export default function CameraCard({ cam }: { cam: Camera }) {
@@ -18,7 +19,6 @@ export default function CameraCard({ cam }: { cam: Camera }) {
   const camCode = `CAM${String(cam.camera_id).padStart(3, "0")}`;
   const locationName = cam.location_name ?? "-";
 
-  const WHEP_BASE = process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889";
   const isRtsp = typeof cam.source_value === "string" && cam.source_value.startsWith("rtsp://");
 
   const [webrtcFailed, setWebrtcFailed] = useState(false);
@@ -63,11 +63,11 @@ export default function CameraCard({ cam }: { cam: Camera }) {
         <div className="relative overflow-hidden rounded-md">
           <div className="relative aspect-video">
             {isOnline && isRtsp && !webrtcFailed ? (
-              <WhepPlayer
+              <StreamPlayer
                 key={cam.camera_id}
-                camAddressRtsp={cam.source_value}
-                webrtcBase={WHEP_BASE}
-                onFailure={() => setWebrtcFailed(true)}
+                streamUrl={apiUrl(`api/cameras/${cam.camera_id}/stream`)}
+                onError={() => setWebrtcFailed(true)}
+                className="absolute inset-0 h-full w-full object-cover rounded-md"
               />
             ) : isOnline ? (
               <Image

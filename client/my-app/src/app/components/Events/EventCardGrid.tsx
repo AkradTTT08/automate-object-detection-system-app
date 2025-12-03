@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "./EventCard";
 import type { Event } from "../../models/events.model";
+import { apiUrl } from "@/lib/api";
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -41,7 +42,12 @@ export default function EventCardGrid({
       setLoading(true);
       setError(null);
       try {
-        const res = await doFetch(`${endpoint}/global`, {
+        // ใช้ apiUrl เพื่อเรียกไปที่ backend (port 8066)
+        // ถ้า endpoint เป็น default (/api/events) ให้ใช้ apiUrl แทน
+        const fullEndpoint = endpoint === "/api/events" 
+          ? apiUrl("api/events/global")
+          : `${endpoint}/global`;
+        const res = await doFetch(fullEndpoint, {
           method: "GET",
           headers: authHeaders(),
           cache: "no-store",

@@ -1,7 +1,8 @@
 import { Camera } from "@/app/models/cameras.model";
 import CameraDetails from '@/app/components/Cameras/Details/CameraDetails'
 
-const base = process.env.NEXT_PUBLIC_APP_URL!;
+// สำหรับ Server Component: ใช้ SERVER_API_URL ใน Docker หรือ NEXT_PUBLIC_APP_URL ใน local
+const base = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://server:8066';
 
 export default async function Page({ params }: { params: Promise<{ cam_id: string }> }) {
     const { cam_id } = await params

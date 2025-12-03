@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/api';
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -25,7 +26,7 @@ export default function LogoutButton({ className = '' }: Props) {
     if (loading) return;
     setLoading(true);
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch(apiUrl('api/auth/logout'), { method: 'POST', credentials: 'include' });
       // router.replace('/login'); router.refresh();
       window.location.href = '/login';
     } catch (_) {

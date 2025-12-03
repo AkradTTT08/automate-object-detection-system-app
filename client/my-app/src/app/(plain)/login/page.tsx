@@ -1,13 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
   Card, CardContent, CardFooter, CardHeader,
 } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
+import { apiUrl } from '@/lib/api';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -21,7 +24,8 @@ export default function LoginPage() {
     setErr('');
 
     try {
-      const res = await fetch('/api/auth/login', {
+      // ใช้ absolute URL แทน rewrite เพื่อให้ browser เรียก API โดยตรง
+      const res = await fetch(apiUrl('api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -31,8 +35,16 @@ export default function LoginPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.message || 'Login failed');
 
-      localStorage.setItem("access_token", data.token);
+      // บันทึก token ใน localStorage (ถ้ามี)
+      if (typeof window !== 'undefined' && data.token) {
+        localStorage.setItem("access_token", data.token);
+      }
 
+      // ตรวจสอบว่า cookie ถูก set หรือไม่
+      console.log('Login successful, cookies:', document.cookie);
+      
+      // ใช้ window.location.href เพื่อให้ browser reload และ middleware ตรวจสอบ cookie
+      // ไม่ใช้ router.push เพราะอาจจะไม่ trigger middleware ใหม่
       window.location.href = '/cameras';
     } catch (e: any) {
       setErr(e.message ?? 'Login failed');
@@ -41,7 +53,23 @@ export default function LoginPage() {
     }
   }
 
-  console.log('Token: ', localStorage.getItem("access_token"));
+  // ตรวจสอบ token ใน localStorage (เฉพาะ client-side) เมื่อ component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem("access_token");
+      // ตรวจสอบ cookie ด้วย (เพราะ middleware ใช้ cookie)
+      const cookieToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('access_token='))
+        ?.split('=')[1];
+      
+      if (token || cookieToken) {
+        // ถ้ามี token อยู่แล้ว ให้ redirect ไปหน้า cameras
+        router.replace('/cameras');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // รันแค่ครั้งเดียวเมื่อ component mount
 
   return (
     <main

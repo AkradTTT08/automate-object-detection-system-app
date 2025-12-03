@@ -84,8 +84,8 @@ export async function authenticateUser(usernameOrEmail: string, password: string
             usr_email,
             usr_password,
             rol_name 
-        FROM users 
-        JOIN roles ON usr_rol_id = rol_id 
+        FROM aods_dev_v3.users 
+        JOIN aods_dev_v3.roles ON usr_rol_id = rol_id 
         WHERE 
             (usr_username = $1 OR usr_email = $1) 
         AND 
@@ -121,7 +121,7 @@ export async function authenticateUser(usernameOrEmail: string, password: string
  */
 export async function registerUser(username: string, email: string, password: string, role: string) {
     const existing = await pool.query<UserRow>(`
-        SELECT * FROM users
+        SELECT * FROM aods_dev_v3.users
         WHERE usr_username = $1 OR usr_email = $2
     `, [username, email]);
     if (existing.rows.length > 0){
@@ -129,7 +129,7 @@ export async function registerUser(username: string, email: string, password: st
     }
 
     const roleRes = await pool.query<{ rol_id: number }>(`
-        SELECT rol_id FROM roles
+        SELECT rol_id FROM aods_dev_v3.roles
         WHERE rol_name = $1
     `, [role]);
     if (roleRes.rows.length === 0){
@@ -140,10 +140,10 @@ export async function registerUser(username: string, email: string, password: st
     const hashPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     const { rows } = await pool.query(`
-        INSERT INTO users(usr_username, usr_email, usr_password ,usr_rol_id)
+        INSERT INTO aods_dev_v3.users(usr_username, usr_email, usr_password ,usr_rol_id)
         VALUES($1, $2, $3, $4)
         RETURNING usr_id, usr_username, usr_email, usr_rol_id,
-              (SELECT rol_name FROM roles WHERE rol_id = $4) AS usr_role
+              (SELECT rol_name FROM aods_dev_v3.roles WHERE rol_id = $4) AS usr_role
     `, [username, email, hashPassword, role_id]);
 
     const user = rows[0];
@@ -175,8 +175,8 @@ export async function getUserSafeById(id: number): Promise<UserSafe | null> {
             usr_phone,
             usr_email,
             rol_name
-        FROM users 
-        JOIN roles ON usr_rol_id = rol_id 
+        FROM aods_dev_v3.users 
+        JOIN aods_dev_v3.roles ON usr_rol_id = rol_id 
         WHERE 
             usr_id = $1 
         AND 
@@ -201,7 +201,7 @@ export async function getUserSafeById(id: number): Promise<UserSafe | null> {
 export async function verifyPassword(userId: number, password: string): Promise<boolean> {
   // ดึง hash password ของ user จาก DB
   const result = await pool.query(
-    "SELECT usr_password FROM users WHERE usr_id = $1 AND usr_is_use = true",
+    "SELECT usr_password FROM aods_dev_v3.users WHERE usr_id = $1 AND usr_is_use = true",
     [userId]
   );
 

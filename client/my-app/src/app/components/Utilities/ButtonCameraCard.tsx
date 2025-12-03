@@ -54,7 +54,8 @@ export default function BottomCameraCard({
       if (onDelete) {
         await Promise.resolve(onDelete(camId, user_id));
       } else {
-        const res = await fetch(`/api/cameras/${camId}`, {
+        const { apiUrl } = await import('@/lib/api');
+        const res = await fetch(apiUrl(`api/cameras/${camId}`), {
           method: "PATCH", // เปลี่ยนเป็น DELETE ได้ถ้าหลังบ้านรองรับ
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,

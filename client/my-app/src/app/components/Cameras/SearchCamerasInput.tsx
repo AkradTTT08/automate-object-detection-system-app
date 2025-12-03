@@ -23,6 +23,18 @@ export default function SearchCamerasInput() {
   const [value, setValue] = useState(initial);
   const debounced = useDebounce(value, 300);
 
+  // ลบ default search query "admin2025" ออกจาก URL เมื่อ component mount
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q === "admin2025") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("q");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      setValue("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // อัปเดต URL เมื่อค่าค้นหาเปลี่ยน (debounced)
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());

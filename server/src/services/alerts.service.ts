@@ -14,7 +14,7 @@ import * as Mapping from '../models/Mapping/alerts.map'
  */
 export async function getAlerts() {
     const { rows } = await pool.query(`
-        SELECT * FROM v_alerts_overview
+        SELECT * FROM aods_dev_v3.v_alerts_overview
         ORDER BY created_at DESC;
     `);
 
@@ -34,7 +34,7 @@ export async function getAlerts() {
  */
 export async function getAlertById(alert_id: number) {
     const { rows } = await pool.query(`
-        SELECT * FROM v_alerts_overview
+        SELECT * FROM aods_dev_v3.v_alerts_overview
         WHERE alert_id = $1;
     `, [alert_id]);
 
@@ -86,12 +86,12 @@ export async function getAlertLogs(alert_id: number) {
 export async function getAlertRelated(alert_id: number) {
     const event_name_result = await pool.query(`
         SELECT event_name 
-        FROM v_alerts_overview
+        FROM aods_dev_v3.v_alerts_overview
         WHERE alert_id = $1;
     `, [alert_id]);
 
     const { rows } = await pool.query(`
-        SELECT * FROM v_alerts_overview
+        SELECT * FROM aods_dev_v3.v_alerts_overview
         WHERE event_name = $1
         ORDER BY created_at DESC;
     `, [event_name_result.rows[0].event_name]);

@@ -147,11 +147,15 @@ export async function me(req: Request, res: Response, next: NextFunction) {
 
   try {
     const token = req.cookies?.[COOKIE_NAME]; // ⬅️ ใช้ COOKIE_NAME
-    if (!token) return res.status(401).json({ error: 'Unauthenticated' });
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthenticated' });
+    }
 
     const payload = verifySessionToken(token);
     const user = await getUserSafeById(payload.id);
-    if (!user) return res.status(401).json({ error: 'User not found' });
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
 
     return res.json({
       usr_id: user.usr_id,
@@ -161,8 +165,9 @@ export async function me(req: Request, res: Response, next: NextFunction) {
       usr_email: user.usr_email,
       usr_role: user.usr_role,
     });
-  } catch {
-    return res.status(401).json({ error: 'Invalid token' });
+  } catch (err: any) {
+    console.error('[auth/me] Error:', err);
+    return res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 }
 

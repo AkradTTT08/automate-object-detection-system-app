@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { apiUrl } from '@/lib/api';
 
 type Me = { usr_id:number; usr_username:string; usr_email:string; usr_role?:string };
 
@@ -13,7 +14,7 @@ export default function UserGreeting() {
   const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'include' })
+    fetch(apiUrl('api/auth/me'), { credentials: 'include' })
       .then(r => r.ok ? r.json() : null)
       .then(setMe)
       .catch(() => setMe(null));

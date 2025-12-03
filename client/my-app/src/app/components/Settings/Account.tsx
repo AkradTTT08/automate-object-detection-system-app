@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import * as Icons from "lucide-react";
 import { StatusMessage } from "@/app/components/Utilities/StatusMessage";
+import { apiUrl } from "@/lib/api";
 
 type Me = {
   usr_id: number;
@@ -67,7 +68,7 @@ export default function AccountSettings() {
       try {
         setLoading(true);
         setErr(null);
-        const r = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+        const r = await fetch(apiUrl("api/auth/me"), { credentials: "include", cache: "no-store" });
         const json = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
         if (!mounted) return;
@@ -438,8 +439,9 @@ function ChangePasswordBox({ usrId }: { usrId?: number }) {
       setPwdMsg(null);
       setPwdStatus(null);
 
-      // 1) recheck current password
-      const recheck = await fetch(`/api/auth/recheck`, {
+      // 1) recheck current password - ใช้ apiUrl เพื่อเรียกไปที่ backend (port 8066)
+      const { apiUrl } = await import('@/lib/api');
+      const recheck = await fetch(apiUrl("api/auth/recheck"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

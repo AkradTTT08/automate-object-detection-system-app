@@ -20,7 +20,7 @@ export async function getLocation() {
             loc_id,
             loc_name,
             loc_updated_at
-        FROM locations
+        FROM aods_dev_v3.locations
         WHERE
             loc_is_use = true;
     `);

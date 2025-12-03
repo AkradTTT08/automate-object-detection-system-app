@@ -1,5 +1,8 @@
 # Base image
-FROM node:18
+FROM node:18-alpine
+
+# Install FFmpeg for RTSP streaming
+RUN apk add --no-cache ffmpeg
 
 # Set working directory
 WORKDIR /app
@@ -8,13 +11,17 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci --only=production=false
 
 # Copy the rest of the app source code
 COPY . .
 
-# Expose the server port (ใช้ .env ได้ หรือ fix 5000)
+# Expose the server port
 EXPOSE 8066
 
-# Default command
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8066/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Default command (development)
 CMD ["npm", "run", "dev"]

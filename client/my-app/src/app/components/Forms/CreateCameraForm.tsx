@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Cctv } from "lucide-react";
 import { useMe } from "@/hooks/useMe";
+import { apiUrl } from "@/lib/api";
 import {
   Select,
   SelectTrigger,
@@ -75,12 +76,14 @@ export default function
         setLoadingLocations(true);
         setLocationsError("");
 
-        const res = await fetch(`/api/locations`, {
+        const { apiUrl } = await import('@/lib/api');
+        const res = await fetch(apiUrl('api/locations'), {
           method: "GET",
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
             "Content-Type": "application/json",
           },
+          credentials: 'include',
           cache: "no-store",
         });
 
@@ -110,10 +113,10 @@ export default function
   }, []);
 
   async function createCamera(payload: CameraForm): Promise<any> {
-    const res = await fetch("/api/cameras/", {
+    // ใช้ apiUrl เพื่อเรียกไปที่ backend (port 8066)
+    const res = await fetch(apiUrl("api/cameras/"), {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
@@ -154,18 +157,19 @@ export default function
     setAuthErr("");
 
     try {
-      // 1) recheck auth
-      const check = await fetch("/api/auth/recheck", {
+      // 1) recheck auth - ใช้ apiUrl เพื่อเรียกไปที่ backend (port 8066)
+      const check = await fetch(apiUrl("api/auth/recheck"), {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({ password: authPassword }),
       });
-      if (!check.ok) {
-        throw new Error("Password incorrect, please try again.");
+      
+      const checkData = await check.json().catch(() => ({}));
+      if (!check.ok || checkData?.success !== true) {
+        throw new Error(checkData?.error || "Password incorrect, please try again.");
       }
 
       // 2) gather form data

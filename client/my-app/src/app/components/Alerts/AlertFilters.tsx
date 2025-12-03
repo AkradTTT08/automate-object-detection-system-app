@@ -162,12 +162,14 @@ export default function AlertFilters({
         setLocLoading(true);
         setLocErr("");
 
-        const r = await fetch(`/api/locations`, {
+        const { apiUrl } = await import('@/lib/api');
+        const r = await fetch(apiUrl('api/locations'), {
           method: "GET",
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
             "Content-Type": "application/json",
           },
+          credentials: 'include',
           cache: "no-store",
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

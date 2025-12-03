@@ -7,7 +7,7 @@ import Title from "../components/Layouts/Title";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
-      <body className="bg-[color:var(--color-bg,#ECF8FF)]">
+      <body className="bg-[color:var(--color-bg,#ECF8FF)]" suppressHydrationWarning>
         <UIProvider>
           {/* อยู่บนสุดเต็มความกว้าง */}
           <Header userName="Admin" />

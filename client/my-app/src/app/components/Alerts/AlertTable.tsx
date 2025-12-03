@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { apiUrl } from "@/lib/api";
 import {
   Eye, CheckCircle2, XCircle, MapPin,
   ArrowUpDown, ArrowUp, ArrowDown
@@ -231,7 +232,7 @@ export default function AlertTable({ alerts }: { alerts: Alert[] }) {
   // me -> ใช้ usr_id ตอนยิง PATCH
   const [me, setMe] = useState<Me | null>(null);
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch(apiUrl("api/auth/me"), { credentials: "include" })
       .then(r => (r.ok ? r.json() : null))
       .then(setMe)
       .catch(() => setMe(null));

@@ -87,7 +87,8 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
         setLoadingCamera(true);
         setErrMsg(null);
 
-        const res = await fetch(`/api/cameras/${camId}`, {
+        const { apiUrl } = await import('@/lib/api');
+        const res = await fetch(apiUrl(`api/cameras/${camId}`), {
           method: "GET",
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
@@ -144,12 +145,14 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
         setLoadingLocations(true);
         setLocationsError("");
 
-        const res = await fetch(`/api/locations`, {
+        const { apiUrl } = await import('@/lib/api');
+        const res = await fetch(apiUrl('api/locations'), {
           method: "GET",
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
             "Content-Type": "application/json",
           },
+          credentials: 'include',
           cache: "no-store",
         });
 
@@ -237,7 +240,8 @@ export default function EditCameraModal({ camId, open, setOpen }: Props) {
 
     try {
       setSubmitting(true);
-      const res = await fetch(`/api/cameras/${camId}`, {
+      const { apiUrl } = await import('@/lib/api');
+      const res = await fetch(apiUrl(`api/cameras/${camId}`), {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,

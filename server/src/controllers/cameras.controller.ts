@@ -6,6 +6,9 @@ import * as AccessControlService from '../services/cameras/accessControl.service
 import * as LocationService from '../services/cameras/location.service';
 import * as PerformanceService from '../services/cameras/performance.service';
 import { ffmpegService } from '../services/cameras/ffmpeg.service';
+import { hlsService } from '../services/cameras/hls.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /* ------------------------------ Cameras ------------------------------ */
 
@@ -586,22 +589,151 @@ export function rtspToWhep(rtspUrl: string, webrtcBase = 'http://localhost:8889'
 export async function streamCamera(req: Request, res: Response) {
     try {
         const camId = Number(req.params.cam_id);
-        if (!camId) return res.status(400).send("cam_id required");
+        if (!camId) {
+            if (!res.headersSent) return res.status(400).json({ error: "cam_id required" });
+            return;
+        }
 
         const cams = await CameraService.getCameraById(camId);
         const cam = cams?.[0];
-        if (!cam) return res.status(404).send("Camera not found");
+        if (!cam) {
+            if (!res.headersSent) return res.status(404).json({ error: "Camera not found" });
+            return;
+        }
 
         const rtspUrl = String(cam.source_value);
-        rtspToWhep(rtspUrl);
-        const finalUrl = rtspUrl;
-        const forceEncode = req.query.encode === "1";
-        ffmpegService.startStream(res, finalUrl, { forceEncode });
+        if (!rtspUrl || !rtspUrl.startsWith("rtsp://")) {
+            if (!res.headersSent) return res.status(400).json({ error: "Invalid RTSP URL" });
+            return;
+        }
+
+        console.log(`[stream] Starting stream for camera ${camId}: ${rtspUrl.substring(0, 30)}...`);
+        // บังคับ encode เสมอเพื่อให้แน่ใจว่า stream ทำงานได้
+        const forceEncode = true; // req.query.encode === "1" || true;
+        ffmpegService.startStream(res, rtspUrl, { forceEncode });
 
     } catch (err: any) {
         const status = err?.status ?? 500;
         const msg = err?.message ?? "Failed to stream camera";
-        console.error("stream error:", err);
-        if (!res.headersSent) res.status(status).json({ error: msg });
+        console.error("[stream error]", err);
+        if (!res.headersSent) {
+            res.status(status).json({ error: msg });
+        }
+    }
+}
+
+/* ------------------------------ HLS Streaming ------------------------------ */
+
+/**
+ * Get HLS playlist (.m3u8) for camera
+ */
+export async function getHlsPlaylist(req: Request, res: Response, next: NextFunction) {
+    try {
+        const camId = Number(req.params.cam_id);
+        if (!camId) {
+            return res.status(400).json({ error: "cam_id required" });
+        }
+
+        const cams = await CameraService.getCameraById(camId);
+        const cam = cams?.[0];
+        if (!cam) {
+            return res.status(404).json({ error: "Camera not found" });
+        }
+
+        const rtspUrl = String(cam.source_value);
+        if (!rtspUrl || !rtspUrl.startsWith("rtsp://")) {
+            return res.status(400).json({ error: "Invalid RTSP URL" });
+        }
+
+        // เริ่ม HLS stream ถ้ายังไม่ได้เริ่ม
+        if (!hlsService.isStreaming(camId)) {
+            console.log(`[HLS] Starting HLS stream for camera ${camId}`);
+            try {
+                hlsService.startHlsStream(camId, rtspUrl);
+            } catch (err: any) {
+                console.error(`[HLS] Failed to start stream for camera ${camId}:`, err);
+                return res.status(500).json({ error: `Failed to start HLS stream: ${err?.message || 'Unknown error'}` });
+            }
+            
+            // รอให้ m3u8 file ถูกสร้าง (ลองหลายครั้ง)
+            const m3u8Path = hlsService.getM3u8Path(camId);
+            let attempts = 0;
+            const maxAttempts = 10; // 10 attempts = 5 seconds
+            
+            while (attempts < maxAttempts && !fs.existsSync(m3u8Path)) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+            }
+        }
+
+        const m3u8Path = hlsService.getM3u8Path(camId);
+        
+        if (!fs.existsSync(m3u8Path)) {
+            console.warn(`[HLS] m3u8 file not found for camera ${camId} after waiting`);
+            return res.status(503).json({ error: "HLS stream not ready yet. Please try again in a few seconds." });
+        }
+
+        // ตรวจสอบว่า file มีเนื้อหาหรือไม่
+        const stats = fs.statSync(m3u8Path);
+        if (stats.size === 0) {
+            console.warn(`[HLS] m3u8 file is empty for camera ${camId}`);
+            return res.status(503).json({ error: "HLS stream is still initializing. Please try again in a few seconds." });
+        }
+
+        res.setHeader("Content-Type", "application/vnd.apple.mpegurl");
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        
+        try {
+            const m3u8Content = fs.readFileSync(m3u8Path, "utf-8");
+            // แก้ไข path ใน m3u8 ให้ชี้ไปที่ API endpoint
+            const modifiedContent = m3u8Content.replace(
+                /segment_(\d+\.ts)/g,
+                `/api/cameras/${camId}/hls/segment_$1`
+            );
+            
+            res.send(modifiedContent);
+        } catch (readErr: any) {
+            console.error(`[HLS] Failed to read m3u8 file for camera ${camId}:`, readErr);
+            return res.status(500).json({ error: "Failed to read HLS playlist file" });
+        }
+    } catch (err: any) {
+        console.error("[HLS playlist error]", err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: err?.message || "Failed to get HLS playlist" });
+        }
+    }
+}
+
+/**
+ * Get HLS segment (.ts) file for camera
+ */
+export async function getHlsSegment(req: Request, res: Response, next: NextFunction) {
+    try {
+        const camId = Number(req.params.cam_id);
+        const segmentName = req.params.segment;
+        
+        if (!camId || !segmentName) {
+            return res.status(400).json({ error: "cam_id and segment required" });
+        }
+
+        const segmentPath = hlsService.getSegmentPath(camId, segmentName);
+        
+        if (!fs.existsSync(segmentPath)) {
+            return res.status(404).json({ error: "Segment not found" });
+        }
+
+        res.setHeader("Content-Type", "video/mp2t");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        
+        const segmentContent = fs.readFileSync(segmentPath);
+        res.send(segmentContent);
+    } catch (err: any) {
+        console.error("[HLS segment error]", err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: err?.message || "Failed to get HLS segment" });
+        }
     }
 }

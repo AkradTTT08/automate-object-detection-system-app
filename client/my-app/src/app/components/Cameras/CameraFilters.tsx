@@ -131,13 +131,15 @@ export default function CameraFilters({
       try {
         setLocLoading(true);
 
-        const r = await fetch(`/api/locations`, {
+        const { apiUrl } = await import('@/lib/api');
+        const r = await fetch(apiUrl('api/locations'), {
           method: "GET",
           headers: {
             // ใช้ NEXT_PUBLIC_TOKEN สำหรับ client component
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
             "Content-Type": "application/json",
           },
+          credentials: 'include',
           cache: "no-store",
         });
 

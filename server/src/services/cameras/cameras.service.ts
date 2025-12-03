@@ -14,7 +14,7 @@ import * as Mapping from '../../models/Mapping/cameras.map';
  */
 export async function getCameras() {
   const { rows } = await pool.query(`
-        SELECT * FROM v_cameras_overview;
+        SELECT * FROM aods_dev_v3.v_cameras_overview;
     `);
 
   return rows;
@@ -22,7 +22,7 @@ export async function getCameras() {
 
 export async function getCameraById(camera_id: number) {
   const { rows } = await pool.query(`
-    SELECT * FROM v_cameras_overview
+    SELECT * FROM aods_dev_v3.v_cameras_overview
     WHERE camera_id = $1;
   `,[
       camera_id
@@ -44,7 +44,7 @@ export async function getCameraById(camera_id: number) {
  */
 export async function summaryCameras() {
   const { rows } = await pool.query(`
-        SELECT * FROM v_camera_summary;
+        SELECT * FROM aods_dev_v3.v_camera_summary;
     `);
 
   return rows;
@@ -77,7 +77,7 @@ export async function insertCamera (
   creator_id: number
 ){
   const { rows } = await pool.query(`
-    INSERT INTO cameras(
+    INSERT INTO aods_dev_v3.cameras(
       cam_name, 
       cam_type,
       cam_status,
@@ -101,7 +101,7 @@ export async function insertCamera (
     ]);
 
     const log = await pool.query(`
-      INSERT INTO camera_logs(
+      INSERT INTO aods_dev_v3.camera_logs(
         clg_usr_id,
         clg_cam_id,
         clg_action,
@@ -150,7 +150,7 @@ export async function updateCamera (
 
   const { rows } = await pool.query(
     `
-    UPDATE cameras
+    UPDATE aods_dev_v3.cameras
     SET
       cam_name = $1,
       cam_type = $2,
@@ -159,6 +159,7 @@ export async function updateCamera (
       cam_source_value = $5,
       cam_loc_id = $6,
       cam_description = $7,
+      cam_is_use = TRUE,
       cam_updated_at = CURRENT_TIMESTAMP
     WHERE cam_id = $8
     RETURNING *;
@@ -176,7 +177,7 @@ export async function updateCamera (
   );
 
   const log = await pool.query(`
-      INSERT INTO camera_logs(
+      INSERT INTO aods_dev_v3.camera_logs(
         clg_usr_id,
         clg_cam_id,
         clg_action,
@@ -209,7 +210,7 @@ export async function removeCamera(
 ) {
   const { rows } = await pool.query(
     `
-    UPDATE cameras
+    UPDATE aods_dev_v3.cameras
     SET
       cam_is_use = false,
       cam_updated_at = CURRENT_TIMESTAMP
@@ -222,7 +223,7 @@ export async function removeCamera(
   );
 
   const log = await pool.query(`
-      INSERT INTO camera_logs(
+      INSERT INTO aods_dev_v3.camera_logs(
         clg_usr_id,
         clg_cam_id,
         clg_action,

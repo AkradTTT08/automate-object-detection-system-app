@@ -119,7 +119,7 @@ export async function insertEvent(
     // 🟨 3. ดึงข้อมูลจาก View
     const { rows: viewRows } = await pool.query(
       `
-      SELECT * FROM v_events_overview
+      SELECT * FROM aods_dev_v3.v_events_overview
       WHERE event_id = $1;
       `,
       [newEvent.evt_id]
@@ -194,7 +194,7 @@ export async function updateEvent(
     // 🟨 3. ดึงข้อมูลจาก View
     const { rows: viewRows } = await pool.query(
       `
-      SELECT * FROM v_events_overview
+      SELECT * FROM aods_dev_v3.v_events_overview
       WHERE event_id = $1;
       `,
       [event_id]
@@ -247,7 +247,7 @@ export async function removeEvent(event_id: number) {
  */
 export async function getGlobalEvents() {
   const { rows } = await pool.query(`
-        SELECT * FROM v_events_overview
+        SELECT * FROM aods_dev_v3.v_events_overview
         WHERE is_use = true;
     `);
 
@@ -268,7 +268,7 @@ export async function getGlobalEvents() {
 export async function getGlobalEventById(event_id: number) {
   const { rows } = await pool.query(
     `
-    SELECT * FROM v_events_overview
+    SELECT * FROM aods_dev_v3.v_events_overview
     WHERE event_id = $1
     AND is_use = true;
   `,

@@ -3,6 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -23,6 +24,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import StreamPlayer from "./StreamPlayer";
+import { apiUrl } from "@/lib/api";
 
 type SortKey = "id" | "name" | "status" | "location" | "type" | "maintenance";
 type SortOrder = "asc" | "desc" | null;
@@ -36,6 +39,50 @@ type Props = {
   onDetails?: (camera: Camera) => void;
   onDelete?: (id: number, user_id?: number) => void | Promise<void>;
 };
+
+/* ------------------------ Camera Preview Cell ------------------------ */
+function CameraPreviewCell({ cam }: { cam: Camera }) {
+  const isOnline = !!cam.camera_status;
+  const imageSrc = (cam as any).cam_image ?? (cam as any).image_url ?? (cam as any).thumbnail ?? "/library-room.jpg";
+  const isRtsp = typeof cam.source_value === "string" && cam.source_value.startsWith("rtsp://");
+  const [webrtcFailed, setWebrtcFailed] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setWebrtcFailed(false);
+    setImageFailed(false);
+  }, [cam.camera_id, cam.source_value]);
+
+  return (
+    <div className="relative w-24 h-16 rounded overflow-hidden bg-gray-100">
+      {isOnline && isRtsp && !webrtcFailed ? (
+        <StreamPlayer
+          key={cam.camera_id}
+          streamUrl={apiUrl(`api/cameras/${cam.camera_id}/hls/stream.m3u8`)}
+          onError={() => setWebrtcFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : isOnline ? (
+        <Image
+          src={imageSrc}
+          alt={cam.camera_name}
+          fill
+          className="object-cover"
+          sizes="96px"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Image
+          src="/blind.svg"
+          alt="Camera offline"
+          fill
+          className="object-cover"
+          sizes="96px"
+        />
+      )}
+    </div>
+  );
+}
 
 /* ------------------------ Ghost → Full Icon Button ------------------------ */
 function IconAction({
@@ -262,6 +309,8 @@ export default function CameraTable({
       <Table className="table-auto w-full">
         <TableHeader>
           <TableRow className="border-b border-[var(--color-primary)]">
+            <TableHead className="text-[var(--color-primary)] w-[120px]">Preview</TableHead>
+            
             <TableHead onClick={() => handleSort("id")} className="cursor-pointer select-none text-[var(--color-primary)]">
               <div className="flex items-center justify-between pr-3 border-r border-[var(--color-primary)] w-full">
                 <span>ID</span>
@@ -320,6 +369,10 @@ export default function CameraTable({
 
             return (
               <TableRow key={cam.camera_id} className="border-b last:border-b-0">
+                <TableCell className="p-2">
+                  <CameraPreviewCell cam={cam} />
+                </TableCell>
+                
                 <TableCell>{camCode}</TableCell>
 
                 <TableCell className="font-medium truncate max-w-[320px]">

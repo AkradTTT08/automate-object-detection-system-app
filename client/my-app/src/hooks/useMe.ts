@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "@/lib/api";
 
 export interface MeResponse {
   usr_id: number;
@@ -17,7 +18,7 @@ export function useMe() {
   useEffect(() => {
     async function fetchMe() {
       try {
-        const res = await fetch("/api/auth/me", {
+        const res = await fetch(apiUrl("api/auth/me"), {
           credentials: "include", 
           cache: "no-store",      
         });

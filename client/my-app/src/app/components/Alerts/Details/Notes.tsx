@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { apiUrl } from "@/lib/api";
 import {
   Pencil, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
@@ -185,7 +186,7 @@ export default function Notes({ alrId }: { alrId: number }) {
   // load notes + current user
   useEffect(() => { fetchNotes(); }, [alrId]);
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch(apiUrl("api/auth/me"), { credentials: "include" })
       .then(r => (r.ok ? r.json() : null))
       .then(setMe)
       .catch(() => setMe(null));

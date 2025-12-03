@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     //   </body>
     // </html>
     <html lang="th">
-      <body className="bg-[color:var(--color-bg,#ECF8FF)]">
+      <body className="bg-[color:var(--color-bg,#ECF8FF)]" suppressHydrationWarning>
       <main>{children}</main>
       </body>
     </html>

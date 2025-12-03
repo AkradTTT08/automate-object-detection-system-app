@@ -1,32 +1,106 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: aods-postgres-dev
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aods_dev_v3}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/01-init-schema.sh:ro
+      - ./import-sql.sh:/docker-entrypoint-initdb.d/02-import-sql.sh:ro
+      - ./aods_dev_v3.sql:/docker-entrypoint-initdb.d/aods_dev_v3.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aods-network-dev
+
+  # Backend Server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: aods-server-dev
+    ports:
+      - "8066:8066"
+    env_file:
+      - ./.env.local.docker
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=postgres
+      - POSTGRES_PORT=5432
+      - PORT=8066
+      - FRONTEND_URL=http://localhost:8060
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./server/hls:/app/hls
+    working_dir: /app
+    command: npm run dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - aods-network-dev
+
+  # Frontend Client
   next-app:
     build:
       context: ./client/my-app
-    volumes:
-      - ./client/my-app:/app
-      - /app/node_modules
+      dockerfile: Dockerfile
+    container_name: aods-client-dev
     ports:
       - "8060:8060"
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - NEXT_PUBLIC_APP_URL=http://localhost:8066
+      - SERVER_API_URL=http://server:8066
+    volumes:
+      - ./client/my-app:/app
+      - /app/node_modules
+      - /app/.next
     working_dir: /app
     command: npm run dev -- -p 8060
+    depends_on:
+      - server
+    networks:
+      - aods-network-dev
 
-  server:
-      build:
-        context: ./server
-      volumes:
-        - ./server:/app
-        - /app/node_modules
-      ports:
-        - "8066:8066"
-      env_file:
-        - ./.env.local
-      environment:
-        - NODE_ENV=development
-      working_dir: /app
-      command: npm run dev
+  # pgAdmin - Database Management Tool
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: aods-pgadmin-dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data_dev:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - aods-network-dev
+
+volumes:
+  postgres_data_dev:
+  pgadmin_data_dev:
+
+networks:
+  aods-network-dev:
+    driver: bridge

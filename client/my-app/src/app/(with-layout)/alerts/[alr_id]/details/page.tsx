@@ -1,7 +1,8 @@
 import { Alert } from "@/app/models/alerts.model";
 import AlertDetails from '@/app/components/Alerts/Details/AlertDetails'
 
-const base = process.env.NEXT_PUBLIC_APP_URL!;
+// สำหรับ Server Component: ใช้ SERVER_API_URL ใน Docker หรือ NEXT_PUBLIC_APP_URL ใน local
+const base = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://server:8066';
 
 export default async function Page({ params }: { params: Promise<{ alr_id: string }> }) {
     const { alr_id } = await params

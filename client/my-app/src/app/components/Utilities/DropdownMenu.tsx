@@ -11,6 +11,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { apiUrl } from "@/lib/api";
 
 export default function DropdownMenuDemo({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,7 @@ export default function DropdownMenuDemo({ children }: { children: React.ReactNo
     if (loading) return;
     setLoading(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch(apiUrl("api/auth/logout"), { method: "POST", credentials: "include" });
       window.location.href = "/login";
     } catch (_) {
       // noop

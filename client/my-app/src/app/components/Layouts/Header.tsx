@@ -6,6 +6,7 @@ import { PanelLeft, PanelLeftOpen, Bell, UserRound } from "lucide-react";
 import ClockLive from "../Utilities/ClockLive";
 import Image from "next/image";
 import DropdownMenu from "../Utilities/DropdownMenu";
+import { apiUrl } from "@/lib/api";
 
 type Me = { usr_id: number; usr_username: string; usr_email: string; usr_role?: string };
 
@@ -14,7 +15,7 @@ export default function Header({ userName = "Admin" }: { userName?: string }) {
     const [me, setMe] = useState<Me | null>(null);
 
     useEffect(() => {
-        fetch('/api/auth/me', { credentials: 'include' })
+        fetch(apiUrl('api/auth/me'), { credentials: 'include' })
             .then(r => r.ok ? r.json() : null)
             .then(setMe)
             .catch(() => setMe(null));

@@ -4,7 +4,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: aods-postgres
+    container_name: aods-postgres-prod
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-aods_dev_v3}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -13,70 +13,65 @@ services:
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_prod:/var/lib/postgresql/data
       - ./aods_dev_v3.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
     networks:
-      - aods-network
+      - aods-network-prod
 
   # Backend Server
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: aods-server
+    container_name: aods-server-prod
     ports:
       - "8066:8066"
     env_file:
       - ./.env.local.docker
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - DATABASE_HOST=postgres
       - POSTGRES_PORT=5432
       - PORT=8066
-      - FRONTEND_URL=http://localhost:8060
-    volumes:
-      - ./server:/app
-      - /app/node_modules
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8060}
     working_dir: /app
-    command: npm run dev
+    command: npm run start
     depends_on:
       postgres:
         condition: service_healthy
+    restart: unless-stopped
     networks:
-      - aods-network
+      - aods-network-prod
 
   # Frontend Client
   next-app:
     build:
       context: ./client/my-app
       dockerfile: Dockerfile
-    container_name: aods-client
+    container_name: aods-client-prod
     ports:
       - "8060:8060"
     environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - NEXT_PUBLIC_APP_URL=http://localhost:8066
-    volumes:
-      - ./client/my-app:/app
-      - /app/node_modules
-      - /app/.next
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:8066}
     working_dir: /app
-    command: npm run dev -- -p 8060
+    command: npm run start -- -p 8060
     depends_on:
       - server
+    restart: unless-stopped
     networks:
-      - aods-network
+      - aods-network-prod
 
 volumes:
-  postgres_data:
+  postgres_data_prod:
 
 networks:
-  aods-network:
+  aods-network-prod:
     driver: bridge
+

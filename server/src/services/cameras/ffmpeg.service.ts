@@ -26,32 +26,132 @@ export class FFmpegService {
     res.flushHeaders?.();
     res.socket?.setTimeout(0); // ไม่ให้ timeout เอง
 
-    const videoArgs = forceEncode
-      ? ["-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency"]
-      : ["-c:v", "copy"]; // ถ้าเล่นไม่ได้ค่อยสลับไป forceEncode
+    // บังคับ encode เพื่อให้แน่ใจว่า codec ถูกต้องและเล่นได้บนเบราว์เซอร์
+    // ใช้ baseline profile และ level 3.0 เพื่อความเข้ากันได้สูงสุด
+    const videoArgs = [
+      "-c:v", "libx264",
+      "-preset", "ultrafast",
+      "-tune", "zerolatency",
+      "-profile:v", "baseline",
+      "-level", "3.0",
+      "-pix_fmt", "yuv420p",
+      "-b:v", "500k",
+      "-maxrate", "500k",
+      "-bufsize", "1000k",
+    ];
 
+    // ลอง TCP ก่อน ถ้าไม่ได้ผลจะลอง UDP
     const ffArgs = [
       "-rtsp_transport", "tcp",
-      "-stimeout", String(stimeoutMs * 1000), // ffmpeg ใช้หน่วย "ไมโครวินาที"
+      "-timeout", String(stimeoutMs * 1000000), // ffmpeg ใช้หน่วย "ไมโครวินาที" (microseconds)
       "-fflags", "nobuffer",
       "-flags", "low_delay",
       "-i", rtspUrl,
       "-g", String(gop),
       "-force_key_frames", "expr:gte(t,n_forced*1)", // บังคับ IDR ประมาณทุก 1s
       ...videoArgs,
-      "-an",
+      "-an", // ไม่มีเสียง
       "-f", "mp4",
       "-movflags", "frag_keyframe+empty_moov+default_base_moof",
+      "-reset_timestamps", "1",
+      "-avoid_negative_ts", "make_zero",
+      "-loglevel", "error", // แสดงเฉพาะ errors เพื่อลด noise
       "pipe:1",
     ];
 
+    console.log(`[ffmpeg] Starting FFmpeg with args: ${ffArgs.join(' ')}`);
+    
     const ff = spawn("ffmpeg", ffArgs, { stdio: ["ignore", "pipe", "pipe"] });
 
-    ff.stdout.pipe(res);
+    // ตรวจสอบว่า FFmpeg process เริ่มต้นได้หรือไม่
+    ff.on("spawn", () => {
+      console.log("[ffmpeg] Process spawned successfully");
+    });
 
+    ff.stdout.on("error", (err) => {
+      console.error("[ffmpeg] stdout error:", err);
+      if (!res.headersSent) {
+        res.status(502).end("FFmpeg stdout error");
+      }
+    });
+
+    let hasOutput = false;
+    let outputStartTime = Date.now();
+    
+    // ตรวจสอบว่า stdout มีข้อมูลหรือไม่
+    const checkOutputTimeout = setTimeout(() => {
+      if (!hasOutput && Date.now() - outputStartTime > 10000) {
+        console.error("[ffmpeg] No output received after 10 seconds");
+        if (!res.headersSent) {
+          res.status(502).json({ error: "FFmpeg stream timeout - no data received" });
+        }
+        kill("SIGKILL");
+      }
+    }, 10000);
+
+    ff.stdout.on("data", (chunk) => {
+      if (!hasOutput && chunk.length > 0) {
+        hasOutput = true;
+        clearTimeout(checkOutputTimeout);
+        console.log(`[ffmpeg] First data received: ${chunk.length} bytes`);
+      }
+    });
+
+    ff.stdout.pipe(res, { end: false });
+
+    res.on("error", (err) => {
+      console.error("[ffmpeg] Response error:", err);
+      clearTimeout(checkOutputTimeout);
+      kill("SIGKILL");
+    });
+
+    let stderrBuffer = '';
+    let hasError = false;
+    
     ff.stderr.on("data", (d) => {
-      // คุณอาจสลับไปใช้ logger ของโปรเจกต์
-      console.error("[ffmpeg]", d.toString());
+      const msg = d.toString();
+      stderrBuffer += msg;
+      
+      // Log errors และ warnings
+      if (msg.includes("error") || msg.includes("Error") || msg.includes("failed") || 
+          msg.includes("Connection refused") || msg.includes("timeout") || 
+          msg.includes("Unable to open") || msg.includes("Connection timed out") ||
+          msg.includes("No route to host") || msg.includes("Network is unreachable") ||
+          msg.includes("Error opening input")) {
+        console.error("[ffmpeg error]", msg.trim());
+        hasError = true;
+        
+        // ถ้าเป็น critical error ให้ส่ง error response
+        if ((msg.includes("Connection refused") || msg.includes("timeout") || 
+             msg.includes("Unable to open") || msg.includes("Connection timed out") ||
+             msg.includes("No route to host") || msg.includes("Network is unreachable") ||
+             msg.includes("Error opening input")) && 
+            !res.headersSent && !hasOutput) {
+          let errorMsg = "RTSP connection failed";
+          if (msg.includes("Connection refused")) {
+            errorMsg = "RTSP connection refused - check camera IP and port";
+          } else if (msg.includes("timeout") || msg.includes("Connection timed out")) {
+            errorMsg = "RTSP connection timeout - check network connectivity";
+          } else if (msg.includes("Unable to open") || msg.includes("Error opening input")) {
+            errorMsg = "Unable to open RTSP stream - check URL and credentials";
+          } else if (msg.includes("No route to host")) {
+            errorMsg = "No route to host - check network configuration";
+          } else if (msg.includes("Network is unreachable")) {
+            errorMsg = "Network is unreachable - check network connectivity";
+          }
+          
+          console.error(`[ffmpeg] Sending error response: ${errorMsg}`);
+          res.status(502).json({ error: errorMsg });
+          kill("SIGKILL");
+        }
+      } else if (msg.includes("warning") || msg.includes("Warning")) {
+        console.warn("[ffmpeg warning]", msg.trim());
+      } else {
+        // Log info messages เฉพาะบางส่วน
+        if (msg.includes("Stream #0") || msg.includes("Duration") || msg.includes("bitrate") || msg.includes("frame=") || msg.includes("Input #0")) {
+          console.log("[ffmpeg info]", msg.trim());
+        }
+      }
     });
 
     const kill = (sig: NodeJS.Signals = "SIGINT") => {
@@ -70,9 +170,39 @@ export class FFmpegService {
       try { kill("SIGKILL"); } catch {}
     });
 
-    ff.on("close", (code) => {
-      console.log(`ffmpeg exited: ${code}`);
-      if (!res.writableEnded) res.end();
+    ff.on("close", (code, signal) => {
+      clearTimeout(checkOutputTimeout);
+      console.log(`[ffmpeg] Process exited with code ${code}, signal ${signal}`);
+      
+      // ถ้า process exit โดยไม่มี output และมี error ให้ส่ง error response
+      if ((code !== 0 && code !== null) || (hasError && !hasOutput)) {
+        console.error(`[ffmpeg] FFmpeg exited with error code ${code}`);
+        console.error(`[ffmpeg] Last stderr output:`, stderrBuffer.slice(-500)); // แสดง 500 ตัวอักษรสุดท้าย
+        
+        if (!res.headersSent) {
+          let errorMsg = `FFmpeg process exited with code ${code || 'unknown'}`;
+          if (stderrBuffer.includes("Connection refused")) {
+            errorMsg = "Cannot connect to RTSP camera - connection refused";
+          } else if (stderrBuffer.includes("timeout") || stderrBuffer.includes("Connection timed out")) {
+            errorMsg = "RTSP connection timeout - check network connectivity";
+          } else if (stderrBuffer.includes("Unable to open") || stderrBuffer.includes("Error opening input")) {
+            errorMsg = "Unable to open RTSP stream - check URL and credentials";
+          } else if (stderrBuffer.includes("No route to host")) {
+            errorMsg = "No route to host - check network configuration";
+          } else if (stderrBuffer.includes("Network is unreachable")) {
+            errorMsg = "Network is unreachable - check network connectivity";
+          } else if (!hasOutput) {
+            errorMsg = "RTSP stream failed - no data received from camera";
+          }
+          
+          console.error(`[ffmpeg] Sending error response: ${errorMsg}`);
+          res.status(502).json({ error: errorMsg });
+        } else if (!res.writableEnded) {
+          res.end();
+        }
+      } else if (!res.writableEnded) {
+        res.end();
+      }
     });
   }
 }
