@@ -4,9 +4,9 @@ import { Separator } from "@/components/ui/separator";
 import RefreshButton from "@/components/features/cameras/RefreshCamerasButton";
 import SearchCamerasInput from "@/components/features/cameras/SearchCamerasInput";
 import CameraFilters from "@/components/features/cameras/CameraFilters";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 type ViewMode = "grid" | "list";
-const base = process.env.NEXT_PUBLIC_APP_URL!;
 
 /* ------------------------- Search matcher -------------------------- */
 function buildMatcher(search?: string) {
@@ -54,16 +54,11 @@ export default async function CameraView({
     location?: string;
     type?: string;
 }) {
-    const res = await fetch(`${base}/api/cameras`, {
+    const json = await fetchWithAuth(`/api/cameras`, {
         method: "GET",
-        headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
-            "Content-Type": "application/json",
-        },
+        credentials: "include",
         cache: "no-store",
     });
-    if (!res.ok) throw new Error("Failed to load cameras");
-    const json = await res.json();
     const cameras: Camera[] = Array.isArray(json.data) ? json.data : [];
 
     // 1) ค้นหา

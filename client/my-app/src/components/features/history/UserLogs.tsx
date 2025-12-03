@@ -74,7 +74,7 @@ type SortState = {
   order: SortOrder;
 };
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 /* ============================ HELPERS ===================================== */
 
