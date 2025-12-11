@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
 import { useSearchParams } from "next/navigation";
 import CameraCard from "./CameraCard";
 import { Camera } from "@/app/models/cameras.model";

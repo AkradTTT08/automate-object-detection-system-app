@@ -2,17 +2,17 @@
 
 import Image from "next/image";
 import { MapPin, Camera as CameraIcon, Move, Scan, Thermometer, Activity } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import BottomCameraCard from "@/app/components/Utilities/ButtonCameraCard";
 import { Camera } from "@/app/models/cameras.model";
 import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
 import BadgeError from "../Badges/BadgeError";
 import BadgeCameraType from "../Badges/BadgeCameraType"
 import { apiUrl } from "@/lib/api";
-import StreamPlayer from "./StreamPlayer";
+import LazyStreamPlayer from "./LazyStreamPlayer";
 
 // ---------- component ----------
-export default function CameraCard({ cam }: { cam: Camera }) {
+const CameraCard = memo(function CameraCard({ cam }: { cam: Camera }) {
   const isOnline = !!cam.camera_status;
   const imageSrc = (cam as any).cam_image ?? (cam as any).image_url ?? (cam as any).thumbnail ?? "/library-room.jpg";
 
@@ -27,15 +27,7 @@ export default function CameraCard({ cam }: { cam: Camera }) {
   useEffect(() => {
     setWebrtcFailed(false);
     setImageFailed(false);
-  }, []);
-
-  useEffect(() => {
-    setWebrtcFailed(false);
-    setImageFailed(false);
   }, [cam.camera_id, cam.source_value]);
-
-  useEffect(() => { setWebrtcFailed(false); }, []);
-  useEffect(() => setWebrtcFailed(false), [cam.camera_id, cam.source_value]);
 
   const camBorder = isOnline ? "border-[var(--color-primary)]" : "border-[var(--color-danger)]";
   const camHeaderBG = isOnline ? "bg-[var(--color-primary-bg)] border border-[var(--color-primary)]"
@@ -63,11 +55,12 @@ export default function CameraCard({ cam }: { cam: Camera }) {
         <div className="relative overflow-hidden rounded-md">
           <div className="relative aspect-video">
             {isOnline && isRtsp && !webrtcFailed ? (
-              <StreamPlayer
+              <LazyStreamPlayer
                 key={cam.camera_id}
-                streamUrl={apiUrl(`api/cameras/${cam.camera_id}/stream`)}
+                streamUrl={apiUrl(`api/cameras/${cam.camera_id}/hls/stream.m3u8`)}
                 onError={() => setWebrtcFailed(true)}
                 className="absolute inset-0 h-full w-full object-cover rounded-md"
+                rootMargin="200px" // โหลดล่วงหน้า 200px สำหรับ grid view
               />
             ) : isOnline ? (
               <Image
@@ -142,4 +135,6 @@ export default function CameraCard({ cam }: { cam: Camera }) {
       </div>
     </div>
   );
-}
+});
+
+export default CameraCard;

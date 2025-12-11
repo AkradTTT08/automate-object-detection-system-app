@@ -15,11 +15,12 @@ import {
     DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import CreateAlertForm from "@/app/components/Forms/CreateAlertForm";
-import WhepPlayer from "../../components/WhepPlayer";
+import StreamPlayer from "./StreamPlayer";
 import { MaintenanceTypeBadge } from "../Badges/BadgeMaintenanceType"
 import BadgeCameraType from "../Badges/BadgeCameraType"
 import BadgeError from "../Badges/BadgeError"
 import EditCameraModal from "../Forms/EditCameraForm";
+import { apiUrl } from "@/lib/api";
 
 export default function FullScreenView({ camera }: { camera: Camera | Camera[] }) {
     const [currentCamera, setCurrentCamera] = useState<Camera>(() => Array.isArray(camera) ? camera[0] : camera);
@@ -38,7 +39,7 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
     const [imageFailed, setImageFailed] = useState(false);
 
     const isOnline = !!currentCamera.camera_status;
-    const isRtsp = (currentCamera.source_type || "").toLowerCase() === "rtsp";
+    const isRtsp = typeof currentCamera.source_value === "string" && currentCamera.source_value.startsWith("rtsp://");
 
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -111,12 +112,16 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
         roundRectPath(ctx, 0, 0, rect.width, rect.height, radius);
         ctx.clip();
 
-        const v = videoRef.current;
+        // หา video element จาก container (StreamPlayer จะสร้าง video element ภายใน)
+        const container = containerRef.current;
+        const v = container?.querySelector('video') as HTMLVideoElement | null;
         const im = imgRef.current;
 
+        // ลองใช้ video element จาก StreamPlayer ก่อน
         if (currentCamera.camera_status && v && v.readyState >= 2) {
             drawObjectCover(ctx, v, rect.width, rect.height);
         } else if (im && im.complete) {
+            // Fallback ไปใช้ image ถ้าไม่มี video หรือ video ยังไม่พร้อม
             drawObjectCover(ctx, im, rect.width, rect.height);
         } else {
             ctx.restore();
@@ -217,12 +222,11 @@ export default function FullScreenView({ camera }: { camera: Camera | Camera[] }
                     </button>
 
                     {isOnline && isRtsp && !webrtcFailed ? (
-                        <WhepPlayer
+                        <StreamPlayer
                             key={currentCamera.camera_id}
-                            ref={videoRef} // forwardRef ของ <video>
-                            camAddressRtsp={currentCamera.source_value}
-                            webrtcBase={process.env.NEXT_PUBLIC_WHEP_BASE ?? "http://localhost:8889"}
-                            onFailure={() => setWebrtcFailed(true)}
+                            streamUrl={apiUrl(`api/cameras/${currentCamera.camera_id}/hls/stream.m3u8`)}
+                            onError={() => setWebrtcFailed(true)}
+                            className="absolute inset-0 h-full w-full object-cover rounded-md"
                         />
                     ) : isOnline ? (
                         <img

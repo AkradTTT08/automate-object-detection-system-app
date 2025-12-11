@@ -16,6 +16,7 @@ type Props = {
 export default function StreamPlayer({ streamUrl, onError, className = "" }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -38,14 +39,14 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
 
     console.log(`[StreamPlayer] Loading HLS stream: ${hlsUrl}`);
 
-    // สร้าง HLS instance - ปรับแต่งสำหรับ live streaming
+    // สร้าง HLS instance - ปรับแต่งสำหรับ live streaming และลด resource usage
     const hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false, // ปิด low latency mode เพื่อลด buffer errors
-      backBufferLength: 30, // ลด back buffer
-      maxBufferLength: 10, // ลด max buffer เพื่อลด latency และ buffer stalls
-      maxMaxBufferLength: 20, // จำกัด buffer สูงสุด
-      maxBufferSize: 30 * 1000 * 1000, // 30MB - ลด buffer size
+      backBufferLength: 10, // ลด back buffer (จาก 30 เป็น 10)
+      maxBufferLength: 5, // ลด max buffer (จาก 10 เป็น 5) เพื่อลด memory usage
+      maxMaxBufferLength: 10, // จำกัด buffer สูงสุด (จาก 20 เป็น 10)
+      maxBufferSize: 15 * 1000 * 1000, // 15MB - ลด buffer size (จาก 30MB เป็น 15MB)
       maxBufferHole: 0.5,
       highBufferWatchdogPeriod: 2,
       nudgeOffset: 0.1,
@@ -114,14 +115,22 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
       // กรอง non-fatal errors ที่ไม่สำคัญ
       const isBufferStallError = data?.details === 'bufferStalledError' || data?.details === Hls.ErrorDetails?.BUFFER_STALLED_ERROR;
       const isBufferSeekOverError = data?.details === 'bufferSeekOver' || data?.details === Hls.ErrorDetails?.BUFFER_SEEK_OVER;
+      const isBufferSeekOverHole = data?.details === 'bufferSeekOverHole' || data?.details === Hls.ErrorDetails?.BUFFER_SEEK_OVER;
+      const isBufferNudgeOnStall = data?.details === 'bufferNudgeOnStall' || data?.details === 'bufferNudgeOnStall';
+      const isFragLoadError = data?.details === 'fragLoadError' || data?.details === Hls.ErrorDetails?.FRAG_LOAD_ERROR;
       const isLevelLoadError = data?.details === 'levelLoadError' || data?.details === Hls.ErrorDetails?.LEVEL_LOAD_ERROR;
+      const isLevelLoadTimeout = data?.details === 'LevelLoadTimeout' || data?.details === 'levelLoadTimeout';
       const isServerError = data?.response?.code === 500 || data?.response?.code === 503;
       
-      // กรอง levelLoadError ที่เกิดจาก server error (500/503) - ไม่ต้อง log ซ้ำๆ
+      // กรอง non-fatal errors ที่ไม่สำคัญ - ไม่ต้อง log ซ้ำๆ
       const shouldIgnore = !data?.fatal && (
         isBufferStallError || 
-        isBufferSeekOverError || 
-        (isLevelLoadError && isServerError)
+        isBufferSeekOverError ||
+        isBufferSeekOverHole ||
+        isBufferNudgeOnStall ||
+        (isFragLoadError && isServerError) || // fragLoadError จาก server error (500) ไม่ต้อง log
+        (isLevelLoadError && isServerError) ||
+        (isLevelLoadTimeout && !isServerError) // LevelLoadTimeout ที่ไม่ใช่ server error เป็น transient error
       );
       
       // Log เฉพาะ fatal errors หรือ errors ที่สำคัญ (ไม่ใช่ errors ที่ ignore)
@@ -137,7 +146,52 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
         };
         
         if (data?.fatal) {
-          console.error("[StreamPlayer] Fatal HLS error:", errorDetails);
+          // Log fatal error พร้อม details ทั้งหมด
+          // ตรวจสอบว่า data object มีข้อมูลหรือไม่
+          if (!data || Object.keys(data).length === 0) {
+            console.error("[StreamPlayer] Fatal HLS error: Empty error object received");
+            console.error("[StreamPlayer] Event object:", event);
+            console.error("[StreamPlayer] Full error data:", data);
+          } else {
+            const errorInfo: any = {};
+            
+            // เก็บข้อมูลทีละ field เพื่อหลีกเลี่ยงปัญหา circular reference
+            if (data.type !== undefined) errorInfo.type = data.type;
+            if (data.details !== undefined) errorInfo.details = data.details;
+            if (data.fatal !== undefined) errorInfo.fatal = data.fatal;
+            if (data.url !== undefined) errorInfo.url = data.url;
+            if (data.code !== undefined) errorInfo.code = data.code;
+            if (data.message !== undefined) errorInfo.message = data.message;
+            if (data.reason !== undefined) errorInfo.reason = data.reason;
+            
+            // เก็บ response object แบบระมัดระวัง
+            if (data.response) {
+              errorInfo.response = {
+                code: data.response.code,
+                text: data.response.text,
+                url: data.response.url,
+              };
+            }
+            
+            // เก็บ context object แบบระมัดระวัง
+            if (data.context) {
+              errorInfo.context = {
+                type: data.context.type,
+                id: data.context.id,
+                level: data.context.level,
+                url: data.context.url,
+              };
+            }
+            
+            console.error("[StreamPlayer] Fatal HLS error:", errorInfo);
+            
+            // Log raw data object ด้วย (อาจมี circular reference)
+            try {
+              console.error("[StreamPlayer] Raw error data:", data);
+            } catch (err) {
+              console.error("[StreamPlayer] Cannot log raw data (circular reference?)");
+            }
+          }
         } else if (isLevelLoadError && isServerError) {
           // Log เฉพาะครั้งแรกเมื่อเกิด server error
           console.warn("[StreamPlayer] Server error (500/503) - HLS stream may not be ready yet");
@@ -151,25 +205,74 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
             // ถ้าเป็น server error (500/503) อาจเป็นเพราะ stream ยังไม่พร้อม
-            const isServerError = data?.response?.code === 500 || data?.response?.code === 503;
+            const isServerError = data?.response?.code === 500 || data?.response?.code === 503 || data?.response?.code === 404;
             const isLevelLoadError = data?.details === 'levelLoadError' || data?.details === Hls.ErrorDetails?.LEVEL_LOAD_ERROR;
+            const isManifestLoadError = data?.details === 'manifestLoadError' || data?.details === Hls.ErrorDetails?.MANIFEST_LOAD_ERROR;
             
-            if (isLevelLoadError && isServerError) {
-              // Server error - รอสักครู่แล้ว retry (stream อาจยังไม่พร้อม)
-              console.warn(`[StreamPlayer] Server error (${data?.response?.code}) - retrying in 3 seconds...`);
-              setTimeout(() => {
-                if (hlsRef.current) {
+            // Log network error details
+            const responseCode = data?.response?.code;
+            const responseText = data?.response?.text;
+            const isEmptyResponse = !responseCode && !responseText; // ERR_EMPTY_RESPONSE
+            
+            console.error("[StreamPlayer] Fatal network error:", {
+              details: data?.details,
+              url: data?.url,
+              responseCode: responseCode,
+              responseText: responseText,
+              isEmptyResponse: isEmptyResponse,
+              context: data?.context,
+            });
+            
+            if ((isLevelLoadError || isManifestLoadError) && (isServerError || isEmptyResponse)) {
+              // Server error (500/503/404) หรือ Empty Response - รอสักครู่แล้ว retry
+              const retryAfter = isEmptyResponse ? 5 : (responseCode === 503 ? 3 : 2);
+              
+              if (isEmptyResponse) {
+                console.warn(`[StreamPlayer] Empty response error - retrying in ${retryAfter} seconds...`);
+                setErrorMessage("Connection error. Retrying...");
+              } else {
+                console.warn(`[StreamPlayer] Server error (${responseCode}) - retrying in ${retryAfter} seconds...`);
+                setErrorMessage(`Server error (${responseCode}). Retrying...`);
+              }
+              
+              // Clear timeout เดิมถ้ามี
+              if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current);
+              }
+              
+              retryTimeoutRef.current = setTimeout(() => {
+                if (hlsRef.current && videoRef.current) {
                   try {
                     if (!hlsRef.current.media) {
+                      console.log("[StreamPlayer] Retrying: loading source");
                       hlsRef.current.loadSource(hlsUrl);
                     } else {
+                      console.log("[StreamPlayer] Retrying: starting load");
                       hlsRef.current.startLoad();
                     }
                   } catch (err) {
                     console.error("[StreamPlayer] Retry failed:", err);
+                    // ถ้า retry ล้มเหลว ให้ลองอีกครั้งหลังจาก delay นานขึ้น
+                    setTimeout(() => {
+                      if (hlsRef.current) {
+                        try {
+                          if (!hlsRef.current.media) {
+                            hlsRef.current.loadSource(hlsUrl);
+                          } else {
+                            hlsRef.current.startLoad();
+                          }
+                        } catch (retryErr) {
+                          console.error("[StreamPlayer] Second retry failed:", retryErr);
+                          setError(true);
+                          setErrorMessage("Failed to recover from network error");
+                          onError?.();
+                        }
+                      }
+                    }, 5000);
                   }
                 }
-              }, 3000);
+                retryTimeoutRef.current = null;
+              }, retryAfter * 1000);
             } else {
               // Network error อื่นๆ
               console.error("[StreamPlayer] Network error, trying to recover");
@@ -187,6 +290,9 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
                     }
                   } catch (err) {
                     console.error("[StreamPlayer] Retry failed:", err);
+                    setError(true);
+                    setErrorMessage("Failed to recover from network error");
+                    onError?.();
                   }
                 }
               }, 2000);
@@ -214,9 +320,22 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
             }
             break;
           default:
-            console.error("[StreamPlayer] Fatal error, cannot recover:", data?.type);
+            console.error("[StreamPlayer] Fatal error, cannot recover:", {
+              type: data?.type,
+              details: data?.details,
+              url: data?.url,
+              code: data?.code,
+              message: data?.message,
+              response: data?.response,
+              context: data?.context,
+              error: data?.error,
+              reason: data?.reason,
+              err: data?.err,
+              fullData: data,
+            });
             setError(true);
-            setErrorMessage(`Fatal error: ${data?.type || 'Unknown'} - ${data?.details || ''}`);
+            const errorMsg = data?.details || data?.message || data?.reason || data?.type || 'Unknown error';
+            setErrorMessage(`Fatal error: ${errorMsg}`);
             try {
               hls.destroy();
             } catch (err) {
@@ -227,8 +346,8 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
         }
       } else {
         // จัดการ non-fatal errors ที่สำคัญ
-        if (isBufferStallError) {
-          // bufferStalledError - ลอง recover โดยไม่ต้อง log
+        if (isBufferStallError || isBufferNudgeOnStall) {
+          // bufferStalledError หรือ bufferNudgeOnStall - ลอง recover โดยไม่ต้อง log
           try {
             const video = videoRef.current;
             if (video && video.readyState >= 2) {
@@ -246,12 +365,39 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
               }
             }
           } catch (err) {
-            // Silent fail สำหรับ buffer stall recovery
+            // Silent fail สำหรับ buffer recovery
+          }
+        } else if (isBufferSeekOverHole) {
+          // bufferSeekOverHole - ลอง startLoad เพื่อ skip hole
+          try {
+            if (hlsRef.current) {
+              hlsRef.current.startLoad();
+            }
+          } catch (err) {
+            // Silent fail
+          }
+        } else if (isFragLoadError && isServerError) {
+          // fragLoadError จาก server error (500/404) - ลอง retry หลังจาก delay
+          try {
+            setTimeout(() => {
+              if (hlsRef.current) {
+                hlsRef.current.startLoad();
+              }
+            }, 1000); // รอ 1 วินาทีแล้ว retry
+          } catch (err) {
+            // Silent fail
+          }
+        } else if (isLevelLoadTimeout && !isServerError) {
+          // LevelLoadTimeout ที่ไม่ใช่ server error - ลอง retry
+          try {
+            if (hlsRef.current) {
+              hlsRef.current.startLoad();
+            }
+          } catch (err) {
+            // Silent fail
           }
         } else if (isLevelLoadError && isServerError) {
           // levelLoadError จาก server error (500/503) - ไม่ต้องทำอะไร เพราะ HLS.js จะ retry อัตโนมัติ
-          // แต่ถ้า retry หลายครั้งแล้วยังไม่ได้ อาจต้อง reload
-          // (HLS.js จะจัดการ retry เอง)
         }
       }
     });
@@ -285,6 +431,10 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
 
     // Cleanup
     return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
       if (hlsRef.current) {
         console.log("[StreamPlayer] Cleaning up HLS instance");
         hlsRef.current.destroy();

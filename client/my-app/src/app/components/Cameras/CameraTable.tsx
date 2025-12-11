@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import StreamPlayer from "./StreamPlayer";
+import LazyStreamPlayer from "./LazyStreamPlayer";
 import { apiUrl } from "@/lib/api";
 
 type SortKey = "id" | "name" | "status" | "location" | "type" | "maintenance";
@@ -56,11 +56,12 @@ function CameraPreviewCell({ cam }: { cam: Camera }) {
   return (
     <div className="relative w-24 h-16 rounded overflow-hidden bg-gray-100">
       {isOnline && isRtsp && !webrtcFailed ? (
-        <StreamPlayer
+        <LazyStreamPlayer
           key={cam.camera_id}
           streamUrl={apiUrl(`api/cameras/${cam.camera_id}/hls/stream.m3u8`)}
           onError={() => setWebrtcFailed(true)}
           className="absolute inset-0 h-full w-full object-cover"
+          rootMargin="50px" // โหลดล่วงหน้า 50px สำหรับ table view (เล็กกว่า grid)
         />
       ) : isOnline ? (
         <Image
