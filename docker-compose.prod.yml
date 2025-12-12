@@ -54,7 +54,7 @@ services:
       - DATABASE_HOST=postgres
       - POSTGRES_PORT=5432
       - PORT=8066
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8060}
+      - FRONTEND_URL=${FRONTEND_URL:-http://203.154.2.149:8060}
     working_dir: /app
     command: npm run start
     depends_on:
