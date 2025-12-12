@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useUI } from "./UI-Provider";
+import { useUI } from "./ui-provider";
 
 /** hook: ตรวจขนาดจอ */
 function useMediaQuery(query: string) {
@@ -61,9 +61,9 @@ export default function Sidebar() {
   // คลาสตำแหน่งของ aside
   const positionClass = mobileOpen
     ? // มือถือเปิด: overlay ทับ content ทั้งหมด (ไม่ทับ header สูง ~56px)
-      "fixed inset-x-0 top-14 bottom-0 z-50 w-full shadow-xl"
+    "fixed inset-x-0 top-14 bottom-0 z-50 w-full shadow-xl"
     : // ปกติ/เดสก์ท็อป: แปะใต้ header และเลื่อนตามหน้า
-      "sticky top-14 md:top-16 z-40 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] " + desktopW;
+    "sticky top-14 md:top-16 z-40 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] " + desktopW;
 
   // ถ้ามือถือและพับอยู่ → ไม่ต้องแสดงเลย
   if (isMobile && collapsed) return null;

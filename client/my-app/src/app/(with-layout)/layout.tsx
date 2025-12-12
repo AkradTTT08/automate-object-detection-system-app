@@ -1,7 +1,7 @@
 import "../../styles/globals.css";
 import Sidebar from "../components/Layouts/SideBar";
 import Header from "../components/Layouts/Header";
-import { UIProvider } from "../components/Layouts/UI-Provider";
+import { UIProvider } from "../components/Layouts/ui-provider";
 import Title from "../components/Layouts/Title";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Sidebar />
             <main className="flex-1 min-w-0 p-4 md:p-6 space-y-6">
               <Title />
-                {children}
+              {children}
             </main>
           </div>
         </UIProvider>
