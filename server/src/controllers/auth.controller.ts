@@ -22,7 +22,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-secret';
 
 const cookieBase = {
   httpOnly: true,
-  secure: isProd,
+  secure: process.env.COOKIE_SECURE === 'true', // Only use secure cookies if explicitly enabled (for HTTPS)
   sameSite: COOKIE_SAMESITE,
   path: '/',
   domain: COOKIE_DOMAIN,
