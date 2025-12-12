@@ -70,13 +70,13 @@ services:
       context: ./client/my-app
       dockerfile: Dockerfile.prod
       args:
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:8066}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://203.154.2.149:8066}
     container_name: aods-client-prod
     ports:
       - "8060:8060"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:8066}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://203.154.2.149:8066}
     working_dir: /app
     command: npm run start -- -p 8060
     depends_on:
