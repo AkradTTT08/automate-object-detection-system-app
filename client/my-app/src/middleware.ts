@@ -16,6 +16,8 @@ export function middleware(req: NextRequest) {
   if (isPublic(pathname)) return NextResponse.next();
 
   const token = req.cookies.get("access_token")?.value;
+  console.log(`[Middleware] Path: ${pathname}, Token present: ${!!token}, Cookies: ${req.cookies.getAll().map(c => c.name).join(', ')}`);
+
 
   // 1) ถ้าเข้า /login แล้วมี token -> เด้งออก
   if (pathname === "/login") {

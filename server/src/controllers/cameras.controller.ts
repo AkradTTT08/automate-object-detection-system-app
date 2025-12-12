@@ -654,16 +654,16 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
                 console.error(`[HLS] Failed to start stream for camera ${camId}:`, err);
                 return res.status(500).json({ error: `Failed to start HLS stream: ${err?.message || 'Unknown error'}` });
             }
-            
+
             // รอให้ m3u8 file ถูกสร้าง (ลองหลายครั้ง)
             const m3u8Path = hlsService.getM3u8Path(camId);
             let attempts = 0;
             const maxAttempts = 20; // 20 attempts = 10 seconds (เพิ่มเวลาให้ FFmpeg เริ่มต้น)
-            
+
             while (attempts < maxAttempts && !fs.existsSync(m3u8Path)) {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 attempts++;
-                
+
                 // ตรวจสอบว่า FFmpeg process ยังทำงานอยู่หรือไม่
                 if (!hlsService.isStreaming(camId)) {
                     console.error(`[HLS] FFmpeg process died for camera ${camId} before m3u8 was created`);
@@ -682,7 +682,7 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
         }
 
         const m3u8Path = hlsService.getM3u8Path(camId);
-        
+
         // ตรวจสอบว่า stream ยังทำงานอยู่หรือไม่
         if (!hlsService.isStreaming(camId)) {
             console.warn(`[HLS] Stream not running for camera ${camId}, attempting to restart...`);
@@ -699,19 +699,19 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
                 console.error(`[HLS] Failed to restart stream for camera ${camId}:`, restartErr);
             }
         }
-        
+
         if (!fs.existsSync(m3u8Path)) {
             console.warn(`[HLS] m3u8 file not found for camera ${camId} after waiting`);
             // ถ้า stream ยังทำงานอยู่ ให้ return 503 เพื่อให้ client retry
             if (hlsService.isStreaming(camId)) {
-                return res.status(503).json({ 
+                return res.status(503).json({
                     error: "HLS stream is initializing. Please retry in a few seconds.",
-                    retryAfter: 3 
+                    retryAfter: 3
                 });
             } else {
-                return res.status(503).json({ 
+                return res.status(503).json({
                     error: "HLS stream not available. Please check camera connection.",
-                    retryAfter: 5 
+                    retryAfter: 5
                 });
             }
         }
@@ -724,19 +724,19 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
             console.error(`[HLS] Failed to stat m3u8 file for camera ${camId}:`, statErr);
             return res.status(503).json({ error: "HLS playlist file is not accessible. Please try again." });
         }
-        
+
         if (stats.size === 0) {
             console.warn(`[HLS] m3u8 file is empty for camera ${camId}`);
             // ถ้า stream ยังทำงานอยู่ ให้ return 503 เพื่อให้ client retry
             if (hlsService.isStreaming(camId)) {
-                return res.status(503).json({ 
+                return res.status(503).json({
                     error: "HLS stream is still initializing. Please try again in a few seconds.",
-                    retryAfter: 2 
+                    retryAfter: 2
                 });
             } else {
-                return res.status(503).json({ 
+                return res.status(503).json({
                     error: "HLS stream process stopped. Please try again.",
-                    retryAfter: 5 
+                    retryAfter: 5
                 });
             }
         }
@@ -744,39 +744,39 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
         res.setHeader("Content-Type", "application/vnd.apple.mpegurl");
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.setHeader("Pragma", "no-cache");
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        
+        // res.setHeader("Access-Control-Allow-Origin", "*");
+
         try {
             const m3u8Content = fs.readFileSync(m3u8Path, "utf-8");
-            
+
             // ตรวจสอบว่า content ไม่ว่างเปล่า
             if (!m3u8Content || m3u8Content.trim().length === 0) {
                 console.warn(`[HLS] m3u8 file is empty for camera ${camId}`);
                 if (hlsService.isStreaming(camId)) {
-                    return res.status(503).json({ 
+                    return res.status(503).json({
                         error: "HLS playlist is empty. Stream is still initializing.",
-                        retryAfter: 2 
+                        retryAfter: 2
                     });
                 } else {
-                    return res.status(503).json({ 
+                    return res.status(503).json({
                         error: "HLS stream stopped. Please try again.",
-                        retryAfter: 5 
+                        retryAfter: 5
                     });
                 }
             }
-            
+
             // แก้ไข path ใน m3u8 ให้ชี้ไปที่ API endpoint
             const modifiedContent = m3u8Content.replace(
                 /segment_(\d+\.ts)/g,
                 `/api/cameras/${camId}/hls/segment_$1`
             );
-            
+
             // ตรวจสอบว่า response ยังไม่ได้ถูกส่ง
             if (!res.headersSent) {
                 res.setHeader("Content-Type", "application/vnd.apple.mpegurl");
                 res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                 res.setHeader("Pragma", "no-cache");
-                res.setHeader("Access-Control-Allow-Origin", "*");
+                // res.setHeader("Access-Control-Allow-Origin", "*");
                 res.setHeader("Content-Length", Buffer.byteLength(modifiedContent, "utf-8"));
                 res.send(modifiedContent);
             }
@@ -804,7 +804,7 @@ export async function getHlsSegment(req: Request, res: Response, next: NextFunct
     try {
         const camId = Number(req.params.cam_id);
         const segmentName = req.params.segment;
-        
+
         if (!camId || !segmentName) {
             return res.status(400).json({ error: "cam_id and segment required" });
         }
@@ -816,7 +816,7 @@ export async function getHlsSegment(req: Request, res: Response, next: NextFunct
         }
 
         const segmentPath = hlsService.getSegmentPath(camId, segmentName);
-        
+
         // ตรวจสอบว่า segment file มีอยู่หรือไม่
         if (!fs.existsSync(segmentPath)) {
             // Segment อาจยังไม่ถูกสร้าง (FFmpeg กำลังสร้างอยู่) หรือถูกลบไปแล้ว
@@ -834,12 +834,12 @@ export async function getHlsSegment(req: Request, res: Response, next: NextFunct
         // อ่านและส่ง segment file
         try {
             const segmentContent = fs.readFileSync(segmentPath);
-            
+
             res.setHeader("Content-Type", "video/mp2t");
             res.setHeader("Content-Length", segmentContent.length);
             res.setHeader("Cache-Control", "public, max-age=3600");
-            res.setHeader("Access-Control-Allow-Origin", "*");
-            
+            // res.setHeader("Access-Control-Allow-Origin", "*");
+
             res.send(segmentContent);
         } catch (readErr: any) {
             console.error(`[HLS] Failed to read segment file ${segmentName} for camera ${camId}:`, readErr);

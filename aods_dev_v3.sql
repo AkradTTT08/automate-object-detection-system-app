@@ -1,8 +1,7 @@
--- -- ถ้า schema ยังไม่มี ให้สร้างก่อน
--- CREATE SCHEMA IF NOT EXISTS aods_dev_v2;
+-- ถ้า schema ยังไม่มี ให้สร้างก่อน
+CREATE SCHEMA IF NOT EXISTS aods_dev_v3;
 
 -- ตั้ง search_path (เฉพาะ session/connection นี้)
--- SET search_path TO aods_dev_v2;
 SET search_path TO aods_dev_v3;
 
 -- ============================================================
@@ -1175,3 +1174,21 @@ INSERT INTO maintenance_history (
   (8, '2025-10-17', 'repair', 'Technician H', 'เปลี่ยน adapter กล้อง Server Room Cam 02'),
   (9, '2025-10-18', 'routine check', 'Technician I', 'ตรวจเช็คเลนส์และโฟกัสกล้อง Warehouse Exit Cam 01'),
   (10,'2025-10-19', 'installation', 'Technician J', 'ติดตั้งกล้อง Warehouse Exit Cam 02 ใหม่หลังซ่อมบำรุง');
+
+-- ============================================================
+-- INITIAL DATA: ROLES & USERS
+-- ============================================================
+
+-- Create Admin Role
+INSERT INTO roles (rol_name, rol_access_level) VALUES ('admin', 99) ON CONFLICT (rol_name) DO NOTHING;
+
+-- Create Admin User (admin2025 / admin2025)
+INSERT INTO users (usr_username, usr_password, usr_email, usr_rol_id, usr_name, usr_is_use)
+VALUES (
+    'admin2025',
+    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYq5q5q5q5q',
+    'admin2025@example.com',
+    (SELECT rol_id FROM roles WHERE rol_name = 'admin'),
+    'Admin 2025',
+    TRUE
+) ON CONFLICT (usr_username) DO NOTHING;

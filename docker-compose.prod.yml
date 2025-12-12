@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "8004:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
       - ./aods_dev_v3.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -20,7 +20,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
+    networks:
+      - aods-network-prod
+
+  # PgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: aods-pgadmin-prod
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "8005:80"
+    volumes:
+      - pgadmin_data_prod:/var/lib/pgadmin
+    restart: always
     networks:
       - aods-network-prod
 
@@ -28,7 +43,7 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: aods-server-prod
     ports:
       - "8066:8066"
@@ -45,7 +60,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
+    restart: always
     networks:
       - aods-network-prod
 
@@ -53,7 +68,7 @@ services:
   next-app:
     build:
       context: ./client/my-app
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: aods-client-prod
     ports:
       - "8060:8060"
@@ -64,12 +79,13 @@ services:
     command: npm run start -- -p 8060
     depends_on:
       - server
-    restart: unless-stopped
+    restart: always
     networks:
       - aods-network-prod
 
 volumes:
   postgres_data_prod:
+  pgadmin_data_prod:
 
 networks:
   aods-network-prod:

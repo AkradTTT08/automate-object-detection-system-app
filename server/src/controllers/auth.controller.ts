@@ -59,6 +59,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     // ⬇️ ตั้งอายุคุกกี้ตาม remember
     const maxAge = !!remember ? COOKIE_MAX_AGE_REMEMBER_MS : COOKIE_MAX_AGE_MS;
     // const maxAge = !!remember ? COOKIE_MAX_AGE_TEST_MS : COOKIE_MAX_AGE_MS; // ⬅️ สำหรับทดสอบ
+    console.log(`[Auth] Setting cookie: ${COOKIE_NAME}, Secure: ${cookieBase.secure}, SameSite: ${cookieBase.sameSite}, Path: ${cookieBase.path}`);
     res.cookie(COOKIE_NAME, token, { ...cookieBase, maxAge });
 
     return res.json({ message: 'Login successful', success: true, user, token });
@@ -209,23 +210,23 @@ export async function recheckPassword(req: Request, res: Response) {
 }
 
 interface AuthRequest extends Request {
-    user?: string | JwtPayload;
+  user?: string | JwtPayload;
 }
 
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(" ")[1];
-    
-    if(!token){
-        return res.status(401).json({ message: "Authorization token is missing" });
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Authorization token is missing" });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decode) => {
+    if (err) {
+      return res.status(403).json({ message: "Access denied. Invalid token" });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, decode) => {
-        if(err) {
-            return res.status(403).json({ message: "Access denied. Invalid token" });
-        }
-
-        req.user = decode as string;;
-        next();
-    });
+    req.user = decode as string;;
+    next();
+  });
 }

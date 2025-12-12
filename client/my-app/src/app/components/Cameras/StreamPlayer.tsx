@@ -90,10 +90,10 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
           }, { once: true });
         }
       };
-      
+
       tryPlay();
     });
-    
+
     // เพิ่ม event listener สำหรับ buffer management
     hls.on(Hls.Events.BUFFER_APPENDING, () => {
       // Clear error เมื่อ buffer กำลัง append
@@ -102,7 +102,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
         setErrorMessage(null);
       }
     });
-    
+
     hls.on(Hls.Events.BUFFER_APPENDED, () => {
       // Clear error เมื่อ buffer append สำเร็จ
       if (error) {
@@ -121,10 +121,10 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
       const isLevelLoadError = data?.details === 'levelLoadError' || data?.details === Hls.ErrorDetails?.LEVEL_LOAD_ERROR;
       const isLevelLoadTimeout = data?.details === 'LevelLoadTimeout' || data?.details === 'levelLoadTimeout';
       const isServerError = data?.response?.code === 500 || data?.response?.code === 503;
-      
+
       // กรอง non-fatal errors ที่ไม่สำคัญ - ไม่ต้อง log ซ้ำๆ
       const shouldIgnore = !data?.fatal && (
-        isBufferStallError || 
+        isBufferStallError ||
         isBufferSeekOverError ||
         isBufferSeekOverHole ||
         isBufferNudgeOnStall ||
@@ -132,7 +132,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
         (isLevelLoadError && isServerError) ||
         (isLevelLoadTimeout && !isServerError) // LevelLoadTimeout ที่ไม่ใช่ server error เป็น transient error
       );
-      
+
       // Log เฉพาะ fatal errors หรือ errors ที่สำคัญ (ไม่ใช่ errors ที่ ignore)
       if (!shouldIgnore) {
         const errorDetails = {
@@ -144,7 +144,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
           message: data?.message,
           response: data?.response,
         };
-        
+
         if (data?.fatal) {
           // Log fatal error พร้อม details ทั้งหมด
           // ตรวจสอบว่า data object มีข้อมูลหรือไม่
@@ -154,7 +154,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
             console.error("[StreamPlayer] Full error data:", data);
           } else {
             const errorInfo: any = {};
-            
+
             // เก็บข้อมูลทีละ field เพื่อหลีกเลี่ยงปัญหา circular reference
             if (data.type !== undefined) errorInfo.type = data.type;
             if (data.details !== undefined) errorInfo.details = data.details;
@@ -163,7 +163,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
             if (data.code !== undefined) errorInfo.code = data.code;
             if (data.message !== undefined) errorInfo.message = data.message;
             if (data.reason !== undefined) errorInfo.reason = data.reason;
-            
+
             // เก็บ response object แบบระมัดระวัง
             if (data.response) {
               errorInfo.response = {
@@ -172,7 +172,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
                 url: data.response.url,
               };
             }
-            
+
             // เก็บ context object แบบระมัดระวัง
             if (data.context) {
               errorInfo.context = {
@@ -182,9 +182,9 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
                 url: data.context.url,
               };
             }
-            
+
             console.error("[StreamPlayer] Fatal HLS error:", errorInfo);
-            
+
             // Log raw data object ด้วย (อาจมี circular reference)
             try {
               console.error("[StreamPlayer] Raw error data:", data);
@@ -200,7 +200,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
           console.warn("[StreamPlayer] Non-fatal HLS error:", errorDetails);
         }
       }
-      
+
       if (data?.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
@@ -208,12 +208,12 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
             const isServerError = data?.response?.code === 500 || data?.response?.code === 503 || data?.response?.code === 404;
             const isLevelLoadError = data?.details === 'levelLoadError' || data?.details === Hls.ErrorDetails?.LEVEL_LOAD_ERROR;
             const isManifestLoadError = data?.details === 'manifestLoadError' || data?.details === Hls.ErrorDetails?.MANIFEST_LOAD_ERROR;
-            
+
             // Log network error details
             const responseCode = data?.response?.code;
             const responseText = data?.response?.text;
             const isEmptyResponse = !responseCode && !responseText; // ERR_EMPTY_RESPONSE
-            
+
             console.error("[StreamPlayer] Fatal network error:", {
               details: data?.details,
               url: data?.url,
@@ -222,11 +222,11 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
               isEmptyResponse: isEmptyResponse,
               context: data?.context,
             });
-            
+
             if ((isLevelLoadError || isManifestLoadError) && (isServerError || isEmptyResponse)) {
               // Server error (500/503/404) หรือ Empty Response - รอสักครู่แล้ว retry
               const retryAfter = isEmptyResponse ? 5 : (responseCode === 503 ? 3 : 2);
-              
+
               if (isEmptyResponse) {
                 console.warn(`[StreamPlayer] Empty response error - retrying in ${retryAfter} seconds...`);
                 setErrorMessage("Connection error. Retrying...");
@@ -234,12 +234,12 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
                 console.warn(`[StreamPlayer] Server error (${responseCode}) - retrying in ${retryAfter} seconds...`);
                 setErrorMessage(`Server error (${responseCode}). Retrying...`);
               }
-              
+
               // Clear timeout เดิมถ้ามี
               if (retryTimeoutRef.current) {
                 clearTimeout(retryTimeoutRef.current);
               }
-              
+
               retryTimeoutRef.current = setTimeout(() => {
                 if (hlsRef.current && videoRef.current) {
                   try {
@@ -437,7 +437,11 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
       }
       if (hlsRef.current) {
         console.log("[StreamPlayer] Cleaning up HLS instance");
-        hlsRef.current.destroy();
+        try {
+          hlsRef.current.destroy();
+        } catch (e) {
+          console.error("[StreamPlayer] Error destroying HLS instance:", e);
+        }
         hlsRef.current = null;
       }
     };

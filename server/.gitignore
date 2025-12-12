@@ -1,4 +1,3 @@
 node_modules/
 hls/
 *.m3u8
-*.ts

@@ -1,0 +1,32 @@
+# Build Stage
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# Production Stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+# Copy next.config.ts if it exists, otherwise it might be needed for standalone mode or config
+COPY --from=builder /app/next.config.ts ./next.config.ts
+
+EXPOSE 8060
+
+CMD ["npm", "run", "start", "--", "-p", "8060"]
