@@ -1,5 +1,5 @@
 "use client";
 
 export default function Page() {
-  throw new Error("Force 500");
+  return <div>Test Page</div>;
 }
