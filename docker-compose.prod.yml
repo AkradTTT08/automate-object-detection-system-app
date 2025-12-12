@@ -69,6 +69,8 @@ services:
     build:
       context: ./client/my-app
       dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:8066}
     container_name: aods-client-prod
     ports:
       - "8060:8060"
