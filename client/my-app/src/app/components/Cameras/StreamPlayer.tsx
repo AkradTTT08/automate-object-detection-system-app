@@ -114,8 +114,8 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
     hls.on(Hls.Events.ERROR, (event: any, data: any) => {
       // กรอง non-fatal errors ที่ไม่สำคัญ
       const isBufferStallError = data?.details === 'bufferStalledError' || data?.details === Hls.ErrorDetails?.BUFFER_STALLED_ERROR;
-      const isBufferSeekOverError = data?.details === 'bufferSeekOver' || data?.details === Hls.ErrorDetails?.BUFFER_SEEK_OVER;
-      const isBufferSeekOverHole = data?.details === 'bufferSeekOverHole' || data?.details === Hls.ErrorDetails?.BUFFER_SEEK_OVER;
+      const isBufferSeekOverError = data?.details === 'bufferSeekOver';
+      const isBufferSeekOverHole = data?.details === 'bufferSeekOverHole' || data?.details === Hls.ErrorDetails?.BUFFER_SEEK_OVER_HOLE;
       const isBufferNudgeOnStall = data?.details === 'bufferNudgeOnStall' || data?.details === 'bufferNudgeOnStall';
       const isFragLoadError = data?.details === 'fragLoadError' || data?.details === Hls.ErrorDetails?.FRAG_LOAD_ERROR;
       const isLevelLoadError = data?.details === 'levelLoadError' || data?.details === Hls.ErrorDetails?.LEVEL_LOAD_ERROR;
