@@ -658,7 +658,7 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
             // รอให้ m3u8 file ถูกสร้าง (ลองหลายครั้ง)
             const m3u8Path = hlsService.getM3u8Path(camId);
             let attempts = 0;
-            const maxAttempts = 20; // 20 attempts = 10 seconds (เพิ่มเวลาให้ FFmpeg เริ่มต้น)
+            const maxAttempts = 60; // 60 attempts = 30 seconds (เพิ่มเวลาให้ FFmpeg เริ่มต้น)
 
             while (attempts < maxAttempts && !fs.existsSync(m3u8Path)) {
                 await new Promise(resolve => setTimeout(resolve, 500));

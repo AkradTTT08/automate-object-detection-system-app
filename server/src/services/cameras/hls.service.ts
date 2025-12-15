@@ -34,7 +34,7 @@ export class HlsService {
   startHlsStream(cameraId: number, rtspUrl: string, opts: HlsOptions = {}) {
     const {
       gop = Number(process.env.FF_GOP || 30),
-      stimeoutMs = Number(process.env.FF_STIMEOUT_MS || 5000),
+      stimeoutMs = Number(process.env.FF_STIMEOUT_MS || 15000),
       hlsTime = 2, // 2 seconds per segment
       hlsListSize = 5, // Keep 5 segments
     } = opts;
@@ -161,13 +161,13 @@ export class HlsService {
   isStreaming(cameraId: number): boolean {
     const ff = this.streams.get(cameraId);
     if (!ff) return false;
-    
+
     // ตรวจสอบว่า process ยังทำงานอยู่
     if (ff.killed) {
       this.streams.delete(cameraId);
       return false;
     }
-    
+
     // ตรวจสอบว่า process ยังมีอยู่ (ใช้ signal 0)
     if (ff.pid) {
       try {
@@ -184,7 +184,7 @@ export class HlsService {
         return true;
       }
     }
-    
+
     // ถ้าไม่มี pid ให้ตรวจสอบ killed flag เท่านั้น
     return !ff.killed;
   }
