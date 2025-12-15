@@ -709,8 +709,10 @@ export async function getHlsPlaylist(req: Request, res: Response, next: NextFunc
                     retryAfter: 3
                 });
             } else {
+                const lastError = hlsService.getLastError(camId);
                 return res.status(503).json({
                     error: "HLS stream not available. Please check camera connection.",
+                    details: lastError,
                     retryAfter: 5
                 });
             }

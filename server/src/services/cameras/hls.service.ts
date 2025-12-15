@@ -15,6 +15,7 @@ export type HlsOptions = {
 
 export class HlsService {
   private streams: Map<number, ChildProcess> = new Map();
+  private lastErrors: Map<number, string> = new Map();
   private hlsDir: string;
 
   constructor() {
@@ -41,6 +42,9 @@ export class HlsService {
 
     // หยุด stream เดิมถ้ามี
     this.stopHlsStream(cameraId);
+
+    // Clear last error
+    this.lastErrors.delete(cameraId);
 
     const hlsPath = path.join(this.hlsDir, `camera_${cameraId}`);
     const m3u8Path = path.join(hlsPath, "stream.m3u8");
@@ -96,8 +100,9 @@ export class HlsService {
 
     ff.stderr.on("data", (d) => {
       const msg = d.toString();
-      if (msg.includes("error") || msg.includes("Error") || msg.includes("failed")) {
+      if (msg.includes("error") || msg.includes("Error") || msg.includes("failed") || msg.includes("Connection refused") || msg.includes("401 Unauthorized")) {
         console.error(`[HLS] Camera ${cameraId} error:`, msg.trim());
+        this.lastErrors.set(cameraId, msg.trim());
       } else if (msg.includes("Stream #0") || msg.includes("frame=")) {
         console.log(`[HLS] Camera ${cameraId}:`, msg.trim());
       }
@@ -201,6 +206,13 @@ export class HlsService {
    */
   getSegmentPath(cameraId: number, segmentName: string): string {
     return path.join(this.hlsDir, `camera_${cameraId}`, segmentName);
+  }
+
+  /**
+   * Get last error for camera
+   */
+  getLastError(cameraId: number): string | undefined {
+    return this.lastErrors.get(cameraId);
   }
 }
 
