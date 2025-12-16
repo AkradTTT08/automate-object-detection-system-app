@@ -8,7 +8,7 @@ export const app: Application = express();
 
 // CORS Configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:8060',
+  origin: process.env.FRONTEND_URL || 'http://localhost:8060' || 'http://203.154.2.149:8060',
   credentials: true, // สำคัญ: ต้องเป็น true เพื่อให้ cookie ทำงาน
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
