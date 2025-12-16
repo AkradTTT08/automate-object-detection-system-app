@@ -51,7 +51,7 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
       highBufferWatchdogPeriod: 2,
       nudgeOffset: 0.1,
       nudgeMaxRetry: 5, // เพิ่ม retry สำหรับ buffer recovery
-      maxFragLoadingTimeOut: 10000, // ลด timeout
+      fragLoadingTimeOut: 10000, // ลด timeout
       startFragPrefetch: false, // ปิด prefetch เพื่อลด buffer issues
       testBandwidth: false, // ปิด bandwidth test เพื่อลด network overhead
       progressive: false,
@@ -418,8 +418,8 @@ export default function StreamPlayer({ streamUrl, onError, className = "" }: Pro
       }
     });
 
-    hls.on(Hls.Events.FRAG_PARSING_DATA, () => {
-      // Clear error เมื่อเริ่ม parse fragment
+    hls.on(Hls.Events.FRAG_PARSED, () => {
+      // Clear error เมื่อ parse fragment สำเร็จ
       if (error) {
         setError(false);
         setErrorMessage(null);
